@@ -16,3 +16,8 @@ export interface Entry {
 	content: string;
 	published_at: string;
 }
+
+export interface EntrySearchResult {
+	total: number;
+	entries: Entry[];
+}

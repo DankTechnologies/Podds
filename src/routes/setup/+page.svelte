@@ -32,7 +32,7 @@
 			await db.settings.add(settings);
 		}
 
-		goto('/');
+		goto('/sync');
 	}
 
 	async function onTest() {

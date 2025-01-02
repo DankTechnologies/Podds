@@ -7,6 +7,7 @@
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { onMount } from 'svelte';
 
+	const standaloneRoutes = ['/setup', '/sync'];
 	let isPlaying = $state(false);
 
 	onMount(async () => {
@@ -22,7 +23,7 @@
 
 <main>
 	{@render children()}
-	{#if page.url.pathname !== '/setup'}
+	{#if !standaloneRoutes.includes(page.url.pathname)}
 		{#if isPlaying}
 			<Player />
 		{/if}

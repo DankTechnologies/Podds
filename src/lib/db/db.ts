@@ -12,7 +12,7 @@ interface Podcast {
 	title: string;
 	lastUpdatedAt?: Date;
 	newEpisodes: number;
-	icon: string;
+	icon: Blob;
 }
 
 interface Episode {
