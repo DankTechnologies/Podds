@@ -34,6 +34,7 @@
 	},
 	"dependencies": {
 		"@tailwindcss/forms": "^0.5.9",
-		"@tailwindcss/typography": "^0.5.15"
+		"@tailwindcss/typography": "^0.5.15",
+		"dexie": "^4.0.10"
 	}
 }
