@@ -25,11 +25,14 @@
             })));
         }))).flat();
 
-        const podcasts: Podcast[] = feeds.map(feed => ({
-            id: feed.id,
-            title: feed.title,
-            newEpisodes: 0,
-            icon: feed.icon
+        const podcasts: Podcast[] = await Promise.all(feeds.map(async feed => {
+            
+            return {
+                id: feed.id,
+                title: feed.title,
+                newEpisodes: 0,
+                icon: feed.icon
+            };
         }));
 
         await db.podcasts.bulkPut(podcasts);

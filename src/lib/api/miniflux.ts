@@ -1,4 +1,4 @@
-import type { Category, EntrySearchResult, Feed } from './types/miniflux';
+import type { Category, EntrySearchResult, Feed, FeedIconResult } from './types/miniflux';
 
 interface EntryOptions {
 	order?: string;
@@ -24,8 +24,9 @@ class MinifluxApi {
 		return this.fetchJSON<Feed[]>(`/v1/categories/${categoryId}/feeds`);
 	}
 
-	async fetchFeedIcon(feedId: number): Promise<Blob> {
-		return this.fetchBlob(`/v1/feeds/${feedId}/icon`);
+	async fetchFeedIcon(feedId: number): Promise<string> {
+		return this.fetchJSON<FeedIconResult>(`/v1/feeds/${feedId}/icon`)
+			.then(result => result.data);
 	}
 
 	async fetchEntriesForCategory(categoryId: number, options: EntryOptions = {} ): Promise<EntrySearchResult> {
@@ -55,21 +56,6 @@ class MinifluxApi {
 		return response.json();
 	}
 
-	private async fetchBlob(endpoint: string, options: RequestInit = {}): Promise<Blob> {
-		const response = await fetch(`${this.host}${endpoint}`, {
-			...options,
-			headers: {
-				'X-Auth-Token': this.apiKey,
-				...options.headers
-			}
-		});
-
-		if (!response.ok) {
-			throw new Error(`Error fetching ${endpoint}: ${response.statusText}`);
-		}
-
-		return response.blob();
-	}
 }
 
 export default MinifluxApi;
