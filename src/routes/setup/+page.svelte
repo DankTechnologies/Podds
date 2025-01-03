@@ -47,32 +47,69 @@
 	}
 </script>
 
-<div>
-	<div>
-		<label for="host">Host</label>
-		<input id="host" name="host" type="url" bind:value={host} />
-	</div>
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+	<div class="max-w-md w-full space-y-6 bg-white p-8 rounded-lg shadow-md">
+		<h1 class="text-2xl font-bold text-gray-900 text-center mb-6">Miniflux Setup</h1>
 
-	<div>
-		<label for="apiKey">API Key</label>
-		<input type="text" bind:value={apiKey} />
-	</div>
+		<div class="space-y-4">
+			<div class="flex flex-col">
+				<label for="host" class="text-sm font-medium text-gray-700 mb-1">Host</label>
+				<input 
+					id="host" 
+					name="host" 
+					type="url" 
+					bind:value={host}
+					class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				/>
+			</div>
 
-	<div>
-		<label for="categories">Categories</label>
-		<input id="categories" name="categories" bind:value={categories} />
-	</div>
+			<div class="flex flex-col">
+				<label for="apiKey" class="text-sm font-medium text-gray-700 mb-1">API Key</label>
+				<input 
+					type="text" 
+					bind:value={apiKey}
+					class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				/>
+			</div>
 
-	<div>
-		<button disabled={!tested} onclick={onSave}>{isUpdate ? 'Update' : 'Add'}</button>
-		<button onclick={onTest}>Test</button>
-	</div>
+			<div class="flex flex-col">
+				<label for="categories" class="text-sm font-medium text-gray-700 mb-1">Categories</label>
+				<input 
+					id="categories" 
+					name="categories" 
+					bind:value={categories}
+					class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				/>
+			</div>
 
-	<ul>
-		{#each tempCategories as category}
-			<li>
-				ID: {category.id}, Title: {category.title}
-			</li>
-		{/each}
-	</ul>
+			<div class="flex space-x-4 pt-4">
+				<button 
+					disabled={!tested} 
+					onclick={onSave}
+					class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					{isUpdate ? 'Update' : 'Add'}
+				</button>
+				<button 
+					onclick={onTest}
+					class="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+				>
+					Test
+				</button>
+			</div>
+		</div>
+
+		{#if tempCategories.length > 0}
+			<div class="mt-6">
+				<h2 class="text-lg font-medium text-gray-900 mb-2">Available Categories</h2>
+				<ul class="space-y-2">
+					{#each tempCategories as category}
+						<li class="p-2 bg-gray-50 rounded-md">
+							ID: {category.id}, Title: {category.title}
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+	</div>
 </div>
