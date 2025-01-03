@@ -36,8 +36,8 @@ const db = new Dexie('fluxcast') as Dexie & {
 };
 
 db.version(1).stores({
-	podcasts: '++id',
-	episodes: '++id, podcastId, state, publishedAt, lastUpdatedAt, isDownloaded',
+	podcasts: '++id, title',
+	episodes: '++id, podcastId, title, state, publishedAt, lastUpdatedAt, isDownloaded',
 	settings: '++id'
 });
 
