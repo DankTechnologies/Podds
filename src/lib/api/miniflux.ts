@@ -1,8 +1,8 @@
-import type { Category, EntrySearchResult, Feed, FeedIconResult } from './types/miniflux';
+import type { Category, EntrySearchResult, Feed, FeedIconResult } from '../types/miniflux';
 
 interface EntryOptions {
 	order?: string;
-	direction?: string; 
+	direction?: string;
 	limit?: number;
 	published_after?: number;
 }
@@ -25,20 +25,29 @@ class MinifluxApi {
 	}
 
 	async fetchFeedIcon(feedId: number): Promise<string> {
-		return this.fetchJSON<FeedIconResult>(`/v1/feeds/${feedId}/icon`)
-			.then(result => result.data);
+		return this.fetchJSON<FeedIconResult>(`/v1/feeds/${feedId}/icon`).then((result) => result.data);
 	}
 
-	async fetchEntriesForCategory(categoryId: number, options: EntryOptions = {} ): Promise<EntrySearchResult> {
+	async fetchEntriesForCategory(
+		categoryId: number,
+		options: EntryOptions = {}
+	): Promise<EntrySearchResult> {
 		const queryParams = new URLSearchParams(options as Record<string, string>);
-		return this.fetchJSON<EntrySearchResult>(`/v1/categories/${categoryId}/entries?${queryParams.toString()}`);
+		return this.fetchJSON<EntrySearchResult>(
+			`/v1/categories/${categoryId}/entries?${queryParams.toString()}`
+		);
 	}
 
-	async fetchEntriesForFeed(feedId: number, options: EntryOptions = {} ): Promise<EntrySearchResult> {
+	async fetchEntriesForFeed(
+		feedId: number,
+		options: EntryOptions = {}
+	): Promise<EntrySearchResult> {
 		const queryParams = new URLSearchParams(options as Record<string, string>);
-		return this.fetchJSON<EntrySearchResult>(`/v1/feeds/${feedId}/entries?${queryParams.toString()}`);
+		return this.fetchJSON<EntrySearchResult>(
+			`/v1/feeds/${feedId}/entries?${queryParams.toString()}`
+		);
 	}
-	
+
 	private async fetchJSON<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		const response = await fetch(`${this.host}${endpoint}`, {
 			...options,
@@ -55,7 +64,6 @@ class MinifluxApi {
 
 		return response.json();
 	}
-
 }
 
 export default MinifluxApi;
