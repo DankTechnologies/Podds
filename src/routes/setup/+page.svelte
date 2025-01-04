@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import MinifluxApi from '$lib/api/miniflux';
+	import MinifluxApi from '$lib/api/MinifluxApi';
+	import type { Settings } from '$lib/db/db';
+	import { SettingsService } from '$lib/service/SettingsService';
 	import type { Category } from '$lib/types/miniflux';
-	import { db, type Settings } from '$lib/db/db';
 	import { onMount } from 'svelte';
 
 	let host = $state('https://feed.pitpat.me');
@@ -11,9 +12,11 @@
 	let isUpdate = $state<boolean>(false);
 	let tested = $state<boolean>(false);
 	let tempCategories = $state<Category[]>([]);
+	let settingsService: SettingsService;
 
 	onMount(async () => {
-		let settings = await db.settings.get(1);
+		settingsService = new SettingsService();
+		const settings = await settingsService.getSettings();
 
 		if (settings) {
 			host = settings.host;
@@ -25,13 +28,7 @@
 
 	async function onSave() {
 		const settings: Settings = { host, apiKey, categories };
-
-		if (isUpdate) {
-			await db.settings.put({ id: 1, ...settings });
-		} else {
-			await db.settings.add(settings);
-		}
-
+		await settingsService.saveSettings(settings, isUpdate);
 		goto('/sync');
 	}
 
