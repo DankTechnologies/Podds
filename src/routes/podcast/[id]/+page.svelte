@@ -6,9 +6,10 @@
 	const podcastId = parseInt(page.params.id);
 	let expandedEpisodeIds = $state<number[]>([]);
 
-	const podcast = liveQuery(() => db.podcasts.get(podcastId));
-	const episodes = liveQuery(() =>
-		db.episodes.where('podcastId').equals(podcastId).reverse().sortBy('publishedAt')
+	const podcast = liveQuery(async () => await db.podcasts.get(podcastId));
+	const episodes = liveQuery(
+		async () =>
+			await db.episodes.where('podcastId').equals(podcastId).reverse().sortBy('publishedAt')
 	);
 
 	function toggleExpanded(episodeId: number) {
