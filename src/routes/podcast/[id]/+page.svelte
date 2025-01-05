@@ -36,7 +36,9 @@
 			/>
 			<div class="flex flex-col justify-center">
 				<h1 class="mb-2 text-4xl font-bold text-gray-900">{$podcast.title}</h1>
-				<p class="text-lg text-gray-600">{$episodes?.length || 0} episodes</p>
+				{#if $episodes}
+					<p class="text-lg text-gray-600">{$episodes.length} episodes</p>
+				{/if}
 			</div>
 		</div>
 
