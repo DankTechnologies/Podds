@@ -6,8 +6,8 @@
 	const podcasts = liveQuery(() => db.podcasts.orderBy('title').toArray());
 </script>
 
-<div class="min-h-screen">
-	<div class="grid grid-cols-3 gap-1 bg-gray-100 px-1 md:grid-cols-6 lg:grid-cols-8">
+<div class="min-h-screen bg-gradient-to-b from-blue-200 via-white to-blue-100">
+	<div class="grid grid-cols-3 gap-2 p-2 md:grid-cols-6 lg:grid-cols-8">
 		{#each $podcasts || [] as podcast}
 			<button
 				class="w-full transition-opacity hover:opacity-80"
