@@ -2,16 +2,11 @@
 	import { page } from '$app/state';
 </script>
 
-<div class="fixed bottom-0 left-0 z-50 h-14 w-full dark:bg-gray-700">
+<div class="fixed bottom-0 left-0 z-50 h-14 w-full bg-white">
 	<div class="mx-auto grid h-full max-w-lg auto-cols-fr grid-flow-col font-medium">
-		<a
-			href="/"
-			class="group inline-flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800"
-		>
+		<a href="/" class="group inline-flex flex-col items-center justify-center">
 			<svg
-				class="mb-1 h-5 w-5 {page.url.pathname === '/'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}"
+				class="mb-1 h-5 w-5 {page.url.pathname === '/' ? 'text-blue-600' : 'text-gray-500'}"
 				aria-hidden="true"
 				xmlns="http://www.w3.org/2000/svg"
 				width="24"
@@ -28,20 +23,15 @@
 				/>
 			</svg>
 
-			<span
-				class="text-sm {page.url.pathname === '/'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}">Podcasts</span
-			>
+			<span class="text-sm {page.url.pathname === '/' ? 'text-blue-600' : 'text-gray-500'}">
+				Podcasts
+			</span>
 		</a>
-		<a
-			href="/new-episodes"
-			class="group inline-flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800"
-		>
+		<a href="/new-episodes" class="group inline-flex flex-col items-center justify-center">
 			<svg
 				class="mb-1 h-5 w-5 {page.url.pathname === '/new-episodes'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}"
+					? 'text-blue-600'
+					: 'text-gray-500'}"
 				aria-hidden="true"
 				xmlns="http://www.w3.org/2000/svg"
 				width="24"
@@ -59,19 +49,14 @@
 			</svg>
 
 			<span
-				class="text-sm {page.url.pathname === '/new-episodes'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}">Episodes</span
+				class="text-sm {page.url.pathname === '/new-episodes' ? 'text-blue-600' : 'text-gray-500'}"
 			>
+				Episodes
+			</span>
 		</a>
-		<a
-			href="/playlist"
-			class="group inline-flex flex-col items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800"
-		>
+		<a href="/playlist" class="group inline-flex flex-col items-center justify-center">
 			<svg
-				class="mb-1 h-5 w-5 {page.url.pathname === '/playlist'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}"
+				class="mb-1 h-5 w-5 {page.url.pathname === '/playlist' ? 'text-blue-600' : 'text-gray-500'}"
 				aria-hidden="true"
 				xmlns="http://www.w3.org/2000/svg"
 				width="24"
