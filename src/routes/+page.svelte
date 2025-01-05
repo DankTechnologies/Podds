@@ -7,7 +7,7 @@
 </script>
 
 <div class="min-h-screen">
-	<div class="grid grid-cols-3 gap-2 bg-gray-300 px-2 md:grid-cols-6 lg:grid-cols-8">
+	<div class="grid grid-cols-3 gap-1 bg-gray-100 px-1 md:grid-cols-6 lg:grid-cols-8">
 		{#each $podcasts || [] as podcast}
 			<button
 				class="w-full transition-opacity hover:opacity-80"
@@ -17,7 +17,7 @@
 				<img
 					src={`data:${podcast.icon}`}
 					alt={podcast.title}
-					class="aspect-square w-full object-cover"
+					class="aspect-square w-full rounded-sm object-cover"
 				/>
 			</button>
 		{/each}
