@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
+	const isActive = $derived((href: string) => page.url.pathname === href);
+
 	const navItems = [
 		{
 			href: '/',
@@ -31,12 +33,17 @@
 	];
 </script>
 
-<div class="fixed bottom-0 left-0 z-50 h-14 w-full bg-white">
+<div class="fixed bottom-0 left-0 z-50 h-16 w-full border-t border-gray-200 bg-white">
 	<div class="mx-auto grid h-full max-w-lg auto-cols-fr grid-flow-col font-medium">
 		{#each navItems as { href, label, icon }}
-			<a {href} class="group inline-flex flex-col items-center justify-center">
+			<a
+				{href}
+				class="group inline-flex flex-col items-center justify-center transition-colors duration-200 active:bg-blue-100 [&.active]:text-blue-600"
+				class:active={isActive(href)}
+			>
 				<svg
-					class="mb-1 h-5 w-5 {page.url.pathname === href ? 'text-blue-600' : 'text-gray-500'}"
+					class="mb-1 h-6 w-6 text-gray-500 transition-all duration-200 [&.active]:text-blue-600"
+					class:active={isActive(href)}
 					aria-hidden="true"
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -57,7 +64,10 @@
 					/>
 				</svg>
 
-				<span class="text-sm {page.url.pathname === href ? 'text-blue-600' : 'text-gray-500'}">
+				<span
+					class="text-sm text-gray-500 transition-colors duration-200 [&.active]:text-blue-600"
+					class:active={isActive(href)}
+				>
 					{label}
 				</span>
 			</a>
