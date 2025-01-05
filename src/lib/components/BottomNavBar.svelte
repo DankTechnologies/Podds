@@ -38,7 +38,7 @@
 		{#each navItems as { href, label, icon }}
 			<a
 				{href}
-				class="group inline-flex flex-col items-center justify-center transition-colors duration-200 active:bg-blue-100 [&.active]:text-blue-600"
+				class="group inline-flex flex-col items-center justify-center transition-colors duration-200 active:bg-blue-100 [&.active]:bg-gray-100 [&.active]:font-semibold [&.active]:text-blue-600"
 				class:active={isActive(href)}
 			>
 				<svg
