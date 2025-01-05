@@ -71,11 +71,9 @@
 				/>
 			</svg>
 
-			<span
-				class="text-sm {page.url.pathname === '/playlist'
-					? 'text-blue-600 dark:text-blue-500'
-					: 'text-gray-500 dark:text-gray-400'}">Playlist</span
-			>
+			<span class="text-sm {page.url.pathname === '/playlist' ? 'text-blue-600' : 'text-gray-500'}">
+				Playlist
+			</span>
 		</a>
 	</div>
 </div>
