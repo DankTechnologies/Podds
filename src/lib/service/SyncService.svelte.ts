@@ -87,8 +87,14 @@ export class SyncService {
 				const canvas = document.createElement('canvas');
 				canvas.width = width;
 				canvas.height = height;
-				const ctx = canvas.getContext('2d');
-				ctx!.drawImage(img, 0, 0, width, height);
+				const ctx = canvas.getContext('2d')!;
+
+				// Fill with white background
+				ctx.fillStyle = '#FFFFFF';
+				ctx.fillRect(0, 0, width, height);
+
+				// Draw image on top
+				ctx.drawImage(img, 0, 0, width, height);
 
 				resolve(canvas.toDataURL('image/png'));
 			};

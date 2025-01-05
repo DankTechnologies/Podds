@@ -6,8 +6,8 @@
 	const podcasts = liveQuery(() => db.podcasts.orderBy('title').toArray());
 </script>
 
-<div class="min-h-screen bg-gray-900 text-white">
-	<div class="grid grid-cols-4 gap-2 px-4 md:grid-cols-6 lg:grid-cols-8">
+<div class="min-h-screen">
+	<div class="grid grid-cols-3 gap-2 bg-gray-300 px-2 md:grid-cols-6 lg:grid-cols-8">
 		{#each $podcasts || [] as podcast}
 			<button
 				class="w-full transition-opacity hover:opacity-80"
@@ -17,7 +17,7 @@
 				<img
 					src={`data:${podcast.icon}`}
 					alt={podcast.title}
-					class="aspect-square w-full rounded-md object-cover"
+					class="aspect-square w-full object-cover"
 				/>
 			</button>
 		{/each}
