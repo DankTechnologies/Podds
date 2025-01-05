@@ -63,6 +63,8 @@
 			<div class="flex flex-col">
 				<label for="apiKey" class="mb-1 text-sm font-medium text-gray-700">API Key</label>
 				<input
+					id="apiKey"
+					name="apiKey"
 					type="text"
 					bind:value={apiKey}
 					class="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
