@@ -1,5 +1,6 @@
 import type MinifluxApi from '$lib/api/MinifluxApi';
-import { db, type Episode, type Podcast } from '$lib/db/db';
+import { db } from '$lib/db/FluxcastDb';
+import { type Podcast, type Episode } from '$lib/types/db';
 import type { Feed } from '$lib/types/miniflux';
 
 const maxWidth = 300;

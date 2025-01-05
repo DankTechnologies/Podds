@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { liveQuery } from 'dexie';
-	import { db } from '$lib/db/db';
+	import { db } from '$lib/db/FluxcastDb';
 	import { goto } from '$app/navigation';
 
 	const podcasts = liveQuery(() => db.podcasts.orderBy('title').toArray());

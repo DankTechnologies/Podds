@@ -1,5 +1,3 @@
-import Dexie, { type EntityTable } from 'dexie';
-
 interface Settings {
 	id?: number;
 	host: string;
@@ -29,17 +27,4 @@ interface Episode {
 	playbackPosition?: number;
 }
 
-const db = new Dexie('fluxcast') as Dexie & {
-	podcasts: EntityTable<Podcast, 'id'>;
-	episodes: EntityTable<Episode, 'id'>;
-	settings: EntityTable<Settings, 'id'>;
-};
-
-db.version(1).stores({
-	podcasts: '++id, title',
-	episodes: '++id, podcastId, title, state, publishedAt, lastUpdatedAt, isDownloaded',
-	settings: '++id'
-});
-
-export type { Podcast, Episode, Settings };
-export { db };
+export type { Settings, Podcast, Episode };

@@ -1,4 +1,5 @@
-import { db, type Settings } from '$lib/db/db';
+import { db } from '$lib/db/FluxcastDb';
+import { type Settings } from '$lib/types/db';
 
 export class SettingsService {
 	async getSettings(): Promise<Settings | null> {

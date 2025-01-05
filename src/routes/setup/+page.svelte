@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import MinifluxApi from '$lib/api/MinifluxApi';
-	import type { Settings } from '$lib/db/db';
+	import { type Settings } from '$lib/types/db';
 	import { SettingsService } from '$lib/service/SettingsService';
 	import type { Category } from '$lib/types/miniflux';
 	import { onMount } from 'svelte';

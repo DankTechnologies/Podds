@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import '../app.css';
-	import { db } from '$lib/db/db';
+	import { db } from '$lib/db/FluxcastDb';
 	import { goto } from '$app/navigation';
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';

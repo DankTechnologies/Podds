@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { db } from '$lib/db/db';
+	import { db } from '$lib/db/FluxcastDb';
 	import { liveQuery } from 'dexie';
 	import { page } from '$app/state';
 
