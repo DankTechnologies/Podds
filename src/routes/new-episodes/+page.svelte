@@ -4,10 +4,8 @@
 
 	let expandedEpisodeIds = $state<number[]>([]);
 
-	const podcasts = liveQuery(async () => await db.podcasts.toArray());
-	const episodes = liveQuery(
-		async () => await db.episodes.limit(50).reverse().sortBy('publishedAt')
-	);
+	const podcasts = liveQuery(() => db.podcasts.toArray());
+	const episodes = liveQuery(() => db.episodes.limit(50).reverse().sortBy('publishedAt'));
 
 	function toggleExpanded(episodeId: number) {
 		if (isExpanded(episodeId)) {

@@ -3,7 +3,7 @@
 	import { db } from '$lib/db/db';
 	import { goto } from '$app/navigation';
 
-	const podcasts = liveQuery(async () => await db.podcasts.orderBy('title').toArray());
+	const podcasts = liveQuery(() => db.podcasts.orderBy('title').toArray());
 </script>
 
 <div class="min-h-screen bg-gray-900 text-white">
