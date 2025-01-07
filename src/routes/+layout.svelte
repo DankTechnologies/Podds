@@ -1,19 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import '../app.css';
-	import { db } from '$lib/db/FluxcastDb';
 	import { goto } from '$app/navigation';
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { onMount } from 'svelte';
+	import type { Settings } from '$lib/types/db';
+	import { SettingsService } from '$lib/service/SettingsService';
 
 	const standaloneRoutes = ['/setup', '/sync'];
 
 	let isPlaying = $state(false);
 	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
+	let settings = $state<Settings | null>(null);
 
 	onMount(async () => {
-		let settings = await db.settings.get(1);
+		settings = await SettingsService.getSettings();
 
 		if (!settings) {
 			goto('/setup');

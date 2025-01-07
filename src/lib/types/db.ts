@@ -11,6 +11,7 @@ interface Podcast {
 	lastUpdatedAt?: Date;
 	newEpisodes: number;
 	icon: string;
+	_titleSort: string;
 }
 
 interface Episode {

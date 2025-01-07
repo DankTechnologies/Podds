@@ -4,12 +4,13 @@
 	import { goto } from '$app/navigation';
 	import { SyncService } from '$lib/service/SyncService.svelte';
 	import { SettingsService } from '$lib/service/SettingsService';
+	import type { Settings } from '$lib/types/db';
 
-	let syncService: SyncService;
+	let syncService = $state<SyncService | null>(null);
+	let settings = $state<Settings | null>(null);
 
 	onMount(async () => {
-		const settingsService = new SettingsService();
-		const settings = await settingsService.getSettings();
+		settings = await SettingsService.getSettings();
 
 		if (!settings) {
 			goto('/setup');

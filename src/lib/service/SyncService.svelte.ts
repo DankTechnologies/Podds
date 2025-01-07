@@ -42,6 +42,7 @@ export class SyncService {
 		const podcasts: Podcast[] = feedsWithIcons.map((feed) => ({
 			id: feed.id,
 			title: feed.title,
+			_titleSort: this.createSortableTitle(feed.title),
 			newEpisodes: 0,
 			icon: feed.icon
 		}));
@@ -107,5 +108,12 @@ export class SyncService {
 			img.onerror = () => reject(new Error('Failed to load image'));
 			img.src = `data:${dataUrl}`;
 		});
+	}
+
+	private createSortableTitle(title: string): string {
+		return title
+			.replace(/^(the|a|an)\s+/i, '')
+			.toLowerCase()
+			.trim();
 	}
 }

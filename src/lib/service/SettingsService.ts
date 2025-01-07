@@ -2,11 +2,11 @@ import { db } from '$lib/db/FluxcastDb';
 import { type Settings } from '$lib/types/db';
 
 export class SettingsService {
-	async getSettings(): Promise<Settings | null> {
+	static async getSettings(): Promise<Settings | null> {
 		return (await db.settings.get(1)) || null;
 	}
 
-	async saveSettings(settings: Settings, isUpdate: boolean): Promise<void> {
+	static async saveSettings(settings: Settings, isUpdate: boolean): Promise<void> {
 		if (isUpdate) {
 			await db.settings.put({ id: 1, ...settings });
 		} else {

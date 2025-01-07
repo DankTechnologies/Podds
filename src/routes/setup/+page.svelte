@@ -12,11 +12,9 @@
 	let isUpdate = $state<boolean>(false);
 	let tested = $state<boolean>(false);
 	let tempCategories = $state<Category[]>([]);
-	let settingsService: SettingsService;
 
 	onMount(async () => {
-		settingsService = new SettingsService();
-		const settings = await settingsService.getSettings();
+		const settings = await SettingsService.getSettings();
 
 		if (settings) {
 			host = settings.host;
@@ -28,7 +26,7 @@
 
 	async function onSave() {
 		const settings: Settings = { host, apiKey, categories };
-		await settingsService.saveSettings(settings, isUpdate);
+		await SettingsService.saveSettings(settings, isUpdate);
 		goto('/sync');
 	}
 

@@ -15,6 +15,10 @@ export class PodcastService {
 		return db.episodes.where('podcastId').equals(podcastId).count();
 	}
 
+	static async getPodcasts(): Promise<Podcast[]> {
+		return await db.podcasts.orderBy('_titleSort').toArray();
+	}
+
 	static async getEpisodesByPodcast(
 		podcastId: number,
 		start: number = 0,
