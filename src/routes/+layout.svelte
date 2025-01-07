@@ -8,7 +8,9 @@
 	import { onMount } from 'svelte';
 
 	const standaloneRoutes = ['/setup', '/sync'];
+
 	let isPlaying = $state(false);
+	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 
 	onMount(async () => {
 		let settings = await db.settings.get(1);
@@ -21,9 +23,9 @@
 	let { children } = $props();
 </script>
 
-<main>
+<main class={!isStandalone ? 'pb-16' : ''}>
 	{@render children()}
-	{#if !standaloneRoutes.includes(page.url.pathname)}
+	{#if !isStandalone}
 		{#if isPlaying}
 			<Player />
 		{/if}

@@ -51,7 +51,11 @@ export class SyncService {
 	}
 
 	private async syncFeedEntries(feed: Feed): Promise<void> {
-		const entryResult = await this.api.fetchEntriesForFeed(feed.id, { limit: 1000 });
+		const entryResult = await this.api.fetchEntriesForFeed(feed.id, {
+			limit: 1000,
+			order: 'id',
+			direction: 'asc'
+		});
 		const episodes: Episode[] = entryResult.entries.map((entry) => ({
 			id: entry.id,
 			podcastId: feed.id,

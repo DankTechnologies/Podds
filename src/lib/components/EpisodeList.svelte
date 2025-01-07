@@ -27,7 +27,7 @@
 			>
 				<div class="flex items-start gap-3">
 					{#if episode.icon}
-						<img src={`data:${episode.icon}`} alt="Feed icon" class="h-20 w-20 object-cover" />
+						<img src={`data:${episode.icon}`} alt="Feed icon" class="h-16 w-16 object-cover" />
 					{/if}
 					<div class="flex-1">
 						<h3
@@ -47,7 +47,7 @@
 			</button>
 
 			{#if isExpanded(episode.id!)}
-				<div class="prose prose-gray mt-2 max-w-none px-2 text-sm text-gray-700">
+				<div class="prose prose-gray mt-2 max-w-none px-2 pb-4 text-sm text-gray-700">
 					{@html episode.content}
 				</div>
 			{/if}

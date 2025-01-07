@@ -8,10 +8,11 @@
 	let expandedEpisodeIds = $state<number[]>([]);
 	let episodes = $state<EpisodeExt[]>([]);
 	let podcast = $state<Podcast | null>(null);
-
+	let episodeCount = $state<number>(0);
 	onMount(async () => {
 		episodes = await PodcastService.getEpisodesByPodcast(podcastId);
 		podcast = await PodcastService.getPodcast(podcastId);
+		episodeCount = await PodcastService.getEpisodeCountByPodcast(podcastId);
 	});
 
 	function toggleExpanded(episodeId: number) {
@@ -38,8 +39,8 @@
 			/>
 			<div class="flex flex-col justify-center">
 				<h1 class="mb-2 text-2xl font-bold text-gray-900">{podcast.title}</h1>
-				{#if episodes}
-					<p class="text-md text-gray-600">{episodes.length} episodes</p>
+				{#if episodeCount}
+					<p class="text-md text-gray-600">{episodeCount} episodes</p>
 				{/if}
 			</div>
 		</div>
