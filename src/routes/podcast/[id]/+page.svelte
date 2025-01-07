@@ -4,28 +4,18 @@
 	import { PodcastService, type EpisodeExt } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
 	import type { Podcast } from '$lib/types/db';
+
 	const podcastId = parseInt(page.params.id);
-	let expandedEpisodeIds = $state<number[]>([]);
+
 	let episodes = $state<EpisodeExt[]>([]);
 	let podcast = $state<Podcast | null>(null);
 	let episodeCount = $state<number>(0);
+
 	onMount(async () => {
 		episodes = await PodcastService.getEpisodesByPodcast(podcastId);
 		podcast = await PodcastService.getPodcast(podcastId);
 		episodeCount = await PodcastService.getEpisodeCountByPodcast(podcastId);
 	});
-
-	function toggleExpanded(episodeId: number) {
-		if (isExpanded(episodeId)) {
-			expandedEpisodeIds = expandedEpisodeIds.filter((id) => id !== episodeId);
-		} else {
-			expandedEpisodeIds = [...expandedEpisodeIds, episodeId];
-		}
-	}
-
-	function isExpanded(episodeId: number) {
-		return expandedEpisodeIds.includes(episodeId);
-	}
 </script>
 
 {#if podcast}
