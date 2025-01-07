@@ -54,4 +54,34 @@ export class PodcastService {
 			})
 		);
 	}
+
+	static async getPodcastWithDetails(
+		podcastId: number,
+		start: number = 0,
+		limit: number = 100
+	): Promise<{
+		episodes: EpisodeExt[];
+		podcast: Podcast;
+		episodeCount: number;
+	}> {
+		return db.transaction('r', [db.podcasts, db.episodes], async () => {
+			const podcast = await db.podcasts.get(podcastId);
+			const episodes = await db.episodes
+				.where('[podcastId+id]') // can't use orderBy and where
+				.between([podcastId, Dexie.minKey], [podcastId, Dexie.maxKey])
+				.reverse()
+				.offset(start)
+				.limit(limit)
+				.toArray();
+			const episodeCount = await db.episodes.where('podcastId').equals(podcastId).count();
+
+			if (!podcast) throw new Error('Podcast not found');
+
+			return {
+				episodes,
+				podcast,
+				episodeCount
+			};
+		});
+	}
 }

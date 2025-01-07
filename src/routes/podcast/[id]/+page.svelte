@@ -11,10 +11,64 @@
 	let podcast = $state<Podcast | null>(null);
 	let episodeCount = $state<number>(0);
 
-	onMount(async () => {
-		episodes = await PodcastService.getEpisodesByPodcast(podcastId);
-		podcast = await PodcastService.getPodcast(podcastId);
-		episodeCount = await PodcastService.getEpisodeCountByPodcast(podcastId);
+	let loading = $state<boolean>(false);
+	let hasMore = $state<boolean>(true);
+	let currentPage = $state<number>(0);
+
+	const ITEMS_PER_PAGE = 50;
+	let observerTarget = $state<HTMLElement | null>(null);
+
+	async function loadMoreEpisodes() {
+		if (loading || !hasMore) return;
+
+		loading = true;
+		const start = currentPage * ITEMS_PER_PAGE;
+		const newEpisodes = await PodcastService.getEpisodesByPodcast(podcastId, start, ITEMS_PER_PAGE);
+
+		if (newEpisodes.length < ITEMS_PER_PAGE) {
+			hasMore = false;
+		}
+
+		episodes = [...episodes, ...newEpisodes];
+		currentPage++;
+		loading = false;
+	}
+
+	onMount(() => {
+		const start = performance.now();
+
+		PodcastService.getPodcastWithDetails(podcastId, 0, ITEMS_PER_PAGE).then((details) => {
+			episodes = details.episodes;
+			podcast = details.podcast;
+			episodeCount = details.episodeCount;
+
+			if (details.episodes.length < ITEMS_PER_PAGE) {
+				hasMore = false;
+			}
+
+			const end = performance.now();
+			console.log(`Single transaction took ${end - start}ms`);
+		});
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						loadMoreEpisodes();
+					}
+				});
+			},
+			{ rootMargin: '200px' }
+		);
+
+		if (observerTarget) {
+			observer.observe(observerTarget);
+			console.log('Observer attached to target');
+		} else {
+			console.log('No observer target found');
+		}
+
+		return () => observer.disconnect();
 	});
 </script>
 
@@ -41,3 +95,4 @@
 		{/if}
 	</div>
 {/if}
+<div bind:this={observerTarget} class="h-px"></div>
