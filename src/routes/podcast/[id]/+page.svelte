@@ -56,12 +56,7 @@
 			{ rootMargin: '200px' }
 		);
 
-		if (observerTarget) {
-			observer.observe(observerTarget);
-			console.log('Observer attached to target');
-		} else {
-			console.log('No observer target found');
-		}
+		if (observerTarget) observer.observe(observerTarget);
 
 		return () => observer.disconnect();
 	});
