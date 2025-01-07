@@ -35,8 +35,6 @@
 	}
 
 	onMount(() => {
-		const start = performance.now();
-
 		PodcastService.getPodcastWithDetails(podcastId, 0, ITEMS_PER_PAGE).then((details) => {
 			episodes = details.episodes;
 			podcast = details.podcast;
@@ -45,9 +43,6 @@
 			if (details.episodes.length < ITEMS_PER_PAGE) {
 				hasMore = false;
 			}
-
-			const end = performance.now();
-			console.log(`Single transaction took ${end - start}ms`);
 		});
 
 		const observer = new IntersectionObserver(
