@@ -29,7 +29,7 @@
 </script>
 
 {#if podcast}
-	<div class="mx-auto max-w-4xl overflow-y-auto px-4 py-8 pb-20">
+	<div class="mx-auto max-w-4xl overflow-y-auto px-4 py-8">
 		<!-- Podcast Header -->
 		<div class="mb-12 flex gap-8">
 			<img
