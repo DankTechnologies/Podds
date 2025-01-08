@@ -1,7 +1,14 @@
 /// <reference types="@sveltejs/kit" />
+/// <reference no-default-lib="true"/>
+/// <reference lib="esnext" />
+/// <reference lib="webworker" />
+
 import { build, files, version } from '$service-worker';
 
-// Create a unique cache name for this deployment
+const sw = /** @type {ServiceWorkerGlobalScope} */ (/** @type {unknown} */ (self));
+
+const EXCLUDED_PATHS = ['/v1/feeds', '/v1/categories'];
+
 const CACHE = `fluxcast-${version}`;
 
 const ASSETS = [
@@ -10,69 +17,112 @@ const ASSETS = [
 	...files // everything in `static`
 ];
 
-self.addEventListener('install', (event) => {
-	console.log('Service worker installing...');
-	event.waitUntil(
-		caches.open(CACHE).then((cache) => {
-			return cache.addAll(ASSETS);
+// ===================
+// == Caching logic ==
+// ===================
+
+const addResourcesToCache = async () => {
+	const cache = await caches.open(CACHE);
+	await cache.addAll(ASSETS);
+};
+
+const putInCache = async (request, response) => {
+	const cache = await caches.open(CACHE);
+	await cache.put(request, response);
+};
+
+const deleteOldCaches = async () => {
+	const keys = await caches.keys();
+	return Promise.all(
+		keys.map((key) => {
+			if (key !== CACHE) {
+				return caches.delete(key);
+			}
 		})
 	);
-});
+};
 
-self.addEventListener('activate', (event) => {
-	event.waitUntil(
-		caches.keys().then((keys) => {
-			return Promise.all(
-				keys.map((key) => {
-					if (key !== CACHE) return caches.delete(key);
-				})
-			);
-		})
-	);
-});
+const shouldCache = (url) => {
+	const urlObj = new URL(url);
+	return !EXCLUDED_PATHS.some((path) => urlObj.pathname.includes(path));
+};
 
-self.addEventListener('fetch', (event) => {
-	// ignore POST requests etc
-	if (event.request.method !== 'GET') return;
+// =====================
+// == Fetch logic ======
+// =====================
 
-	async function respond() {
-		const url = new URL(event.request.url);
-		const cache = await caches.open(CACHE);
-
-		// For navigation requests, serve the shell (index.html)
-		// This ensures SPA routing works offline
-		if (event.request.mode === 'navigate') {
-			const shellResponse = await cache.match('/');
-			if (shellResponse) return shellResponse;
-		}
-
-		// For static assets in our ASSETS list
-		if (ASSETS.includes(url.pathname)) {
-			const cachedResponse = await cache.match(url.pathname);
-			if (cachedResponse) return cachedResponse;
-		}
-
-		try {
-			const response = await fetch(event.request);
-
-			if (response.ok) {
-				cache.put(event.request, response.clone());
-			}
-
-			return response;
-		} catch (err) {
-			const cachedResponse = await cache.match(event.request);
-			if (cachedResponse) return cachedResponse;
-
-			// For navigation requests that fail and aren't cached,
-			// return the shell as a fallback
-			if (event.request.mode === 'navigate') {
-				return cache.match('/');
-			}
-
-			throw err;
-		}
+// cache, then preload, then network
+const handleRequest = async ({ request, preloadResponsePromise }) => {
+	if (!shouldCache(request.url)) {
+		console.log('Request not cached', request.url);
+		return fetch(request);
 	}
 
-	event.respondWith(respond());
+	const responseFromCache = await caches.match(request);
+	if (responseFromCache) {
+		console.log('Response from cache', request.url);
+		return responseFromCache;
+	}
+
+	// const preloadResponse = await preloadResponsePromise;
+	// if (preloadResponse) {
+	// 	console.log('Response from preload', request.url);
+	// 	putInCache(request, preloadResponse.clone());
+	// 	return preloadResponse;
+	// }
+
+	try {
+		console.log('Fetching request', request.url);
+
+		const response = await fetch(request);
+
+		if (response.ok) {
+			console.log('Response from network', request.url);
+			putInCache(request, response.clone());
+		}
+
+		return response;
+	} catch (err) {
+		console.log('Fetching request failed', request.url);
+
+		// If the request is a navigation request, return the shell
+		if (request.mode === 'navigate') {
+			console.log('Navigation request, returning shell', request.url);
+			return caches.match('/');
+		}
+
+		throw err; // Let other request types fail normally
+	}
+};
+
+const enableNavigationPreload = async () => {
+	if (sw.registration.navigationPreload) {
+		console.log('Enabling navigation preload');
+		await sw.registration.navigationPreload.enable();
+	}
+};
+
+// =====================
+// == Event listeners ==
+// =====================
+
+sw.addEventListener('install', (event) => {
+	console.log('Service worker installing...');
+	event.waitUntil(Promise.all([addResourcesToCache(), sw.skipWaiting()]));
+});
+
+sw.addEventListener('fetch', (event) => {
+	if (event.request.method !== 'GET') return;
+
+	event.respondWith(
+		handleRequest({
+			request: event.request,
+			preloadResponsePromise: event.preloadResponse
+		})
+	);
+});
+
+sw.addEventListener('activate', (event) => {
+	console.log('Service worker activating...');
+	event.waitUntil(Promise.all([deleteOldCaches(), enableNavigationPreload(), sw.clients.claim()]));
 });
