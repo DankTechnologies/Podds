@@ -11,6 +11,9 @@ const config = {
 		}),
 		paths: {
 			relative: false
+		},
+		serviceWorker: {
+			register: process.env.NODE_ENV === 'production'
 		}
 	}
 };
