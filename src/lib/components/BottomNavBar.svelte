@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	const isActive = $derived((href: string) => page.url.pathname === href);
+	const isActive = $derived((href: string) => {
+		if (href === '/') {
+			return page.url.pathname === '/' || page.url.pathname.startsWith('/podcast');
+		}
+		return page.url.pathname === href;
+	});
 
 	const navItems = [
 		{
