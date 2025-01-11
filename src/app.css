@@ -1,3 +1,110 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+:root {
+	--font-sans: system-ui;
+	--line-height-normal: 1.5;
+	--line-height-tight: 1.2;
+	--text-xs: 0.7rem;
+	--text-small: 0.8rem;
+	--text-large: 1rem;
+	--text-xl: 1.125rem;
+}
+
+body {
+	font-family: var(--font-sans);
+	line-height: var(--line-height-normal);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin-top: 2.5rem;
+	margin-bottom: 1rem;
+	line-height: var(--line-height-tight);
+	font-weight: 600;
+}
+
+h1 {
+	font-size: 2.5rem;
+}
+
+h2 {
+	font-size: 2rem;
+}
+
+h3 {
+	font-size: 1.5rem;
+}
+
+h4 {
+	font-size: 1.25rem;
+}
+
+h5 {
+	font-size: 1rem;
+}
+
+h6 {
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.text-xs {
+	font-size: 0.75rem; /* 12px */
+}
+
+.text-small {
+	font-size: 0.875rem; /* 14px */
+}
+
+.text-medium {
+	font-size: 1rem; /* 16px */
+}
+
+.text-large {
+	font-size: 1.125rem; /* 18px */
+}
+
+.text-xl {
+	font-size: 1.25rem; /* 20px */
+}
+
+@media (max-width: 640px) {
+	h1 {
+		font-size: 2rem;
+	}
+
+	h2 {
+		font-size: 1.7rem;
+	}
+
+	h3 {
+		font-size: 1.4rem;
+	}
+
+	h4 {
+		font-size: 1.2rem;
+	}
+
+	p {
+		margin-bottom: 1.2rem;
+	}
+
+	.text-xs {
+		font-size: 0.7rem;
+	}
+
+	.text-small {
+		font-size: 0.8rem;
+	}
+
+	.text-large {
+		font-size: 1rem;
+	}
+
+	.text-xl {
+		font-size: 1.125rem;
+	}
+}

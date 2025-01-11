@@ -17,40 +17,92 @@
 	}
 </script>
 
-<div class="divide-y divide-gray-200">
+<div class="episode-list">
 	{#each episodes as episode}
-		<div class="pt-2">
-			<button
-				type="button"
-				class="group w-full text-left"
-				onclick={() => toggleExpanded(episode.id!)}
-			>
-				<div class="flex items-start gap-3">
-					{#if episode.icon}
-						<img src={`data:${episode.icon}`} alt="Feed icon" class="h-16 w-16 object-cover" />
-					{/if}
-					<div class="flex-1">
-						<h3
-							class="text-l font-semibold text-gray-900 transition-colors group-hover:text-blue-600"
-						>
-							{episode.title}
-						</h3>
-						<time class="mt-1 block text-xs text-gray-500">
-							{new Date(episode.publishedAt).toLocaleDateString(undefined, {
-								year: 'numeric',
-								month: 'long',
-								day: 'numeric'
-							})}
-						</time>
-					</div>
-				</div>
-			</button>
-
-			{#if isExpanded(episode.id!)}
-				<div class="prose prose-gray mt-2 max-w-none px-2 pb-4 text-sm text-gray-700">
-					{@html episode.content}
-				</div>
+		<button class="episode-card" type="button" onclick={() => toggleExpanded(episode.id!)}>
+			{#if episode.icon}
+				<img class="episode-card__image" src={`data:${episode.icon}`} alt="Feed icon" />
 			{/if}
-		</div>
+			<div class="episode-card__content">
+				<time class="episode-card__time">
+					{new Date(episode.publishedAt).toLocaleDateString(undefined, {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric'
+					})}
+				</time>
+				<div class="episode-card__title">{episode.title}</div>
+			</div>
+		</button>
+
+		{#if isExpanded(episode.id!)}
+			<div class="episode-card__description">
+				{@html episode.content}
+			</div>
+		{/if}
 	{/each}
 </div>
+
+<style>
+	.episode-list {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.episode-card {
+		display: flex;
+		gap: 1rem;
+		background: none;
+		border: none;
+		border-bottom: 1px solid grey;
+		padding: 0.5rem 0;
+		text-align: left;
+	}
+
+	.episode-card__image {
+		width: 5rem;
+		aspect-ratio: 1;
+		object-fit: cover;
+	}
+
+	.episode-card__content {
+		display: flex;
+		flex-direction: column;
+		align-items: start;
+		gap: 0.25rem;
+
+		/* Add padding when there's no image sibling */
+		:not(:has(+ .episode-card__image)) {
+			padding-left: 0.5rem;
+		}
+	}
+
+	.episode-card__title {
+		font-weight: 600;
+	}
+
+	.episode-card__time {
+		font-size: 0.75rem;
+		color: darkslategray;
+	}
+
+	.episode-card__description {
+		padding: 1rem;
+		font-size: 0.875rem;
+
+		/* dynamic @html content */
+
+		/* compensate for parent padding */
+		:global(p:first-child) {
+			margin-top: 0;
+		}
+
+		:global(p:last-child) {
+			margin-bottom: 0;
+		}
+
+		:global(img) {
+			display: none;
+		}
+	}
+</style>

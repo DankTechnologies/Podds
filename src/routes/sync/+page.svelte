@@ -26,11 +26,11 @@
 </script>
 
 {#if syncService}
-	<div class="flex min-h-screen flex-col items-center justify-center">
-		<div class="w-full max-w-md space-y-4 p-6">
-			<h1 class="text-center text-2xl font-bold">Initial Sync</h1>
-			<div class="space-y-4">
-				<p class="text-center text-gray-600">{syncService.status}</p>
+	<div>
+		<div>
+			<h1>Initial Sync</h1>
+			<div>
+				<p>{syncService.status}</p>
 			</div>
 		</div>
 	</div>

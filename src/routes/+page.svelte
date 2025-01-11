@@ -11,22 +11,38 @@
 	});
 </script>
 
-<div class="relative min-h-screen bg-gradient-to-b from-blue-400 via-white to-blue-200">
-	<div class="absolute inset-0 bg-white/30 backdrop-blur-[1rem]"></div>
-
-	<div class="relative grid grid-cols-3 gap-2 p-2 md:grid-cols-6 lg:grid-cols-8">
-		{#each podcasts || [] as podcast}
+<div class="grid">
+	{#each podcasts || [] as podcast}
+		<div class="grid-item">
 			<button
-				class="w-full transition-opacity hover:opacity-80"
 				onclick={() => goto(`/podcast/${podcast.id}`)}
 				aria-label={`Go to ${podcast.title} podcast`}
 			>
-				<img
-					src={`data:${podcast.icon}`}
-					alt={podcast.title}
-					class="aspect-square w-full rounded-sm object-cover"
-				/>
+				<img src={`data:${podcast.icon}`} alt={podcast.title} />
 			</button>
-		{/each}
-	</div>
+		</div>
+	{/each}
 </div>
+
+<style>
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		gap: 0.25rem;
+		padding: 0.25rem;
+		background: white;
+	}
+
+	.grid-item button {
+		border: 0;
+		padding: 0;
+		background: none;
+	}
+
+	.grid-item img {
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: 0.125rem;
+	}
+</style>

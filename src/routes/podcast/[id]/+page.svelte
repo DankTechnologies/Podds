@@ -63,26 +63,59 @@
 </script>
 
 {#if podcast}
-	<div class="mx-auto max-w-4xl overflow-y-auto px-4 py-8">
-		<!-- Podcast Header -->
-		<div class="mb-12 flex gap-8">
-			<img
-				src={`data:${podcast.icon}`}
-				alt={podcast.title}
-				class="h-40 w-40 flex-shrink-0 rounded-xl object-cover shadow-lg"
-			/>
-			<div class="flex flex-col justify-center">
-				<h1 class="mb-2 text-2xl font-bold text-gray-900">{podcast.title}</h1>
-				{#if episodeCount}
-					<p class="text-md text-gray-600">{episodeCount} episodes</p>
-				{/if}
-			</div>
+	<!-- Podcast Header -->
+	<header class="podcast-header">
+		<img class="podcast-header__image" src={`data:${podcast.icon}`} alt={podcast.title} />
+		<div class="podcast-header__content">
+			<div class="podcast-header__title">{podcast.title}</div>
+			{#if episodeCount}
+				<div class="podcast-header__episodes">{episodeCount} episodes</div>
+			{/if}
 		</div>
+	</header>
 
-		<!-- Episodes List -->
+	<!-- Episodes List -->
+	<section class="episodes">
 		{#if episodes}
 			<EpisodeList {episodes} />
 		{/if}
-	</div>
+	</section>
 {/if}
-<div bind:this={observerTarget} class="h-px"></div>
+<div bind:this={observerTarget}></div>
+
+<style>
+	.podcast-header {
+		display: flex;
+		gap: 1rem;
+		padding: 1rem;
+	}
+
+	.podcast-header__image {
+		width: 150px;
+		height: 150px;
+		border-radius: 0.5rem;
+		box-shadow:
+			4px 6px 6px -1px rgb(0 0 0 / 0.3),
+			2px 4px 4px -2px rgb(0 0 0 / 0.2);
+		object-fit: cover;
+	}
+
+	.podcast-header__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.podcast-header__title {
+		font-size: var(--text-xl);
+		font-weight: 600;
+	}
+
+	.podcast-header__episodes {
+		font-size: var(--text-small);
+	}
+
+	.episodes {
+		/* padding: 0.5rem; */
+	}
+</style>

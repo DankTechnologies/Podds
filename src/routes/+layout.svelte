@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import '../normalize.css';
 	import '../app.css';
 	import { goto } from '$app/navigation';
 	import Player from '$lib/components/Player.svelte';
@@ -25,7 +26,7 @@
 	let { children } = $props();
 </script>
 
-<main class={!isStandalone ? 'pb-16' : ''}>
+<main class={{ 'nav-offset': !isStandalone }}>
 	{@render children()}
 	{#if !isStandalone}
 		{#if isPlaying}
@@ -35,3 +36,9 @@
 		<BottomNavBar />
 	{/if}
 </main>
+
+<style>
+	.nav-offset {
+		padding-bottom: 4.25rem;
+	}
+</style>

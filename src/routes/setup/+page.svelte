@@ -42,66 +42,40 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-	<div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md">
-		<h1 class="mb-6 text-center text-2xl font-bold text-gray-900">Miniflux Setup</h1>
+<div>
+	<div>
+		<h1>Miniflux Setup</h1>
 
-		<div class="space-y-4">
-			<div class="flex flex-col">
-				<label for="host" class="mb-1 text-sm font-medium text-gray-700">Host</label>
-				<input
-					id="host"
-					name="host"
-					type="url"
-					bind:value={host}
-					class="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-				/>
+		<div>
+			<div>
+				<label for="host">Host</label>
+				<input id="host" name="host" type="url" bind:value={host} />
 			</div>
 
-			<div class="flex flex-col">
-				<label for="apiKey" class="mb-1 text-sm font-medium text-gray-700">API Key</label>
-				<input
-					id="apiKey"
-					name="apiKey"
-					type="text"
-					bind:value={apiKey}
-					class="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-				/>
+			<div>
+				<label for="apiKey">API Key</label>
+				<input id="apiKey" name="apiKey" type="text" bind:value={apiKey} />
 			</div>
 
-			<div class="flex flex-col">
-				<label for="categories" class="mb-1 text-sm font-medium text-gray-700">Categories</label>
-				<input
-					id="categories"
-					name="categories"
-					bind:value={categories}
-					class="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-				/>
+			<div>
+				<label for="categories">Categories</label>
+				<input id="categories" name="categories" bind:value={categories} />
 			</div>
 
-			<div class="flex space-x-4 pt-4">
-				<button
-					disabled={!tested}
-					onclick={onSave}
-					class="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-				>
+			<div>
+				<button disabled={!tested} onclick={onSave}>
 					{isUpdate ? 'Update' : 'Add'}
 				</button>
-				<button
-					onclick={onTest}
-					class="flex-1 rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300"
-				>
-					Test
-				</button>
+				<button onclick={onTest}> Test </button>
 			</div>
 		</div>
 
 		{#if tempCategories.length > 0}
-			<div class="mt-6">
-				<h2 class="mb-2 text-lg font-medium text-gray-900">Available Categories</h2>
-				<ul class="space-y-2">
+			<div>
+				<h2>Available Categories</h2>
+				<ul>
 					{#each tempCategories as category}
-						<li class="rounded-md bg-gray-50 p-2">
+						<li>
 							ID: {category.id}, Title: {category.title}
 						</li>
 					{/each}

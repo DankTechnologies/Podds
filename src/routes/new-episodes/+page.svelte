@@ -48,8 +48,8 @@
 </script>
 
 {#if episodes}
-	<div class="divide-y divide-gray-200">
+	<div>
 		<EpisodeList {episodes} />
-		<div bind:this={observerTarget} class="h-px"></div>
+		<div bind:this={observerTarget}></div>
 	</div>
 {/if}

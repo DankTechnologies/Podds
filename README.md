@@ -9,7 +9,6 @@ Most podcast clients suck
 ## Tech Stack
 
 - SvelteKit
-- TailwindCSS
 - Dexie
 - Miniflux API
 
