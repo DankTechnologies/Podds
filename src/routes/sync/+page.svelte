@@ -26,12 +26,23 @@
 </script>
 
 {#if syncService}
-	<div>
+	<div class="grid">
 		<div>
-			<h1>Initial Sync</h1>
-			<div>
-				<p>{syncService.status}</p>
-			</div>
+			<h1>Syncing Podcasts</h1>
+		</div>
+		<div>
+			<p>{syncService.status}</p>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.grid {
+		display: grid;
+		padding: 2rem;
+	}
+
+	p {
+		font-size: larger;
+	}
+</style>
