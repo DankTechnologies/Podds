@@ -8,10 +8,17 @@
 
 	let host = $state('https://feed.pitpat.me');
 	let apiKey = $state('78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=');
-	let categories = $state('5');
+	let categories = $state<string>('');
 	let isUpdate = $state<boolean>(false);
-	let tested = $state<boolean>(false);
+
+	let isApiTested = $state<boolean>(false);
 	let tempCategories = $state<Category[]>([]);
+	let isValid = $derived(
+		isApiTested &&
+			categories
+				.split(',')
+				.every((id) => !isNaN(Number(id)) && tempCategories.some((cat) => cat.id === Number(id)))
+	);
 
 	onMount(async () => {
 		const settings = await SettingsService.getSettings();
@@ -35,52 +42,56 @@
 
 		try {
 			tempCategories = await api.fetchCategories();
-			tested = true;
+			isApiTested = true;
 		} catch (error) {
 			console.error(error);
+			tempCategories = [];
 		}
 	}
 </script>
 
-<div>
+<form>
+	<h1>Miniflux Setup</h1>
+
 	<div>
-		<h1>Miniflux Setup</h1>
-
 		<div>
-			<div>
-				<label for="host">Host</label>
-				<input id="host" name="host" type="url" bind:value={host} />
-			</div>
-
-			<div>
-				<label for="apiKey">API Key</label>
-				<input id="apiKey" name="apiKey" type="text" bind:value={apiKey} />
-			</div>
-
-			<div>
-				<label for="categories">Categories</label>
-				<input id="categories" name="categories" bind:value={categories} />
-			</div>
-
-			<div>
-				<button disabled={!tested} onclick={onSave}>
-					{isUpdate ? 'Update' : 'Add'}
-				</button>
-				<button onclick={onTest}> Test </button>
-			</div>
+			<label for="host">Host</label>
+			<input id="host" name="host" type="url" bind:value={host} />
 		</div>
 
-		{#if tempCategories.length > 0}
-			<div>
-				<h2>Available Categories</h2>
-				<ul>
-					{#each tempCategories as category}
-						<li>
-							ID: {category.id}, Title: {category.title}
-						</li>
-					{/each}
-				</ul>
-			</div>
-		{/if}
+		<div>
+			<label for="apiKey">API Key</label>
+			<input id="apiKey" name="apiKey" type="text" bind:value={apiKey} />
+		</div>
+
+		<div>
+			<label for="categories">Categories</label>
+			<input
+				id="categories"
+				name="categories"
+				placeholder="click Test to see categories"
+				bind:value={categories}
+			/>
+		</div>
+
+		<button type="button" disabled={!isValid} onclick={onSave}>
+			{isUpdate ? 'Update' : 'Add'}
+		</button>
+		<button type="button" onclick={onTest}> Test </button>
 	</div>
-</div>
+</form>
+{#if tempCategories.length > 0}
+	<div>
+		<h2>Available Categories</h2>
+		<ul>
+			{#each tempCategories as category}
+				<li>
+					ID: {category.id}, Title: {category.title}
+				</li>
+			{/each}
+		</ul>
+	</div>
+{/if}
+{#if isApiTested && tempCategories.length === 0}
+	<h2>Connection Failed</h2>
+{/if}
