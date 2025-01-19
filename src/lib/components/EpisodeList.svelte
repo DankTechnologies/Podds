@@ -30,7 +30,7 @@
 				{#if episode.icon}
 					<img class="episode-card__image" src={`data:${episode.icon}`} alt="" />
 				{/if}
-				<div class="episode-card__content">
+				<div class="episode-card__heading">
 					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>
 						{new Date(episode.publishedAt).toLocaleDateString(undefined, {
 							year: 'numeric',
@@ -43,7 +43,7 @@
 			</button>
 
 			{#if isExpanded(episode.id!)}
-				<div id="details-{episode.id}" class="episode-card__description">
+				<div id="details-{episode.id}" class="episode-card__details">
 					<div class="episode-card__actions">
 						<button class="episode-card__action-btn" aria-label="Play episode">
 							<span aria-hidden="true">▶️</span> Play
@@ -52,7 +52,9 @@
 							<span aria-hidden="true">🔖</span> Save
 						</button>
 					</div>
-					{@html episode.content}
+					<div class="episode-card__content">
+						{@html episode.content}
+					</div>
 				</div>
 			{/if}
 		</article>
@@ -65,17 +67,19 @@
 		flex-direction: column;
 	}
 
-	.episode-card {
-		border-bottom: 1px solid lightgrey;
-	}
-
 	.episode-card__header {
 		display: flex;
 		width: 100%;
 		background: none;
 		border: none;
-		padding: 1rem;
+		padding: 1.5rem;
 		text-align: left;
+		border-bottom: 1px solid lightgrey;
+	}
+
+	/* less padding needed in Episodes */
+	.episode-card__header:has(.episode-card__image) {
+		padding: 1rem;
 	}
 
 	.episode-card__image {
@@ -85,20 +89,16 @@
 		object-fit: cover;
 	}
 
-	.episode-card__content {
+	.episode-card__heading {
 		display: flex;
 		flex-direction: column;
 		align-items: start;
 		gap: 0.25rem;
-
-		/* Add padding when there's no image sibling */
-		:not(:has(+ .episode-card__image)) {
-			padding-left: 0.5rem;
-		}
 	}
 
 	.episode-card__title {
 		font-weight: 600;
+		font-size: large;
 	}
 
 	.episode-card__time {
@@ -106,7 +106,7 @@
 		color: darkslategray;
 	}
 
-	.episode-card__description {
+	.episode-card__details {
 		padding: 1rem;
 		font-size: 0.875rem;
 
@@ -128,17 +128,14 @@
 
 	.episode-card__actions {
 		float: right;
+		display: flex;
+		border: 1px solid lightgray;
 	}
 
 	.episode-card__action-btn {
-		display: block;
 		background: none;
 		border: none;
 		font-weight: 500;
 		padding: 1rem;
-	}
-
-	.episode-card__action-btn:hover {
-		color: darkorange;
 	}
 </style>
