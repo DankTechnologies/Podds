@@ -37,6 +37,10 @@
 
 		{#if isExpanded(episode.id!)}
 			<div class="episode-card__description">
+				<div class="episode-card__actions">
+					<button class="episode-card__action-btn"> ▶️ Play </button>
+					<button class="episode-card__action-btn"> 🔖 Save </button>
+				</div>
 				{@html episode.content}
 			</div>
 		{/if}
@@ -51,16 +55,16 @@
 
 	.episode-card {
 		display: flex;
-		gap: 1rem;
 		background: none;
 		border: none;
-		border-bottom: 1px solid grey;
-		padding: 0.5rem 0;
+		border-bottom: 1px solid lightgrey;
+		padding: 1rem;
 		text-align: left;
 	}
 
 	.episode-card__image {
 		width: 5rem;
+		margin-right: 1rem;
 		aspect-ratio: 1;
 		object-fit: cover;
 	}
@@ -90,9 +94,9 @@
 		padding: 1rem;
 		font-size: 0.875rem;
 
-		/* dynamic @html content */
+		/* dynamic @html content requires :global */
+		/* but styles remain scoped to .episode-card__description */
 
-		/* compensate for parent padding */
 		:global(p:first-child) {
 			margin-top: 0;
 		}
@@ -104,5 +108,21 @@
 		:global(img) {
 			display: none;
 		}
+	}
+
+	.episode-card__actions {
+		float: right;
+	}
+
+	.episode-card__action-btn {
+		display: block;
+		background: none;
+		border: none;
+		font-weight: 500;
+		padding: 1rem;
+	}
+
+	.episode-card__action-btn:hover {
+		color: darkorange;
 	}
 </style>
