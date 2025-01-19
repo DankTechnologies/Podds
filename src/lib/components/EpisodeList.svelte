@@ -19,31 +19,37 @@
 
 <div class="episode-list">
 	{#each episodes as episode}
-		<button class="episode-card" type="button" onclick={() => toggleExpanded(episode.id!)}>
-			{#if episode.icon}
-				<img class="episode-card__image" src={`data:${episode.icon}`} alt="Feed icon" />
-			{/if}
-			<div class="episode-card__content">
-				<time class="episode-card__time">
-					{new Date(episode.publishedAt).toLocaleDateString(undefined, {
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric'
-					})}
-				</time>
-				<div class="episode-card__title">{episode.title}</div>
-			</div>
-		</button>
-
-		{#if isExpanded(episode.id!)}
-			<div class="episode-card__description">
-				<div class="episode-card__actions">
-					<button class="episode-card__action-btn"> ▶️ Play </button>
-					<button class="episode-card__action-btn"> 🔖 Save </button>
+		<div class="episode-card">
+			<button
+				class="episode-card__header"
+				type="button"
+				onclick={() => toggleExpanded(episode.id!)}
+			>
+				{#if episode.icon}
+					<img class="episode-card__image" src={`data:${episode.icon}`} alt="Feed icon" />
+				{/if}
+				<div class="episode-card__content">
+					<time class="episode-card__time">
+						{new Date(episode.publishedAt).toLocaleDateString(undefined, {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric'
+						})}
+					</time>
+					<div class="episode-card__title">{episode.title}</div>
 				</div>
-				{@html episode.content}
-			</div>
-		{/if}
+			</button>
+
+			{#if isExpanded(episode.id!)}
+				<div class="episode-card__description">
+					<div class="episode-card__actions">
+						<button class="episode-card__action-btn">▶️ Play</button>
+						<button class="episode-card__action-btn">🔖 Save</button>
+					</div>
+					{@html episode.content}
+				</div>
+			{/if}
+		</div>
 	{/each}
 </div>
 
@@ -54,10 +60,14 @@
 	}
 
 	.episode-card {
+		border-bottom: 1px solid lightgrey;
+	}
+
+	.episode-card__header {
 		display: flex;
+		width: 100%;
 		background: none;
 		border: none;
-		border-bottom: 1px solid lightgrey;
 		padding: 1rem;
 		text-align: left;
 	}
