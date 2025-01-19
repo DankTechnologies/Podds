@@ -17,19 +17,21 @@
 	}
 </script>
 
-<div class="episode-list">
+<div class="episode-list" role="list">
 	{#each episodes as episode}
-		<div class="episode-card">
+		<article class="episode-card">
 			<button
 				class="episode-card__header"
 				type="button"
 				onclick={() => toggleExpanded(episode.id!)}
+				aria-expanded={isExpanded(episode.id!)}
+				aria-controls="details-{episode.id}"
 			>
 				{#if episode.icon}
-					<img class="episode-card__image" src={`data:${episode.icon}`} alt="Feed icon" />
+					<img class="episode-card__image" src={`data:${episode.icon}`} alt="" />
 				{/if}
 				<div class="episode-card__content">
-					<time class="episode-card__time">
+					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>
 						{new Date(episode.publishedAt).toLocaleDateString(undefined, {
 							year: 'numeric',
 							month: 'long',
@@ -41,15 +43,19 @@
 			</button>
 
 			{#if isExpanded(episode.id!)}
-				<div class="episode-card__description">
+				<div id="details-{episode.id}" class="episode-card__description">
 					<div class="episode-card__actions">
-						<button class="episode-card__action-btn">▶️ Play</button>
-						<button class="episode-card__action-btn">🔖 Save</button>
+						<button class="episode-card__action-btn" aria-label="Play episode">
+							<span aria-hidden="true">▶️</span> Play
+						</button>
+						<button class="episode-card__action-btn" aria-label="Save episode">
+							<span aria-hidden="true">🔖</span> Save
+						</button>
 					</div>
 					{@html episode.content}
 				</div>
 			{/if}
-		</div>
+		</article>
 	{/each}
 </div>
 
