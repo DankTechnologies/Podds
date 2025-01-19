@@ -107,7 +107,6 @@
 	}
 
 	.episode-card__details {
-		padding: 1rem;
 		font-size: 0.875rem;
 
 		/* dynamic @html content requires :global */
@@ -126,10 +125,15 @@
 		}
 	}
 
+	.episode-card__content {
+		padding: 1.5rem;
+		border-bottom: 1px solid lightgray;
+	}
+
 	.episode-card__actions {
 		float: right;
 		display: flex;
-		border: 1px solid lightgray;
+		margin: 1rem;
 	}
 
 	.episode-card__action-btn {
