@@ -8,7 +8,7 @@ export class SettingsService {
 
 	static async saveSettings(settings: Settings, isUpdate: boolean): Promise<void> {
 		if (isUpdate) {
-			await db.settings.put({ id: 1, ...settings });
+			await db.settings.put({ ...settings, id: 1 });
 		} else {
 			await db.settings.add(settings);
 		}

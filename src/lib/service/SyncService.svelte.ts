@@ -51,21 +51,30 @@ export class SyncService {
 		return feedsWithIcons;
 	}
 
+	// TODO - get this to not clobber isDownloaded/isPlaying
 	private async syncFeedEntries(feed: Feed): Promise<void> {
 		const entryResult = await this.api.fetchEntriesForFeed(feed.id, {
 			limit: 1000,
 			order: 'id',
 			direction: 'asc'
 		});
-		const episodes: Episode[] = entryResult.entries.map((entry) => ({
-			id: entry.id,
-			podcastId: feed.id,
-			podcastTitle: feed.title,
-			title: entry.title,
-			content: entry.content,
-			publishedAt: new Date(entry.published_at),
-			isDownloaded: false
-		}));
+
+		const episodes: Episode[] = entryResult.entries
+			.filter((entry) => entry.enclosures && entry.enclosures.length > 0) // guard against entries with no enclosures
+			.map((entry) => ({
+				id: entry.id,
+				podcastId: feed.id,
+				podcastTitle: feed.title,
+				title: entry.title,
+				content: entry.content,
+				publishedAt: new Date(entry.published_at),
+				durationMin: entry.reading_time,
+				url: entry.enclosures[0].url,
+				mime_type: entry.enclosures[0].mime_type,
+				size: entry.enclosures[0].size,
+				isDownloaded: false,
+				isPlaying: false
+			}));
 		await db.episodes.bulkPut(episodes);
 	}
 

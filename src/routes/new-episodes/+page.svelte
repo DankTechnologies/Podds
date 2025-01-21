@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
-	import { PodcastService, type EpisodeExt } from '$lib/service/PodcastService';
+	import { EpisodeService } from '$lib/service/EpisodeService';
+	import type { EpisodeExt } from '$lib/types/db';
 	import { onMount } from 'svelte';
 
 	let episodes = $state<EpisodeExt[]>([]);
@@ -16,7 +17,7 @@
 
 		loading = true;
 		const start = currentPage * ITEMS_PER_PAGE;
-		const newEpisodes = await PodcastService.getRecentEpisodes(start, ITEMS_PER_PAGE);
+		const newEpisodes = await EpisodeService.getRecentEpisodes(start, ITEMS_PER_PAGE);
 
 		if (newEpisodes.length < ITEMS_PER_PAGE) {
 			hasMore = false;

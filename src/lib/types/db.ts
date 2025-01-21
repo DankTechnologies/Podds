@@ -1,12 +1,12 @@
 interface Settings {
-	id?: number;
+	id: number;
 	host: string;
 	apiKey: string;
 	categories: string;
 }
 
 interface Podcast {
-	id?: number;
+	id: number;
 	title: string;
 	lastUpdatedAt?: Date;
 	newEpisodes: number;
@@ -15,17 +15,25 @@ interface Podcast {
 }
 
 interface Episode {
-	id?: number;
+	id: number;
 	podcastId: number;
 	podcastTitle: string;
 	title: string;
-	content: string;
-	state?: 'history' | 'playing' | 'queue';
 	publishedAt: Date;
-	lastUpdatedAt?: Date;
+	lastPlayedAt?: Date;
+	content: string;
+	url: string;
+	mime_type: string;
+	size: number;
+	durationMin: number;
 	isDownloaded: boolean;
-	file?: Blob;
+	isPlaying: false;
 	playbackPosition?: number;
+	sortOrder?: number;
 }
 
-export type { Settings, Podcast, Episode };
+interface EpisodeExt extends Episode {
+	icon?: string;
+}
+
+export type { Settings, Podcast, Episode, EpisodeExt };

@@ -16,9 +16,17 @@ export interface FeedIconResult {
 export interface Entry {
 	id: number;
 	title: string;
-	url: string;
+	url: string; // website link
 	content: string;
 	published_at: string;
+	reading_time: number;
+	enclosures: Enclosure[];
+}
+
+export interface Enclosure {
+	url: string; // mp3 link
+	mime_type: string;
+	size: number;
 }
 
 export interface EntrySearchResult {

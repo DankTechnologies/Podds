@@ -1,9 +1,9 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { PodcastService, type EpisodeExt } from '$lib/service/PodcastService';
+	import { PodcastService } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
-	import type { Podcast } from '$lib/types/db';
+	import type { EpisodeExt, Podcast } from '$lib/types/db';
 
 	const podcastId = parseInt(page.params.id);
 
