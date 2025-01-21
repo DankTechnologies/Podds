@@ -1,6 +1,7 @@
 import { db } from '$lib/db/FluxcastDb';
-import type { EpisodeExt, Podcast } from '$lib/types/db';
+import type { Episode, Podcast } from '$lib/types/db';
 import Dexie from 'dexie';
+import { SvelteMap } from 'svelte/reactivity';
 
 export class PodcastService {
 	static async getPodcast(podcastId: number): Promise<Podcast | null> {
@@ -19,7 +20,7 @@ export class PodcastService {
 		podcastId: number,
 		start: number = 0,
 		limit: number = 100
-	): Promise<EpisodeExt[]> {
+	): Promise<Episode[]> {
 		return await db.episodes
 			.where('[podcastId+id]') // can't use orderBy and where
 			.between([podcastId, Dexie.minKey], [podcastId, Dexie.maxKey])
@@ -29,12 +30,17 @@ export class PodcastService {
 			.toArray();
 	}
 
+	static async fetchPodcastIconsById(): Promise<SvelteMap<number, string>> {
+		const podcasts = await db.podcasts.toArray();
+		return new SvelteMap(podcasts.map((p) => [p.id, p.icon]));
+	}
+
 	static async getPodcastWithDetails(
 		podcastId: number,
 		start: number = 0,
 		limit: number = 100
 	): Promise<{
-		episodes: EpisodeExt[];
+		episodes: Episode[];
 		podcast: Podcast;
 		episodeCount: number;
 	}> {

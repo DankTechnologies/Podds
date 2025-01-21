@@ -1,9 +1,4 @@
 <script lang="ts">
-	import type { EpisodeExt } from '$lib/types/db';
-
-	let episode = $state<EpisodeExt | null>(null);
-	$inspect(episode);
-
 	function handleBack() {
 		console.log('Seeking back 10 seconds');
 	}
@@ -21,29 +16,27 @@
 	}
 </script>
 
-{#if episode}
-	<div class="player">
-		<div class="player__section player__section--left">
-			<div class="player__artwork">
-				<img src={episode.icon} alt="" />
-			</div>
-		</div>
-
-		<div class="player__section player__section--center">
-			<button class="player__button" onclick={handleBack}> -10s </button>
-
-			<button class="player__button" onclick={handlePlayPause}>
-				{episode.state == 'playing' ? '⏸️' : '▶️'}
-			</button>
-
-			<button class="player__button" onclick={handleForward}> +30s </button>
-		</div>
-
-		<div class="player__section player__section--right">
-			<button class="player__button" onclick={handlePlaylist}> ☰ </button>
+<div class="player">
+	<div class="player__section player__section--left">
+		<div class="player__artwork">
+			<!-- <img src={episode.icon} alt="" /> -->
 		</div>
 	</div>
-{/if}
+
+	<div class="player__section player__section--center">
+		<button class="player__button" onclick={handleBack}> -10s </button>
+
+		<button class="player__button" onclick={handlePlayPause}>
+			<!-- {episode.state == 'playing' ? '⏸️' : '▶️'} -->
+		</button>
+
+		<button class="player__button" onclick={handleForward}> +30s </button>
+	</div>
+
+	<div class="player__section player__section--right">
+		<button class="player__button" onclick={handlePlaylist}> ☰ </button>
+	</div>
+</div>
 
 <style>
 	.player {

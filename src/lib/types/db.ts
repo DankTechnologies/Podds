@@ -32,8 +32,4 @@ interface Episode {
 	sortOrder?: number;
 }
 
-interface EpisodeExt extends Episode {
-	icon?: string;
-}
-
-export type { Settings, Podcast, Episode, EpisodeExt };
+export type { Settings, Podcast, Episode };

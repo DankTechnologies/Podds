@@ -1,5 +1,6 @@
 import { db } from '$lib/db/FluxcastDb';
-import type { Episode, EpisodeExt } from '$lib/types/db';
+import type { Episode } from '$lib/types/db';
+import type { SvelteMap } from 'svelte/reactivity';
 
 export class EpisodeService {
 	private static worker: Worker | null = null;
@@ -17,26 +18,8 @@ export class EpisodeService {
 		return await db.episodes.where('status').anyOf(['playing', 'paused']).first();
 	}
 
-	static async getRecentEpisodes(start: number = 0, limit: number = 50): Promise<EpisodeExt[]> {
-		const episodes = await db.episodes
-			.orderBy('publishedAt')
-			.reverse()
-			.offset(start)
-			.limit(limit)
-			.toArray();
-
-		const podcastIds = [...new Set(episodes.map((ep) => ep.podcastId))];
-
-		const podcasts = await db.podcasts.where('id').anyOf(podcastIds).toArray();
-
-		const podcastMap = new Map(podcasts.map((p) => [p.id, p]));
-
-		return episodes.map(
-			(episode): EpisodeExt => ({
-				...episode,
-				icon: podcastMap.get(episode.podcastId)?.icon
-			})
-		);
+	static async getRecentEpisodes(start: number = 0, limit: number = 50): Promise<Episode[]> {
+		return await db.episodes.orderBy('publishedAt').reverse().offset(start).limit(limit).toArray();
 	}
 
 	static async downloadEpisode(

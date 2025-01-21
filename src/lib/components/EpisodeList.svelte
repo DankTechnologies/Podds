@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { EpisodeService } from '$lib/service/EpisodeService';
-	import type { Episode, EpisodeExt } from '$lib/types/db';
+	import type { Episode } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	let { episodes }: { episodes: EpisodeExt[] } = $props();
+	let {
+		episodes,
+		podcastIcons
+	}: { episodes: Episode[]; podcastIcons?: SvelteMap<number, string> } = $props();
 	let expandedEpisodeIds = $state<number[]>([]);
 	let downloadedEpisodeIds = $state<number[]>([]);
 	let downloadProgress = $state<SvelteMap<number, number>>(new SvelteMap());
@@ -29,7 +32,7 @@
 		return expandedEpisodeIds.includes(episodeId);
 	}
 
-	async function startDownload(episode: Episode) {
+	async function startDownload(episode: Episode): Promise<void> {
 		downloadProgress.set(episode.id, 0);
 		await EpisodeService.downloadEpisode(episode, markDownloaded, showProgress);
 	}
@@ -53,8 +56,12 @@
 				aria-expanded={isExpanded(episode.id!)}
 				aria-controls="details-{episode.id}"
 			>
-				{#if episode.icon}
-					<img class="episode-card__image" src={`data:${episode.icon}`} alt="" />
+				{#if podcastIcons}
+					<img
+						class="episode-card__image"
+						src={`data:${podcastIcons.get(episode.podcastId)}`}
+						alt=""
+					/>
 				{/if}
 				<div class="episode-card__heading">
 					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>

@@ -3,11 +3,11 @@
 	import { page } from '$app/state';
 	import { PodcastService } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
-	import type { EpisodeExt, Podcast } from '$lib/types/db';
+	import type { Episode, Podcast } from '$lib/types/db';
 
 	const podcastId = parseInt(page.params.id);
 
-	let episodes = $state<EpisodeExt[]>([]);
+	let episodes = $state<Episode[]>([]);
 	let podcast = $state<Podcast | null>(null);
 	let episodeCount = $state<number>(0);
 
