@@ -20,7 +20,9 @@
 	}
 
 	function isDownloaded(episode: Episode) {
-		return episode.isDownloaded || downloadedEpisodeIds.indexOf(episode.id) !== -1;
+		// isDownloaded is "0 | 1" so this explicit boolean return makes TS happy
+		if (episode.isDownloaded || downloadedEpisodeIds.indexOf(episode.id) !== -1) return true;
+		else return false;
 	}
 
 	function isDownloading(episode: Episode) {
@@ -33,8 +35,13 @@
 	}
 
 	async function startDownload(episode: Episode): Promise<void> {
-		downloadProgress.set(episode.id, 0);
-		await EpisodeService.downloadEpisode(episode, markDownloaded, showProgress);
+		// downloadProgress.set(episode.id, 0);
+		// await EpisodeService.downloadEpisode(episode, markDownloaded, showProgress);
+		console.log(`Downloading episode: ${episode.title}`);
+	}
+
+	function playEpisode(episode: Episode) {
+		console.log(`Playing episode: ${episode.title}`);
 	}
 
 	function showProgress(episodeId: number, progress: number) {
@@ -81,7 +88,11 @@
 			{#if isExpanded(episode.id!)}
 				<div id="details-{episode.id}" class="episode-card__details">
 					<div class="episode-card__actions">
-						<button class="episode-card__action-btn" aria-label="Play episode">
+						<button
+							class="episode-card__action-btn"
+							aria-label="Play episode"
+							onclick={() => playEpisode(episode)}
+						>
 							<span aria-hidden="true">▶️</span> Play
 						</button>
 						<button

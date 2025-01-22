@@ -1,73 +1,75 @@
 <script lang="ts">
+	import { EpisodeService } from '$lib/service/EpisodeService';
+	import { PodcastService } from '$lib/service/PodcastService';
+	import { liveQuery } from 'dexie';
+	import { onMount } from 'svelte';
+	import type { SvelteMap } from 'svelte/reactivity';
+
+	let podcastIcons = $state<SvelteMap<number, string>>();
+	let time = $state(0);
+	let paused = $state(true);
+	let playingEpisode = liveQuery(() => EpisodeService.getPlayingEpisode());
+
 	function handleBack() {
-		console.log('Seeking back 10 seconds');
+		time = Math.max(0, time - 10);
 	}
 
 	function handlePlayPause() {
-		console.log('Toggle play/pause');
+		paused = !paused;
 	}
-
 	function handleForward() {
-		console.log('Seeking forward 30 seconds');
+		if ($playingEpisode?.durationMin !== undefined) {
+			time = Math.min($playingEpisode.durationMin * 60, time + 30);
+		} else {
+			time += 30;
+		}
 	}
 
 	function handlePlaylist() {
 		console.log('Opening playlist/menu');
 	}
+
+	onMount(async () => {
+		podcastIcons = await PodcastService.fetchPodcastIconsById();
+	});
 </script>
 
-<div class="player">
-	<div class="player__section player__section--left">
+{#if $playingEpisode}
+	<audio src={$playingEpisode.url} bind:currentTime={time} bind:paused></audio>
+	<div class="player">
 		<div class="player__artwork">
-			<!-- <img src={episode.icon} alt="" /> -->
+			<img src={podcastIcons?.get($playingEpisode.id)} alt="" />
 		</div>
-	</div>
 
-	<div class="player__section player__section--center">
 		<button class="player__button" onclick={handleBack}> -10s </button>
 
 		<button class="player__button" onclick={handlePlayPause}>
-			<!-- {episode.state == 'playing' ? '⏸️' : '▶️'} -->
+			{$playingEpisode.isPlaying ? '⏸️' : '▶️'}
 		</button>
 
 		<button class="player__button" onclick={handleForward}> +30s </button>
-	</div>
 
-	<div class="player__section player__section--right">
 		<button class="player__button" onclick={handlePlaylist}> ☰ </button>
 	</div>
-</div>
+{/if}
 
 <style>
 	.player {
 		display: flex;
+		justify-content: space-between;
 		align-items: center;
-		padding: 0.5rem;
-		background: lightgray;
-		border-top: 0.0625rem solid darkgray;
+		position: fixed;
+		bottom: 4.25rem;
+		left: 0;
+		right: 0;
+		z-index: 50;
+		height: 3.25rem;
+		padding: 0.5rem 1rem;
+		border-top: 3px solid darkorange;
+		background-color: white;
 	}
 
-	.player__section {
-		display: flex;
-		align-items: center;
-	}
-
-	.player__section--left {
-		flex: 1;
-	}
-
-	.player__section--center {
-		flex: 2;
-		justify-content: center;
-		gap: 1.5rem;
-	}
-
-	.player__section--right {
-		flex: 1;
-		justify-content: flex-end;
-	}
-
-	.player__artwork {
+	/* .player__artwork {
 		width: 2.5rem;
 		height: 2.5rem;
 	}
@@ -77,12 +79,10 @@
 		height: 100%;
 		object-fit: cover;
 	}
-
+ */
 	.player__button {
 		border: none;
 		background: none;
-		padding: 0.5rem;
-		cursor: pointer;
-		color: darkgray;
+		color: slategray;
 	}
 </style>

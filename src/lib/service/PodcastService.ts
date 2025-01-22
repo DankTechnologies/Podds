@@ -4,6 +4,8 @@ import Dexie from 'dexie';
 import { SvelteMap } from 'svelte/reactivity';
 
 export class PodcastService {
+	private static podcastIconsCache: SvelteMap<number, string> | null = null;
+
 	static async getPodcast(podcastId: number): Promise<Podcast | null> {
 		return (await db.podcasts.get(podcastId)) || null;
 	}
@@ -31,8 +33,17 @@ export class PodcastService {
 	}
 
 	static async fetchPodcastIconsById(): Promise<SvelteMap<number, string>> {
+		if (PodcastService.podcastIconsCache) {
+			return PodcastService.podcastIconsCache;
+		}
+
 		const podcasts = await db.podcasts.toArray();
-		return new SvelteMap(podcasts.map((p) => [p.id, p.icon]));
+		PodcastService.podcastIconsCache = new SvelteMap(podcasts.map((p) => [p.id, p.icon]));
+		return PodcastService.podcastIconsCache;
+	}
+
+	static clearIconsCache(): void {
+		PodcastService.podcastIconsCache = null;
 	}
 
 	static async getPodcastWithDetails(

@@ -45,14 +45,14 @@
 <style>
 	nav {
 		display: flex;
-		justify-content: space-around;
+		justify-content: space-between;
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
 		z-index: 50;
 		height: 3.25rem;
-		padding: 0.5rem;
+		padding: 0.5rem 1rem;
 		border-top: 3px solid black;
 		background-color: white;
 	}

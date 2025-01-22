@@ -19,6 +19,8 @@ export class SyncService {
 			this.status = `Syncing ${feed.title}...`;
 			await this.syncFeedEntries(feed);
 		}
+
+		this.status = '';
 	}
 
 	private async syncFeeds(categoryIds: number[]): Promise<Feed[]> {
@@ -60,21 +62,24 @@ export class SyncService {
 		});
 
 		const episodes: Episode[] = entryResult.entries
-			.filter((entry) => entry.enclosures && entry.enclosures.length > 0) // guard against entries with no enclosures
-			.map((entry) => ({
-				id: entry.id,
-				podcastId: feed.id,
-				podcastTitle: feed.title,
-				title: entry.title,
-				content: entry.content,
-				publishedAt: new Date(entry.published_at),
-				durationMin: entry.reading_time,
-				url: entry.enclosures[0].url,
-				mime_type: entry.enclosures[0].mime_type,
-				size: entry.enclosures[0].size,
-				isDownloaded: false,
-				isPlaying: false
-			}));
+			.filter((entry) => entry.enclosures?.some((e) => e.mime_type === 'audio/mpeg'))
+			.map((entry) => {
+				const audioEnclosure = entry.enclosures.find((e) => e.mime_type === 'audio/mpeg')!;
+				return {
+					id: entry.id,
+					podcastId: feed.id,
+					podcastTitle: feed.title,
+					title: entry.title,
+					content: entry.content,
+					publishedAt: new Date(entry.published_at),
+					durationMin: entry.reading_time,
+					url: audioEnclosure.url,
+					mime_type: audioEnclosure.mime_type,
+					size: audioEnclosure.size,
+					isDownloaded: 0,
+					isPlaying: 0
+				};
+			});
 		await db.episodes.bulkPut(episodes);
 	}
 

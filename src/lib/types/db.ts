@@ -26,8 +26,8 @@ interface Episode {
 	mime_type: string;
 	size: number;
 	durationMin: number;
-	isDownloaded: boolean;
-	isPlaying: false;
+	isDownloaded: 0 | 1;
+	isPlaying: 0 | 1;
 	playbackPosition?: number;
 	sortOrder?: number;
 }

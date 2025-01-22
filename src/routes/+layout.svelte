@@ -11,7 +11,6 @@
 
 	const standaloneRoutes = ['/setup', '/sync'];
 
-	let isPlaying = $state(false);
 	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 	let settings = $state<Settings | null>(null);
 
@@ -29,10 +28,7 @@
 <main class={{ 'nav-offset': !isStandalone }}>
 	{@render children()}
 	{#if !isStandalone}
-		{#if isPlaying}
-			<Player />
-		{/if}
-
+		<Player />
 		<BottomNavBar />
 	{/if}
 </main>
