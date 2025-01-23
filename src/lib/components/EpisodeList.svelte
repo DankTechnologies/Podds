@@ -8,8 +8,6 @@
 		podcastIcons
 	}: { episodes: Episode[]; podcastIcons?: SvelteMap<number, string> } = $props();
 	let expandedEpisodeIds = $state<number[]>([]);
-	let downloadedEpisodeIds = $state<number[]>([]);
-	let downloadProgress = $state<SvelteMap<number, number>>(new SvelteMap());
 
 	function toggleExpanded(episodeId: number) {
 		if (isExpanded(episodeId)) {
@@ -19,37 +17,17 @@
 		}
 	}
 
-	function isDownloaded(episode: Episode) {
-		// isDownloaded is "0 | 1" so this explicit boolean return makes TS happy
-		if (episode.isDownloaded || downloadedEpisodeIds.indexOf(episode.id) !== -1) return true;
-		else return false;
-	}
-
-	function isDownloading(episode: Episode) {
-		const progress = downloadProgress.get(episode.id);
-		return progress !== undefined && progress < 100;
-	}
-
 	function isExpanded(episodeId: number) {
 		return expandedEpisodeIds.includes(episodeId);
 	}
 
-	async function startDownload(episode: Episode): Promise<void> {
-		// downloadProgress.set(episode.id, 0);
-		// await EpisodeService.downloadEpisode(episode, markDownloaded, showProgress);
-		console.log(`Downloading episode: ${episode.title}`);
-	}
-
 	function playEpisode(episode: Episode) {
 		console.log(`Playing episode: ${episode.title}`);
+		EpisodeService.setPlayingEpisode(episode.id);
 	}
 
-	function showProgress(episodeId: number, progress: number) {
-		downloadProgress.set(episodeId, progress);
-	}
-
-	function markDownloaded(episodeId: number) {
-		downloadedEpisodeIds = [...downloadedEpisodeIds, episodeId];
+	function downloadEpisode(episode: Episode) {
+		console.log(`Downloading episode: ${episode.title}`);
 	}
 </script>
 
@@ -77,9 +55,6 @@
 							month: 'long',
 							day: 'numeric'
 						})}
-						{#if isDownloaded(episode)}
-							<span class="episode-card__download-check">✅</span>
-						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
 				</div>
@@ -98,16 +73,9 @@
 						<button
 							class="episode-card__action-btn"
 							aria-label="Save episode"
-							disabled={isDownloaded(episode) || isDownloading(episode)}
-							onclick={() => startDownload(episode)}
+							onclick={() => downloadEpisode(episode)}
 						>
-							{#if isDownloaded(episode)}
-								<span aria-hidden="true">✅</span> Downloaded
-							{:else if downloadProgress.has(episode.id!)}
-								<span aria-hidden="true">⏬</span> {downloadProgress.get(episode.id!)}%
-							{:else}
-								<span aria-hidden="true">➕</span> Up Next
-							{/if}
+							<span aria-hidden="true">➕</span> Up Next
 						</button>
 					</div>
 					<div class="episode-card__content">

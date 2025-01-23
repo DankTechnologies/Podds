@@ -2,11 +2,13 @@
 	import { EpisodeService } from '$lib/service/EpisodeService';
 	import { PodcastService } from '$lib/service/PodcastService';
 	import { liveQuery } from 'dexie';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
 
 	let podcastIcons = $state<SvelteMap<number, string>>();
+	let audio = $state<HTMLAudioElement>();
 	let time = $state(0);
+	let duration = $state(0);
 	let paused = $state(true);
 	let playingEpisode = liveQuery(() => EpisodeService.getPlayingEpisode());
 
@@ -32,19 +34,45 @@
 	onMount(async () => {
 		podcastIcons = await PodcastService.fetchPodcastIconsById();
 	});
+
+	function resetTime() {
+		time = 0;
+	}
+
+	function resetTimeAndPlay() {
+		time = 0;
+		paused = false;
+	}
+
+	function handleError(e: Event) {
+		console.error('Audio playback error:', e);
+		if (audio?.error) {
+			console.error('Error details:', audio.error.code, audio.error.message);
+		}
+		EpisodeService.clearPlayingEpisode();
+	}
 </script>
 
 {#if $playingEpisode}
-	<audio src={$playingEpisode.url} bind:currentTime={time} bind:paused></audio>
+	<audio
+		src={$playingEpisode.url}
+		bind:this={audio}
+		bind:currentTime={time}
+		bind:duration
+		bind:paused
+		onended={resetTime}
+		onerror={handleError}
+		onloadstart={resetTimeAndPlay}
+	></audio>
 	<div class="player">
 		<div class="player__artwork">
-			<img src={podcastIcons?.get($playingEpisode.id)} alt="" />
+			<img src={`data:${podcastIcons?.get($playingEpisode.podcastId)}`} alt="" />
 		</div>
 
 		<button class="player__button" onclick={handleBack}> -10s </button>
 
 		<button class="player__button" onclick={handlePlayPause}>
-			{$playingEpisode.isPlaying ? '⏸️' : '▶️'}
+			{paused ? '▶️' : '⏸️'}
 		</button>
 
 		<button class="player__button" onclick={handleForward}> +30s </button>
@@ -69,9 +97,9 @@
 		background-color: white;
 	}
 
-	/* .player__artwork {
-		width: 2.5rem;
-		height: 2.5rem;
+	.player__artwork {
+		width: 3.25rem;
+		height: 3.25rem;
 	}
 
 	.player__artwork img {
@@ -79,7 +107,7 @@
 		height: 100%;
 		object-fit: cover;
 	}
- */
+
 	.player__button {
 		border: none;
 		background: none;

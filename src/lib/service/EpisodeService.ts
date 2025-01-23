@@ -23,13 +23,24 @@ export class EpisodeService {
 	}
 
 	// TODO - review, maybe use transaction
-	static async setPlayingEpisode(episode: Episode): Promise<void> {
+	static async setPlayingEpisode(episodeId: number): Promise<void> {
 		const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
 
 		if (currentPlayingEpisode) {
 			await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
 		}
 
-		await db.episodes.update(episode.id, { isPlaying: 1 });
+		await db.episodes.update(episodeId, { isPlaying: 1 });
+	}
+
+	static async clearPlayingEpisode(): Promise<void> {
+		const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
+		if (currentPlayingEpisode) {
+			await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
+		}
+	}
+
+	static async updatePlaybackPosition(episodeId: number, pos: number): Promise<void> {
+		await db.episodes.update(episodeId, { playbackPosition: pos });
 	}
 }
