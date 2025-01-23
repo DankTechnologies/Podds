@@ -2,6 +2,7 @@ import type MinifluxApi from '$lib/api/MinifluxApi';
 import { db } from '$lib/db/FluxcastDb';
 import { type Podcast, type Episode } from '$lib/types/db';
 import type { Feed } from '$lib/types/miniflux';
+import { PodcastService } from './PodcastService';
 
 const maxWidth = 300;
 const maxHeight = 300;
@@ -20,6 +21,8 @@ export class SyncService {
 			await this.syncFeedEntries(feed);
 		}
 
+		// cache invalidate icons by id map
+		await PodcastService.fetchPodcastIconsById(true);
 		this.status = '';
 	}
 

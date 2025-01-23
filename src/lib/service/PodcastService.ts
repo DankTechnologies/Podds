@@ -32,8 +32,13 @@ export class PodcastService {
 			.toArray();
 	}
 
-	static async fetchPodcastIconsById(): Promise<SvelteMap<number, string>> {
-		if (PodcastService.podcastIconsCache) {
+	static async fetchPodcastIconsById(force?: boolean): Promise<SvelteMap<number, string>> {
+		// handle edge case where map was empty on first visit after the initial setup
+		if (
+			PodcastService.podcastIconsCache &&
+			PodcastService.podcastIconsCache.keys.length > 0 &&
+			!force
+		) {
 			return PodcastService.podcastIconsCache;
 		}
 
