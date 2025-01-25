@@ -3,6 +3,7 @@
 	import type { Episode } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { downloadAudio } from '$lib/service/DownloadService';
+	import { playService } from '$lib/service/PlayService.svelte';
 
 	let {
 		episodes,
@@ -24,7 +25,11 @@
 
 	function playEpisode(episode: Episode) {
 		console.log(`Playing episode: ${episode.title}`);
-		EpisodeService.setPlayingEpisode(episode.id);
+		playService.play(
+			episode,
+			() => console.log('Playback completed'),
+			(error) => console.error('Playback failed:', error)
+		);
 	}
 
 	function downloadEpisode(episode: Episode) {

@@ -22,15 +22,16 @@ export class EpisodeService {
 		return await db.episodes.where('isDownloaded').equals(1).toArray();
 	}
 
-	// TODO - review, maybe use transaction
 	static async setPlayingEpisode(episodeId: number): Promise<void> {
-		const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
+		await db.transaction('rw', db.episodes, async () => {
+			const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
 
-		if (currentPlayingEpisode) {
-			await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
-		}
+			if (currentPlayingEpisode) {
+				await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
+			}
 
-		await db.episodes.update(episodeId, { isPlaying: 1 });
+			await db.episodes.update(episodeId, { isPlaying: 1 });
+		});
 	}
 
 	static async clearPlayingEpisode(): Promise<void> {

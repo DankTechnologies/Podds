@@ -1,30 +1,21 @@
 <script lang="ts">
-	import { EpisodeService } from '$lib/service/EpisodeService';
+	import { playService } from '$lib/service/PlayService.svelte';
 	import { PodcastService } from '$lib/service/PodcastService';
-	import { liveQuery } from 'dexie';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
 
 	let podcastIcons = $state<SvelteMap<number, string>>();
-	let audio = $state<HTMLAudioElement>();
-	let time = $state(0);
-	let duration = $state(0);
-	let paused = $state(true);
-	let playingEpisode = liveQuery(() => EpisodeService.getPlayingEpisode());
 
 	function handleBack() {
-		time = Math.max(0, time - 10);
+		playService.seek(-10);
 	}
 
 	function handlePlayPause() {
-		paused = !paused;
+		playService.togglePlayPause();
 	}
+
 	function handleForward() {
-		if ($playingEpisode?.durationMin !== undefined) {
-			time = Math.min($playingEpisode.durationMin * 60, time + 30);
-		} else {
-			time += 30;
-		}
+		playService.seek(30);
 	}
 
 	function handlePlaylist() {
@@ -34,45 +25,18 @@
 	onMount(async () => {
 		podcastIcons = await PodcastService.fetchPodcastIconsById();
 	});
-
-	function resetTime() {
-		time = 0;
-	}
-
-	function resetTimeAndPlay() {
-		time = 0;
-		paused = false;
-	}
-
-	function handleError(e: Event) {
-		console.error('Audio playback error:', e);
-		if (audio?.error) {
-			console.error('Error details:', audio.error.code, audio.error.message);
-		}
-		EpisodeService.clearPlayingEpisode();
-	}
 </script>
 
-{#if $playingEpisode}
-	<audio
-		src={$playingEpisode.url}
-		bind:this={audio}
-		bind:currentTime={time}
-		bind:duration
-		bind:paused
-		onended={resetTime}
-		onerror={handleError}
-		onloadstart={resetTimeAndPlay}
-	></audio>
+{#if playService.episode}
 	<div class="player">
 		<div class="player__artwork">
-			<img src={`data:${podcastIcons?.get($playingEpisode.podcastId)}`} alt="" />
+			<img src={`data:${podcastIcons?.get(playService.episode.podcastId)}`} alt="" />
 		</div>
 
 		<button class="player__button" onclick={handleBack}> -10s </button>
 
 		<button class="player__button" onclick={handlePlayPause}>
-			{paused ? '▶️' : '⏸️'}
+			{playService.isPaused ? '▶️' : '⏸️'}
 		</button>
 
 		<button class="player__button" onclick={handleForward}> +30s </button>
@@ -106,6 +70,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		transition: opacity 0.3s ease;
 	}
 
 	.player__button {
