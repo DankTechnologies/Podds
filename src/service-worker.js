@@ -65,38 +65,6 @@ const handleRequest = async ({ request }) => {
 		return responseFromCache;
 	}
 
-	// Handle Range requests for media files
-	if (request.headers.get('range')) {
-		console.log('Handling range request:', request.url);
-		const cache = await caches.open(MP3_CACHE);
-		const cachedResponse = await cache.match(request);
-
-		if (cachedResponse) {
-			const rangeHeader = request.headers.get('range');
-			const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
-			if (rangeMatch) {
-				const start = parseInt(rangeMatch[1], 10);
-				const end = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : undefined;
-
-				const blob = await cachedResponse.blob();
-				const slicedBlob = blob.slice(start, end + 1);
-
-				return new Response(slicedBlob, {
-					status: 206,
-					statusText: 'Partial Content',
-					headers: {
-						'Content-Type': cachedResponse.headers.get('Content-Type'),
-						'Content-Range': `bytes ${start}-${end || blob.size - 1}/${blob.size}`,
-						'Accept-Ranges': 'bytes'
-					}
-				});
-			}
-		}
-
-		console.log('Range request not cached, falling back to network:', request.url);
-		return fetch(request);
-	}
-
 	// Static asset handling
 	if (ASSETS.includes(new URL(request.url).pathname)) {
 		console.warn('Static asset not found in cache, fetching from network:', request.url);
