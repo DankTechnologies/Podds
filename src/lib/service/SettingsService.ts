@@ -10,7 +10,12 @@ export class SettingsService {
 		if (isUpdate) {
 			await db.settings.put({ ...settings, id: 1 });
 		} else {
-			await db.settings.add(settings);
+			await db.settings.add({
+				...settings,
+				lastSyncAt: new Date(),
+				syncIntervalHours: 24,
+				isSyncing: false
+			});
 		}
 	}
 }

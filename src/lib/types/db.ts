@@ -3,6 +3,9 @@ interface Settings {
 	host: string;
 	apiKey: string;
 	categories: string;
+	lastSyncAt?: Date;
+	syncIntervalHours: number;
+	isSyncing?: boolean;
 }
 
 interface Podcast {
