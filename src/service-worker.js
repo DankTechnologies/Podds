@@ -82,13 +82,16 @@ const handleRequest = async ({ request }) => {
 	// MP3 caching logic
 	if (request.destination === 'audio') {
 		console.log('Fetching MP3 resource:', request.url);
-		const networkResponse = await fetch(request);
 
-		try {
-			await putInCache(MP3_CACHE, request, networkResponse.clone());
-		} catch (err) {
-			console.error('Failed to cache MP3 resource:', request.url, err);
-		}
+		// don't await the fetch, as that blocks playback until the full MP3 downloaded
+		// without await, playback is immediate AND the mp3 downloads to the cache
+		const networkResponse = fetch(request);
+
+		networkResponse.then((response) => {
+			putInCache(MP3_CACHE, request, response.clone()).catch((err) =>
+				console.error('Failed to cache MP3 resource:', request.url, err)
+			);
+		});
 
 		return networkResponse;
 	}
