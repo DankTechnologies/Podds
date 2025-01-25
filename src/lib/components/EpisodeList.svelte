@@ -4,11 +4,12 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
+	import type { Observable } from 'dexie';
 
 	let {
 		episodes,
 		podcastIcons
-	}: { episodes: Episode[]; podcastIcons?: SvelteMap<number, string> } = $props();
+	}: { episodes: Observable<Episode[]>; podcastIcons?: SvelteMap<number, string> } = $props();
 	let expandedEpisodeIds = $state<number[]>([]);
 
 	function toggleExpanded(episodeId: number) {
@@ -52,7 +53,7 @@
 </script>
 
 <div class="episode-list" role="list">
-	{#each episodes as episode}
+	{#each $episodes as episode}
 		<article class="episode-card">
 			<button
 				class="episode-card__header"
@@ -75,6 +76,9 @@
 							month: 'long',
 							day: 'numeric'
 						})}
+						{#if episode.isDownloaded}
+							<span class="episode-card__download-check">✅</span>
+						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
 				</div>

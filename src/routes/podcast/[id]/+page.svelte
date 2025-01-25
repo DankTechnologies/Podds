@@ -3,46 +3,41 @@
 	import { page } from '$app/state';
 	import { PodcastService } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
-	import type { Episode, Podcast } from '$lib/types/db';
+	import type { Podcast } from '$lib/types/db';
+	import Dexie, { liveQuery } from 'dexie';
+	import { db } from '$lib/db/FluxcastDb';
 
 	const podcastId = parseInt(page.params.id);
 
-	let episodes = $state<Episode[]>([]);
+	const ITEMS_PER_PAGE = 50;
 	let podcast = $state<Podcast | null>(null);
 	let episodeCount = $state<number>(0);
+	let limit = $state<number>(ITEMS_PER_PAGE);
 
-	let loading = $state<boolean>(false);
-	let hasMore = $state<boolean>(true);
-	let currentPage = $state<number>(0);
-
-	const ITEMS_PER_PAGE = 50;
 	let observerTarget = $state<HTMLElement | null>(null);
 
+	let episodes = $derived.by(() => {
+		// noop just to make it reactive
+		limit;
+
+		return liveQuery(() =>
+			db.episodes
+				.where('[podcastId+id]') // can't use orderBy and where
+				.between([podcastId, Dexie.minKey], [podcastId, Dexie.maxKey])
+				.reverse()
+				.limit(limit)
+				.toArray()
+		);
+	});
+	$inspect($episodes);
 	async function loadMoreEpisodes() {
-		if (loading || !hasMore) return;
-
-		loading = true;
-		const start = currentPage * ITEMS_PER_PAGE;
-		const newEpisodes = await PodcastService.getEpisodesByPodcast(podcastId, start, ITEMS_PER_PAGE);
-
-		if (newEpisodes.length < ITEMS_PER_PAGE) {
-			hasMore = false;
-		}
-
-		episodes = [...episodes, ...newEpisodes];
-		currentPage++;
-		loading = false;
+		if (limit < episodeCount) limit += ITEMS_PER_PAGE;
 	}
 
 	onMount(() => {
 		PodcastService.getPodcastWithDetails(podcastId, 0, ITEMS_PER_PAGE).then((details) => {
-			episodes = details.episodes;
 			podcast = details.podcast;
 			episodeCount = details.episodeCount;
-
-			if (details.episodes.length < ITEMS_PER_PAGE) {
-				hasMore = false;
-			}
 		});
 
 		const observer = new IntersectionObserver(

@@ -1,45 +1,36 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
-	import { EpisodeService } from '$lib/service/EpisodeService';
+	import { db } from '$lib/db/FluxcastDb';
 	import { PodcastService } from '$lib/service/PodcastService';
-	import type { Episode } from '$lib/types/db';
+	import { liveQuery } from 'dexie';
 	import { onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
 
-	let episodes = $state<Episode[]>([]);
-	let podcastIcons = $state<SvelteMap<number, string>>();
-	let loading = $state<boolean>(false);
-	let hasMore = $state<boolean>(true);
-	let currentPage = $state<number>(0);
-
 	const ITEMS_PER_PAGE = 50;
+	let podcastIcons = $state<SvelteMap<number, string>>();
+	let limit = $state<number>(ITEMS_PER_PAGE);
+
 	let observerTarget = $state<HTMLElement | null>(null);
 
+	let episodes = $derived.by(() => {
+		// noop just to make it reactive
+		limit;
+
+		return liveQuery(() => db.episodes.orderBy('publishedAt').reverse().limit(limit).toArray());
+	});
+	$inspect($episodes);
 	async function loadMoreEpisodes() {
-		if (loading || !hasMore) return;
-
-		loading = true;
-		const start = currentPage * ITEMS_PER_PAGE;
-		const newEpisodes = await EpisodeService.getRecentEpisodes(start, ITEMS_PER_PAGE);
-
-		if (newEpisodes.length < ITEMS_PER_PAGE) {
-			hasMore = false;
-		}
-
-		episodes = [...episodes, ...newEpisodes];
-		currentPage++;
-		loading = false;
+		limit += ITEMS_PER_PAGE;
 	}
 
 	// @ts-ignore
 	onMount(async () => {
 		podcastIcons = await PodcastService.fetchPodcastIconsById();
-		loadMoreEpisodes();
 
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
+					if (entry.isIntersecting && $episodes) {
 						loadMoreEpisodes();
 					}
 				});
@@ -54,8 +45,6 @@
 </script>
 
 {#if episodes}
-	<div>
-		<EpisodeList {episodes} {podcastIcons} />
-		<div bind:this={observerTarget}></div>
-	</div>
+	<EpisodeList {episodes} {podcastIcons} />
 {/if}
+<div bind:this={observerTarget}></div>

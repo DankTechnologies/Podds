@@ -10,10 +10,6 @@ export class EpisodeService {
 		return await db.episodes.where('isPlaying').equals(1).first();
 	}
 
-	static async getRecentEpisodes(start: number = 0, limit: number = 50): Promise<Episode[]> {
-		return await db.episodes.orderBy('publishedAt').reverse().offset(start).limit(limit).toArray();
-	}
-
 	static async getUpNextEpisodes(): Promise<Episode[]> {
 		return await db.episodes.where('sortOrder').above(0).toArray();
 	}
