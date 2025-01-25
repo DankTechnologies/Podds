@@ -5,6 +5,8 @@ export function downloadAudio(
 ): void {
 	const audio = new Audio();
 	audio.preload = 'auto';
+	// guard against onError firing after onSuccess with some APIs
+	let isDone = false;
 
 	const cleanup = () => {
 		audio.src = '';
@@ -17,8 +19,11 @@ export function downloadAudio(
 		audio.addEventListener(
 			'loadeddata',
 			() => {
-				onComplete();
-				cleanup();
+				if (!isDone) {
+					isDone = true;
+					onComplete();
+					cleanup();
+				}
 			},
 			{ once: true }
 		);
@@ -28,8 +33,11 @@ export function downloadAudio(
 		audio.addEventListener(
 			'error',
 			(e) => {
-				onError(e);
-				cleanup();
+				if (!isDone) {
+					isDone = true;
+					onError(e);
+					cleanup();
+				}
 			},
 			{ once: true }
 		);
