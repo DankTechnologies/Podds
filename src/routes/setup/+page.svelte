@@ -1,44 +1,44 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import MinifluxApi from '$lib/api/MinifluxApi';
-	import { type Settings } from '$lib/types/db';
+	import { type OptionalId, type Settings } from '$lib/types/db';
 	import { SettingsService } from '$lib/service/SettingsService';
 	import type { Category } from '$lib/types/miniflux';
 	import { onMount } from 'svelte';
 
-	let host = $state('https://feed.pitpat.me');
-	let apiKey = $state('78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=');
-	let categories = $state<string>('');
+	let settings = $state<OptionalId<Settings>>({
+		host: 'https://feed.pitpat.me',
+		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
+		categories: '',
+		syncIntervalHours: 24
+	});
 	let isUpdate = $state<boolean>(false);
 
 	let isApiTested = $state<boolean>(false);
 	let tempCategories = $state<Category[]>([]);
 	let isValid = $derived(
 		isApiTested &&
-			categories
+			(settings.categories ?? '')
 				.split(',')
 				.every((id) => !isNaN(Number(id)) && tempCategories.some((cat) => cat.id === Number(id)))
 	);
 
 	onMount(async () => {
-		const settings = await SettingsService.getSettings();
+		const savedSettings = await SettingsService.getSettings();
 
-		if (settings) {
-			host = settings.host;
-			apiKey = settings.apiKey;
-			categories = settings.categories;
+		if (savedSettings) {
+			settings = savedSettings;
 			isUpdate = true;
 		}
 	});
 
 	async function onSave() {
-		const settings: Settings = { host, apiKey, categories };
 		await SettingsService.saveSettings(settings, isUpdate);
 		goto('/sync');
 	}
 
 	async function onTest() {
-		const api = new MinifluxApi(host, apiKey);
+		const api = new MinifluxApi(settings.host, settings.apiKey);
 
 		try {
 			tempCategories = (await api.fetchCategories()).toSorted((a, b) => a.id - b.id);
@@ -56,11 +56,11 @@
 <form class="grid">
 	<div>
 		<label for="host">Host</label>
-		<input id="host" name="host" type="url" bind:value={host} />
+		<input id="host" name="host" type="url" bind:value={settings.host} />
 	</div>
 	<div>
 		<label for="apiKey">API Key</label>
-		<input id="apiKey" name="apiKey" type="text" bind:value={apiKey} />
+		<input id="apiKey" name="apiKey" type="text" bind:value={settings.apiKey} />
 	</div>
 	<div>
 		<label for="categories">Categories</label>
@@ -68,7 +68,7 @@
 			id="categories"
 			name="categories"
 			placeholder="click Test to see categories"
-			bind:value={categories}
+			bind:value={settings.categories}
 		/>
 	</div>
 	<div>

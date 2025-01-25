@@ -35,4 +35,6 @@ interface Episode {
 	sortOrder?: number;
 }
 
-export type { Settings, Podcast, Episode };
+type OptionalId<T extends { id: unknown }> = Omit<T, 'id'> & Partial<Pick<T, 'id'>>;
+
+export type { Settings, Podcast, Episode, OptionalId };
