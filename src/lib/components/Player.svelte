@@ -3,7 +3,9 @@
 	import { PodcastService } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
+	import { Rewind, FastForward, Play, Pause, Menu } from 'lucide-svelte';
 
+	const ICON_SIZE = '2rem';
 	let podcastIcons = $state<SvelteMap<number, string>>();
 
 	function handleBack() {
@@ -33,15 +35,25 @@
 			<img src={`data:${podcastIcons?.get(playService.episode.podcastId)}`} alt="" />
 		</div>
 
-		<button class="player__button" onclick={handleBack}> -10s </button>
-
-		<button class="player__button" onclick={handlePlayPause}>
-			{playService.isPaused ? '▶️' : '⏸️'}
+		<button class="player__button" onclick={handleBack}>
+			<Rewind size={ICON_SIZE} />
 		</button>
 
-		<button class="player__button" onclick={handleForward}> +30s </button>
+		<button class="player__button" onclick={handlePlayPause}>
+			{#if playService.isPaused}
+				<Play size={ICON_SIZE} />
+			{:else}
+				<Pause size={ICON_SIZE} />
+			{/if}
+		</button>
 
-		<button class="player__button" onclick={handlePlaylist}> ☰ </button>
+		<button class="player__button" onclick={handleForward}>
+			<FastForward size={ICON_SIZE} />
+		</button>
+
+		<button class="player__button" onclick={handlePlaylist}>
+			<Menu size={ICON_SIZE} />
+		</button>
 	</div>
 {/if}
 
