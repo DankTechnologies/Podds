@@ -40,6 +40,14 @@ export class EpisodeService {
 		}
 	}
 
+	static async clearDownloaded(episodeId: number): Promise<void> {
+		await db.episodes.update(episodeId, { isDownloaded: 0 });
+	}
+
+	static async markDownloaded(episodeId: number): Promise<void> {
+		await db.episodes.update(episodeId, { isDownloaded: 1 });
+	}
+
 	static async updatePlaybackPosition(episodeId: number, pos: number): Promise<void> {
 		await db.episodes.update(episodeId, { playbackPosition: pos });
 	}

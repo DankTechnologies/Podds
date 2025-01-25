@@ -2,6 +2,7 @@
 	import { EpisodeService } from '$lib/service/EpisodeService';
 	import type { Episode } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { downloadAudio } from '$lib/service/DownloadService';
 
 	let {
 		episodes,
@@ -27,7 +28,21 @@
 	}
 
 	function downloadEpisode(episode: Episode) {
-		console.log(`Downloading episode: ${episode.title}`);
+		downloadAudio(
+			episode.url,
+			() => handleDownloadComplete(episode.id!),
+			(err) => handleDownloadError(episode.id!, err)
+		);
+		console.log(`Started downloading episode: ${episode.title}`);
+	}
+
+	function handleDownloadComplete(episodeId: number) {
+		console.log(`Download complete for episode ${episodeId}`);
+		EpisodeService.markDownloaded(episodeId);
+	}
+
+	function handleDownloadError(episodeId: number, err: ErrorEvent) {
+		console.log(`Download failed for episode ${episodeId}:`, err);
 	}
 </script>
 
