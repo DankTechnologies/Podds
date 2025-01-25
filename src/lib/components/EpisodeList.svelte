@@ -2,7 +2,7 @@
 	import { EpisodeService } from '$lib/service/EpisodeService';
 	import type { Episode } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { downloadAudio } from '$lib/service/DownloadService';
+	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
 
 	let {
