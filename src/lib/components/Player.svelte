@@ -137,9 +137,11 @@
 	.play-pause__icon :global(.play-pause__icon--play) {
 		margin-top: 0.25rem;
 		margin-left: 0.25rem;
+		stroke-width: 2.5;
 	}
 
 	.play-pause__icon :global(.play-pause__icon--pause) {
 		margin-top: 0.25rem;
+		stroke-width: 2.5;
 	}
 </style>
