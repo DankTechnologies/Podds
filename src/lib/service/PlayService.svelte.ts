@@ -1,11 +1,12 @@
 import type { Episode } from '$lib/types/db';
+import { EpisodeService } from './EpisodeService';
 
 class PlayService {
 	private currentEpisode = $state<Episode | null>(null);
-	private audio = $state<HTMLAudioElement | null>(null);
-	private time = $state(0);
-	private duration = $state(0);
-	private paused = $state(true);
+	private audio: HTMLAudioElement;
+	private time = $state<number>(0);
+	private duration = $state<number>(0);
+	private paused = $state<boolean>(true);
 
 	constructor() {
 		this.audio = new Audio();
@@ -13,22 +14,28 @@ class PlayService {
 	}
 
 	private setupAudioListeners() {
-		if (!this.audio) return;
-
-		this.audio.ontimeupdate = () => (this.time = this.audio?.currentTime || 0);
-		this.audio.ondurationchange = () => (this.duration = this.audio?.duration || 0);
+		this.audio.ontimeupdate = async () => {
+			this.time = this.audio.currentTime || 0;
+			// Update playback position in DB every few seconds
+			if (this.currentEpisode && this.time % 5 < 1) {
+				await EpisodeService.updatePlaybackPosition(this.currentEpisode.id, this.time);
+			}
+		};
+		this.audio.ondurationchange = () => (this.duration = this.audio.duration || 0);
 		this.audio.onpause = () => (this.paused = true);
 		this.audio.onplay = () => (this.paused = false);
 	}
 
-	public play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
+	public async play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
 		if (!this.audio) return;
 
 		if (onComplete) {
 			this.audio.addEventListener(
 				'ended',
-				() => {
+				async () => {
 					this.time = 0;
+					await EpisodeService.updatePlaybackPosition(episode.id, 0);
+					await EpisodeService.clearPlayingEpisode();
 				},
 				{ once: true }
 			);
@@ -56,6 +63,12 @@ class PlayService {
 		}
 
 		this.currentEpisode = episode;
+		await EpisodeService.setPlayingEpisode(episode.id);
+
+		if (episode.playbackPosition && episode.playbackPosition > 0) {
+			this.audio.currentTime = episode.playbackPosition;
+		}
+
 		this.audio.src = episode.url;
 		this.audio.play().catch((error: unknown) => {
 			const normalizedError = error instanceof Error ? error : new Error(String(error));
@@ -72,15 +85,13 @@ class PlayService {
 		}
 	}
 
-	public seek(seconds: number) {
-		if (!this.audio) return;
-		this.audio.currentTime = Math.max(
-			0,
-			Math.min(this.audio.duration, this.audio.currentTime + seconds)
-		);
+	public async seek(seconds: number) {
+		if (!this.audio || !this.currentEpisode) return;
+		const newTime = Math.max(0, Math.min(this.audio.duration, this.audio.currentTime + seconds));
+		this.audio.currentTime = newTime;
+		await EpisodeService.updatePlaybackPosition(this.currentEpisode.id, newTime);
 	}
 
-	// Expose state
 	public get episode() {
 		return this.currentEpisode;
 	}
@@ -95,5 +106,4 @@ class PlayService {
 	}
 }
 
-// Export singleton instance
 export const playService = new PlayService();

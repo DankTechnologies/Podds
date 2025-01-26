@@ -46,16 +46,16 @@
 
 		<button class="player__button" onclick={handlePlayPause}>
 			<div class="stack-cell">
-				<div class="play-button__circle"></div>
-				<div class="play-button__icon">
+				<div class="play-pause__circle"></div>
+				<div class="play-pause__icon">
 					{#if playService.isPaused}
-						<Play size={ICON_SIZE} />
+						<Play class="play-pause__icon--play" size={ICON_SIZE} />
 					{:else}
-						<Pause size={ICON_SIZE} />
+						<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
 					{/if}
 				</div>
-			</div></button
-		>
+			</div>
+		</button>
 
 		<button class="player__button" onclick={handleForward}>
 			<div class="stack-cell">
@@ -121,16 +121,25 @@
 		place-self: center;
 	}
 
-	.play-button__circle {
+	.play-pause__circle {
 		width: 3rem;
 		height: 3rem;
 		background-color: darkorange;
 		border-radius: 50%;
 	}
 
-	.play-button__icon {
+	.play-pause__icon {
 		color: whitesmoke;
-		opacity: 0.9;
+		opacity: 0.85;
 		place-self: center;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--play) {
+		margin-top: 0.25rem;
+		margin-left: 0.25rem;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--pause) {
+		margin-top: 0.25rem;
 	}
 </style>
