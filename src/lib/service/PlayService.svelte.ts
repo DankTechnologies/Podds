@@ -24,26 +24,43 @@ class PlayService {
 	public play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
 		if (!this.audio) return;
 
-		this.audio.onended = () => {
-			this.time = 0;
-			onComplete?.();
-		};
+		if (onComplete) {
+			this.audio.addEventListener(
+				'ended',
+				() => {
+					this.time = 0;
+				},
+				{ once: true }
+			);
 
-		this.audio.onerror = () => {
-			const mediaError = this.audio?.error;
-			const error = mediaError
-				? new Error(`Media error: ${mediaError.message}`)
-				: new Error('Unknown playback error');
-			onError?.(error);
-		};
+			this.audio.addEventListener(
+				'loadeddata',
+				() => {
+					onComplete();
+				},
+				{ once: true }
+			);
+		}
+
+		if (onError) {
+			this.audio.addEventListener(
+				'error',
+				() => {
+					const error = this.audio?.error
+						? new Error(`Media error: ${this.audio.error.message}`)
+						: new Error('Unknown playback error');
+					onError(error);
+				},
+				{ once: true }
+			);
+		}
 
 		this.currentEpisode = episode;
 		this.audio.src = episode.url;
-		this.audio
-			.play()
-			.catch((error: unknown) =>
-				onError?.(error instanceof Error ? error : new Error(String(error)))
-			);
+		this.audio.play().catch((error: unknown) => {
+			const normalizedError = error instanceof Error ? error : new Error(String(error));
+			onError?.(normalizedError);
+		});
 	}
 
 	public togglePlayPause() {

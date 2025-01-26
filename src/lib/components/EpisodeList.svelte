@@ -28,8 +28,8 @@
 		console.log(`Playing episode: ${episode.title}`);
 		playService.play(
 			episode,
-			() => console.log('Playback completed'),
-			(error) => console.error('Playback failed:', error)
+			() => handleDownloadComplete(episode.id!),
+			(err) => handleDownloadError(episode.id!, err)
 		);
 	}
 
@@ -47,7 +47,7 @@
 		EpisodeService.markDownloaded(episodeId);
 	}
 
-	function handleDownloadError(episodeId: number, err: ErrorEvent) {
+	function handleDownloadError(episodeId: number, err: Error | ErrorEvent) {
 		console.log(`Download failed for episode ${episodeId}:`, err);
 	}
 </script>
