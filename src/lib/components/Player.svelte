@@ -179,11 +179,4 @@
 		margin-top: 0.25rem;
 		stroke-width: 2.5;
 	}
-
-	.current-time,
-	.total-duration {
-		font-size: 0.75rem;
-		color: slategray;
-		min-width: 3rem;
-	}
 </style>
