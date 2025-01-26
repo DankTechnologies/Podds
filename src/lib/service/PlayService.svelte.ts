@@ -2,11 +2,13 @@ import type { Episode } from '$lib/types/db';
 import { EpisodeService } from './EpisodeService';
 
 class PlayService {
+	private static readonly UPDATE_INTERVAL_MS = 1000;
 	private currentEpisode = $state<Episode | null>(null);
 	private audio: HTMLAudioElement;
 	private time = $state<number>(0);
 	private duration = $state<number>(0);
 	private paused = $state<boolean>(true);
+	private updateInterval: number | undefined;
 
 	constructor() {
 		this.audio = new Audio();
@@ -14,20 +16,45 @@ class PlayService {
 	}
 
 	private setupAudioListeners() {
-		this.audio.ontimeupdate = async () => {
-			this.time = this.audio.currentTime || 0;
-			// Update playback position in DB every few seconds
-			if (this.currentEpisode && this.time % 5 < 1) {
-				await EpisodeService.updatePlaybackPosition(this.currentEpisode.id, this.time);
+		this.audio.onplay = () => {
+			this.paused = false;
+
+			if (!this.currentEpisode) return;
+
+			if (this.updateInterval) {
+				window.clearInterval(this.updateInterval);
+			}
+			this.updateInterval = window.setInterval(async () => {
+				this.time = this.audio.currentTime || 0;
+				console.log(
+					`Updating playback position for ${this.currentEpisode!.title} to ${this.time} of ${this.duration}`
+				);
+				await EpisodeService.updatePlaybackPosition(this.currentEpisode!.id, this.time);
+			}, PlayService.UPDATE_INTERVAL_MS);
+		};
+
+		this.audio.onpause = () => {
+			this.paused = true;
+			if (this.updateInterval) {
+				window.clearInterval(this.updateInterval);
+				this.updateInterval = undefined;
 			}
 		};
+
+		this.audio.onended = () => {
+			if (this.updateInterval) {
+				window.clearInterval(this.updateInterval);
+				this.updateInterval = undefined;
+			}
+		};
+
 		this.audio.ondurationchange = () => (this.duration = this.audio.duration || 0);
-		this.audio.onpause = () => (this.paused = true);
-		this.audio.onplay = () => (this.paused = false);
 	}
 
 	public async play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
 		if (!this.audio) return;
+
+		console.log(`Playing episode: ${episode.title}`);
 
 		if (onComplete) {
 			this.audio.addEventListener(
@@ -66,6 +93,7 @@ class PlayService {
 		await EpisodeService.setPlayingEpisode(episode.id);
 
 		if (episode.playbackPosition && episode.playbackPosition > 0) {
+			console.log(`Starting at ${episode.playbackPosition} seconds for ${episode.title}`);
 			this.audio.currentTime = episode.playbackPosition;
 		}
 
@@ -92,6 +120,12 @@ class PlayService {
 		await EpisodeService.updatePlaybackPosition(this.currentEpisode.id, newTime);
 	}
 
+	public async setCurrentTime(seconds: number) {
+		if (!this.audio || !this.currentEpisode) return;
+		this.audio.currentTime = seconds;
+		await EpisodeService.updatePlaybackPosition(this.currentEpisode.id, seconds);
+	}
+
 	public get episode() {
 		return this.currentEpisode;
 	}
@@ -101,6 +135,7 @@ class PlayService {
 	public get totalDuration() {
 		return this.duration;
 	}
+
 	public get isPaused() {
 		return this.paused;
 	}

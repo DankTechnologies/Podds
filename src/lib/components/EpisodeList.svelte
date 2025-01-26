@@ -25,7 +25,6 @@
 	}
 
 	function playEpisode(episode: Episode) {
-		console.log(`Playing episode: ${episode.title}`);
 		playService.play(
 			episode,
 			() => handleDownloadComplete(episode.id!),
@@ -39,11 +38,9 @@
 			() => handleDownloadComplete(episode.id!),
 			(err) => handleDownloadError(episode.id!, err)
 		);
-		console.log(`Started downloading episode: ${episode.title}`);
 	}
 
 	function handleDownloadComplete(episodeId: number) {
-		console.log(`Download complete for episode ${episodeId}`);
 		EpisodeService.markDownloaded(episodeId);
 	}
 

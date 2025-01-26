@@ -18,7 +18,7 @@
 
 		return liveQuery(() => db.episodes.orderBy('publishedAt').reverse().limit(limit).toArray());
 	});
-	$inspect($episodes);
+
 	async function loadMoreEpisodes() {
 		limit += ITEMS_PER_PAGE;
 	}

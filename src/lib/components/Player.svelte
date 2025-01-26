@@ -31,61 +31,96 @@
 
 {#if playService.episode}
 	<div class="player">
-		<div class="player__artwork">
-			<img src={`data:${podcastIcons?.get(playService.episode.podcastId)}`} alt="" />
+		<input
+			class="player__playback"
+			type="range"
+			min="0"
+			value={playService.currentTime}
+			max={playService.totalDuration}
+			oninput={(event) => {
+				const target = event.target as HTMLInputElement;
+				const newTime = Number(target.value);
+				console.log(`Attempting to set time to ${newTime} of ${playService.totalDuration}`);
+				playService.setCurrentTime(newTime);
+			}}
+		/>
+
+		<div class="player__controls">
+			<div class="player__artwork">
+				<img src={`data:${podcastIcons?.get(playService.episode.podcastId)}`} alt="" />
+			</div>
+
+			<button class="player__button" onclick={handleBack}>
+				<div class="stack-cell">
+					<div>
+						<RotateCcw size={ICON_SIZE} />
+					</div>
+					<div class="time-text">10</div>
+				</div>
+			</button>
+
+			<button class="player__button" onclick={handlePlayPause}>
+				<div class="stack-cell">
+					<div class="play-pause__circle"></div>
+					<div class="play-pause__icon">
+						{#if playService.isPaused}
+							<Play class="play-pause__icon--play" size={ICON_SIZE} />
+						{:else}
+							<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
+						{/if}
+					</div>
+				</div>
+			</button>
+
+			<button class="player__button" onclick={handleForward}>
+				<div class="stack-cell">
+					<div>
+						<RotateCw size={ICON_SIZE} />
+					</div>
+					<div class="time-text">30</div>
+				</div>
+			</button>
+
+			<button class="player__button" onclick={handlePlaylist}>
+				<Menu size={ICON_SIZE} />
+			</button>
 		</div>
-
-		<button class="player__button" onclick={handleBack}>
-			<div class="stack-cell">
-				<div>
-					<RotateCcw size={ICON_SIZE} />
-				</div>
-				<div class="time-text">10</div>
-			</div>
-		</button>
-
-		<button class="player__button" onclick={handlePlayPause}>
-			<div class="stack-cell">
-				<div class="play-pause__circle"></div>
-				<div class="play-pause__icon">
-					{#if playService.isPaused}
-						<Play class="play-pause__icon--play" size={ICON_SIZE} />
-					{:else}
-						<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
-					{/if}
-				</div>
-			</div>
-		</button>
-
-		<button class="player__button" onclick={handleForward}>
-			<div class="stack-cell">
-				<div>
-					<RotateCw size={ICON_SIZE} />
-				</div>
-				<div class="time-text">30</div>
-			</div>
-		</button>
-
-		<button class="player__button" onclick={handlePlaylist}>
-			<Menu size={ICON_SIZE} />
-		</button>
 	</div>
 {/if}
 
 <style>
 	.player {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		flex-direction: column;
 		position: fixed;
 		bottom: 4.25rem;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		height: 3.25rem;
-		padding: 1rem;
-		border-top: 3px solid darkorange;
 		background-color: white;
+	}
+
+	.player__playback {
+		display: flex;
+		flex: 1;
+		appearance: none;
+		background: lightgrey;
+	}
+
+	.player__playback::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 1rem;
+		height: 0.5rem;
+		background: darkorange;
+	}
+
+	.player__controls {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem;
+		height: 3.25rem;
 	}
 
 	.player__artwork {
@@ -143,5 +178,12 @@
 	.play-pause__icon :global(.play-pause__icon--pause) {
 		margin-top: 0.25rem;
 		stroke-width: 2.5;
+	}
+
+	.current-time,
+	.total-duration {
+		font-size: 0.75rem;
+		color: slategray;
+		min-width: 3rem;
 	}
 </style>
