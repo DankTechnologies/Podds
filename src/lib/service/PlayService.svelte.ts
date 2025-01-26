@@ -4,37 +4,43 @@ import { EpisodeService } from './EpisodeService';
 class PlayService {
 	private static readonly UPDATE_INTERVAL_MS = 1000;
 	private currentEpisode = $state<Episode | null>(null);
+	private currentTimeValue = $state<number>(0);
+	private currentDurationValue = $state<number>(0);
+	private isPausedValue = $state<boolean>(true);
 	private audio: HTMLAudioElement;
-	private time = $state<number>(0);
-	private duration = $state<number>(0);
-	private paused = $state<boolean>(true);
 	private updateInterval: number | undefined;
 
 	constructor() {
 		this.audio = new Audio();
 		this.setupAudioListeners();
+
+		EpisodeService.getPlayingEpisode().then((episode) => {
+			if (!episode) return;
+
+			this.currentEpisode = episode;
+			this.audio.src = episode.url;
+		});
 	}
 
 	private setupAudioListeners() {
 		this.audio.onplay = () => {
-			this.paused = false;
-
 			if (!this.currentEpisode) return;
 
 			if (this.updateInterval) {
 				window.clearInterval(this.updateInterval);
 			}
 			this.updateInterval = window.setInterval(async () => {
-				this.time = this.audio.currentTime || 0;
 				console.log(
-					`Updating playback position for ${this.currentEpisode!.title} to ${this.time} of ${this.duration}`
+					`Updating playback position for ${this.currentEpisode!.title} to ${this.audio.currentTime} of ${this.audio.duration}`
 				);
-				await EpisodeService.updatePlaybackPosition(this.currentEpisode!.id, this.time);
+				await EpisodeService.updatePlaybackPosition(
+					this.currentEpisode!.id,
+					this.audio.currentTime
+				);
 			}, PlayService.UPDATE_INTERVAL_MS);
 		};
 
 		this.audio.onpause = () => {
-			this.paused = true;
 			if (this.updateInterval) {
 				window.clearInterval(this.updateInterval);
 				this.updateInterval = undefined;
@@ -48,7 +54,30 @@ class PlayService {
 			}
 		};
 
-		this.audio.ondurationchange = () => (this.duration = this.audio.duration || 0);
+		this.audio.addEventListener('timeupdate', () => {
+			this.currentTimeValue = this.audio.currentTime;
+		});
+
+		this.audio.addEventListener('loadedmetadata', () => {
+			if (!this.currentEpisode) return;
+
+			if (this.currentEpisode.playbackPosition && this.currentEpisode.playbackPosition > 0) {
+				this.audio.currentTime = this.currentEpisode.playbackPosition;
+				this.currentTimeValue = this.currentEpisode.playbackPosition;
+			}
+
+			if (this.audio.duration) {
+				this.currentDurationValue = this.audio.duration;
+			}
+		});
+
+		this.audio.addEventListener('play', () => {
+			this.isPausedValue = false;
+		});
+
+		this.audio.addEventListener('pause', () => {
+			this.isPausedValue = true;
+		});
 	}
 
 	public async play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
@@ -56,11 +85,12 @@ class PlayService {
 
 		console.log(`Playing episode: ${episode.title}`);
 
+		// Set up event listeners before changing the source
 		if (onComplete) {
 			this.audio.addEventListener(
 				'ended',
 				async () => {
-					this.time = 0;
+					this.audio.currentTime = 0;
 					await EpisodeService.updatePlaybackPosition(episode.id, 0);
 					await EpisodeService.clearPlayingEpisode();
 				},
@@ -92,10 +122,17 @@ class PlayService {
 		this.currentEpisode = episode;
 		await EpisodeService.setPlayingEpisode(episode.id);
 
-		if (episode.playbackPosition && episode.playbackPosition > 0) {
-			console.log(`Starting at ${episode.playbackPosition} seconds for ${episode.title}`);
-			this.audio.currentTime = episode.playbackPosition;
-		}
+		// Wait for audio to be loaded before setting the position
+		this.audio.addEventListener(
+			'loadedmetadata',
+			() => {
+				if (episode.playbackPosition && episode.playbackPosition > 0) {
+					console.log(`Starting at ${episode.playbackPosition} seconds for ${episode.title}`);
+					this.audio.currentTime = episode.playbackPosition;
+				}
+			},
+			{ once: true }
+		);
 
 		this.audio.src = episode.url;
 		this.audio.play().catch((error: unknown) => {
@@ -130,14 +167,14 @@ class PlayService {
 		return this.currentEpisode;
 	}
 	public get currentTime() {
-		return this.time;
+		return this.currentTimeValue;
 	}
 	public get totalDuration() {
-		return this.duration;
+		return this.currentDurationValue;
 	}
 
 	public get isPaused() {
-		return this.paused;
+		return this.isPausedValue;
 	}
 }
 

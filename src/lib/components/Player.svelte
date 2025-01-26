@@ -35,7 +35,7 @@
 			class="player__playback"
 			type="range"
 			min="0"
-			value={playService.currentTime}
+			bind:value={playService.currentTime}
 			max={playService.totalDuration}
 			oninput={(event) => {
 				const target = event.target as HTMLInputElement;
