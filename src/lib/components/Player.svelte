@@ -3,7 +3,7 @@
 	import { PodcastService } from '$lib/service/PodcastService';
 	import { onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
-	import { Rewind, FastForward, Play, Pause, Menu } from 'lucide-svelte';
+	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
 
 	const ICON_SIZE = '2rem';
 	let podcastIcons = $state<SvelteMap<number, string>>();
@@ -36,19 +36,34 @@
 		</div>
 
 		<button class="player__button" onclick={handleBack}>
-			<Rewind size={ICON_SIZE} />
+			<div class="stack-cell">
+				<div>
+					<RotateCcw size={ICON_SIZE} />
+				</div>
+				<div class="time-text">10</div>
+			</div>
 		</button>
 
 		<button class="player__button" onclick={handlePlayPause}>
-			{#if playService.isPaused}
-				<Play size={ICON_SIZE} />
-			{:else}
-				<Pause size={ICON_SIZE} />
-			{/if}
-		</button>
+			<div class="stack-cell">
+				<div class="play-button__circle"></div>
+				<div class="play-button__icon">
+					{#if playService.isPaused}
+						<Play size={ICON_SIZE} />
+					{:else}
+						<Pause size={ICON_SIZE} />
+					{/if}
+				</div>
+			</div></button
+		>
 
 		<button class="player__button" onclick={handleForward}>
-			<FastForward size={ICON_SIZE} />
+			<div class="stack-cell">
+				<div>
+					<RotateCw size={ICON_SIZE} />
+				</div>
+				<div class="time-text">30</div>
+			</div>
 		</button>
 
 		<button class="player__button" onclick={handlePlaylist}>
@@ -68,14 +83,14 @@
 		right: 0;
 		z-index: 50;
 		height: 3.25rem;
-		padding: 0.5rem 1rem;
+		padding: 1rem;
 		border-top: 3px solid darkorange;
 		background-color: white;
 	}
 
 	.player__artwork {
-		width: 3.25rem;
-		height: 3.25rem;
+		width: 3.5rem;
+		height: 3.5rem;
 	}
 
 	.player__artwork img {
@@ -89,5 +104,33 @@
 		border: none;
 		background: none;
 		color: slategray;
+	}
+
+	.stack-cell {
+		display: grid;
+		place-content: center;
+	}
+
+	.stack-cell > * {
+		grid-area: 1 / 1;
+	}
+
+	.time-text {
+		font-weight: bold;
+		font-size: 0.75rem;
+		place-self: center;
+	}
+
+	.play-button__circle {
+		width: 3rem;
+		height: 3rem;
+		background-color: darkorange;
+		border-radius: 50%;
+	}
+
+	.play-button__icon {
+		color: whitesmoke;
+		opacity: 0.9;
+		place-self: center;
 	}
 </style>
