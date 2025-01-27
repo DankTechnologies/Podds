@@ -10,7 +10,7 @@
 		host: 'https://feed.pitpat.me',
 		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
 		categories: '',
-		syncIntervalHours: 24
+		syncIntervalHours: 1
 	});
 
 	let isApiTested = $state<boolean>(false);

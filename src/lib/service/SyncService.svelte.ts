@@ -6,8 +6,9 @@ import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
 import { PodcastService } from './PodcastService';
 import { SettingsService } from './SettingsService';
 
-const maxWidth = 300;
-const maxHeight = 300;
+const ICON_MAX_WIDTH = 300;
+const ICON_MAX_HEIGHT = 300;
+const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 export class SyncService {
 	status = $state<string>('');
@@ -19,9 +20,8 @@ export class SyncService {
 		if (this.initialized) return;
 
 		const settings = await SettingsService.getSettings();
-		if (!settings) {
-			goto('/setup');
-			return;
+		if (!settings || !settings.host || !settings.apiKey) {
+			throw new Error('Miniflux settings not found');
 		}
 
 		this.api = new MinifluxApi(settings.host, settings.apiKey);
@@ -143,7 +143,7 @@ export class SyncService {
 		const feedsWithIcons = await Promise.all(
 			feeds.map(async (feed) => {
 				const icon = await this.api!.fetchFeedIcon(feed.id);
-				const resizedIcon = await this.resizeBase64Image(icon, maxWidth, maxHeight);
+				const resizedIcon = await this.resizeBase64Image(icon, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
 
 				return {
 					...feed,
@@ -201,5 +201,36 @@ export class SyncService {
 			.replace(/^(the|a|an)\s+/i, '')
 			.toLowerCase()
 			.trim();
+	}
+
+	startPeriodicSync() {
+		const checkAndSync = async () => {
+			console.log('Starting periodic sync...');
+
+			try {
+				const settings = await SettingsService.getSettings();
+
+				if (!settings?.lastSyncAt) {
+					console.warn('Last sync at not set in settings');
+					return;
+				}
+
+				const hoursSinceLastSync = settings.lastSyncAt
+					? (Date.now() - settings.lastSyncAt.getTime()) / (1000 * 60 * 60)
+					: Infinity;
+
+				if (hoursSinceLastSync >= settings.syncIntervalHours) {
+					this.syncNewPodcasts().catch((error) => console.error('Sync failed:', error));
+				} else {
+					console.log('Not enough time has passed since last sync');
+				}
+			} catch (error) {
+				console.error('Error checking sync status:', error);
+			}
+		};
+
+		checkAndSync();
+
+		setInterval(checkAndSync, CHECK_INTERVAL_MS);
 	}
 }

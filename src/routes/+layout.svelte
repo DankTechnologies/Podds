@@ -8,11 +8,13 @@
 	import { onMount } from 'svelte';
 	import type { Settings } from '$lib/types/db';
 	import { SettingsService } from '$lib/service/SettingsService';
+	import { SyncService } from '$lib/service/SyncService.svelte';
 
 	const standaloneRoutes = ['/setup', '/sync'];
 
 	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 	let settings = $state<Settings | null>(null);
+	let sync = new SyncService();
 
 	onMount(async () => {
 		settings = await SettingsService.getSettings();
@@ -20,6 +22,8 @@
 		if (!settings) {
 			goto('/setup');
 		}
+
+		sync.startPeriodicSync();
 	});
 
 	let { children } = $props();
