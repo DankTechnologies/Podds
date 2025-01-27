@@ -70,7 +70,7 @@
 	</header>
 
 	<!-- Episodes List -->
-	<section>
+	<section class="podcast-section">
 		{#if episodes}
 			<EpisodeList {episodes} />
 		{/if}
@@ -108,5 +108,9 @@
 
 	.podcast-header__episodes {
 		font-size: var(--text-small);
+	}
+
+	.podcast-section {
+		padding-bottom: 7.5rem;
 	}
 </style>
