@@ -9,6 +9,10 @@ export interface Feed {
 	site_url: string;
 }
 
+export interface FeedWithIcon extends Feed {
+	icon: string;
+}
+
 export interface FeedIconResult {
 	data: string;
 }

@@ -1,20 +1,41 @@
-import type MinifluxApi from '$lib/api/MinifluxApi';
+import { goto } from '$app/navigation';
+import MinifluxApi from '$lib/api/MinifluxApi';
 import { db } from '$lib/db/FluxcastDb';
 import { type Podcast, type Episode } from '$lib/types/db';
-import type { Feed } from '$lib/types/miniflux';
+import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
 import { PodcastService } from './PodcastService';
+import { SettingsService } from './SettingsService';
 
 const maxWidth = 300;
 const maxHeight = 300;
 
 export class SyncService {
 	status = $state<string>('');
+	private api: MinifluxApi | null = null;
+	private categoryIds: number[] = [];
+	private initialized = false;
 
-	constructor(private api: MinifluxApi) {}
+	private async initialize() {
+		if (this.initialized) return;
 
-	async syncPodcasts(categoryIds: number[]): Promise<void> {
+		const settings = await SettingsService.getSettings();
+		if (!settings) {
+			goto('/setup');
+			return;
+		}
+
+		this.api = new MinifluxApi(settings.host, settings.apiKey);
+		this.categoryIds = settings.categories.split(',').map(Number);
+		this.initialized = true;
+	}
+
+	constructor() {}
+
+	async syncPodcasts(): Promise<void> {
+		await this.initialize();
+
 		this.status = 'Syncing podcasts...';
-		const feeds = await this.syncFeeds(categoryIds);
+		const feeds = await this.syncFeeds();
 
 		for (const feed of feeds) {
 			this.status = `Syncing ${feed.title}...`;
@@ -23,26 +44,12 @@ export class SyncService {
 
 		// cache invalidate icons by id map
 		await PodcastService.fetchPodcastIconsById(true);
-		this.status = '';
+		await db.settings.update(1, { lastSyncAt: new Date(), isSyncing: false });
+		this.status = 'Sync complete';
 	}
 
-	private async syncFeeds(categoryIds: number[]): Promise<Feed[]> {
-		const categoryFeeds = await Promise.all(
-			categoryIds.map((categoryId) => this.api.fetchFeedsForCategory(categoryId))
-		);
-		const feeds = categoryFeeds.flat();
-
-		const feedsWithIcons = await Promise.all(
-			feeds.map(async (feed) => {
-				const icon = await this.api.fetchFeedIcon(feed.id);
-				const resizedIcon = await this.resizeBase64Image(icon, maxWidth, maxHeight);
-
-				return {
-					...feed,
-					icon: resizedIcon
-				};
-			})
-		);
+	private async syncFeeds(): Promise<FeedWithIcon[]> {
+		const feedsWithIcons = await this.getAllFeedsWithIcons();
 
 		const podcasts: Podcast[] = feedsWithIcons.map((feed) => ({
 			id: feed.id,
@@ -58,7 +65,7 @@ export class SyncService {
 
 	// TODO - get this to not clobber isDownloaded/isPlaying
 	private async syncFeedEntries(feed: Feed): Promise<void> {
-		const entryResult = await this.api.fetchEntriesForFeed(feed.id, {
+		const entryResult = await this.api!.fetchEntriesForFeed(feed.id, {
 			limit: 1000,
 			order: 'id',
 			direction: 'asc'
@@ -84,6 +91,27 @@ export class SyncService {
 				};
 			});
 		await db.episodes.bulkPut(episodes);
+	}
+
+	private async getAllFeedsWithIcons(): Promise<FeedWithIcon[]> {
+		const categoryFeeds = await Promise.all(
+			this.categoryIds.map((categoryId) => this.api!.fetchFeedsForCategory(categoryId))
+		);
+		const feeds = categoryFeeds.flat();
+
+		const feedsWithIcons = await Promise.all(
+			feeds.map(async (feed) => {
+				const icon = await this.api!.fetchFeedIcon(feed.id);
+				const resizedIcon = await this.resizeBase64Image(icon, maxWidth, maxHeight);
+
+				return {
+					...feed,
+					icon: resizedIcon
+				};
+			})
+		);
+
+		return feedsWithIcons;
 	}
 
 	private async resizeBase64Image(
