@@ -12,7 +12,6 @@
 		categories: '',
 		syncIntervalHours: 24
 	});
-	let isUpdate = $state<boolean>(false);
 
 	let isApiTested = $state<boolean>(false);
 	let tempCategories = $state<Category[]>([]);
@@ -28,12 +27,11 @@
 
 		if (savedSettings) {
 			settings = savedSettings;
-			isUpdate = true;
 		}
 	});
 
 	async function onSave() {
-		await SettingsService.saveSettings(settings, isUpdate);
+		await SettingsService.saveSettings(settings);
 		goto('/sync');
 	}
 
@@ -75,9 +73,7 @@
 		<button type="button" onclick={onTest}> Test </button>
 	</div>
 	<div>
-		<button type="button" disabled={!isValid} onclick={onSave}>
-			{isUpdate ? 'Update' : 'Add'}
-		</button>
+		<button type="button" disabled={!isValid} onclick={onSave}> Continue </button>
 	</div>
 </form>
 <section class="results">

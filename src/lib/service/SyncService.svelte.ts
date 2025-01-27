@@ -32,20 +32,58 @@ export class SyncService {
 	constructor() {}
 
 	async syncPodcasts(): Promise<void> {
+		await this.doSync();
+	}
+
+	async syncNewPodcasts(): Promise<void> {
+		const settings = await SettingsService.getSettings();
+		if (!settings) return;
+
+		const lastSyncAtUnixTimestamp = settings.lastSyncAt
+			? settings.lastSyncAt.getTime() / 1000
+			: undefined;
+
+		await this.doSync({
+			after: lastSyncAtUnixTimestamp
+		});
+	}
+
+	private async doSync(options?: { after?: number }): Promise<void> {
 		await this.initialize();
 
-		this.status = 'Syncing podcasts...';
-		const feeds = await this.syncFeeds();
+		const settings = await SettingsService.getSettings();
+		if (!settings) return;
 
-		for (const feed of feeds) {
-			this.status = `Syncing ${feed.title}...`;
-			await this.syncFeedEntries(feed);
+		await SettingsService.saveSettings({ ...settings, isSyncing: true });
+
+		try {
+			this.status = 'Syncing podcasts...';
+			const feeds = await this.syncFeeds();
+
+			for (const feed of feeds) {
+				this.status = `Syncing ${feed.title}...`;
+				await this.syncFeedEntries(feed, {
+					limit: 1000,
+					order: 'id',
+					direction: 'asc',
+					...options
+				});
+			}
+
+			// cache invalidate icons by id map
+			await PodcastService.fetchPodcastIconsById(true);
+
+			await SettingsService.saveSettings({
+				...settings,
+				lastSyncAt: new Date(),
+				isSyncing: false
+			});
+
+			this.status = 'Sync complete';
+		} catch (error) {
+			await SettingsService.saveSettings({ ...settings, isSyncing: false });
+			throw error;
 		}
-
-		// cache invalidate icons by id map
-		await PodcastService.fetchPodcastIconsById(true);
-		await db.settings.update(1, { lastSyncAt: new Date(), isSyncing: false });
-		this.status = 'Sync complete';
 	}
 
 	private async syncFeeds(): Promise<FeedWithIcon[]> {
@@ -63,13 +101,16 @@ export class SyncService {
 		return feedsWithIcons;
 	}
 
-	// TODO - get this to not clobber isDownloaded/isPlaying
-	private async syncFeedEntries(feed: Feed): Promise<void> {
-		const entryResult = await this.api!.fetchEntriesForFeed(feed.id, {
-			limit: 1000,
-			order: 'id',
-			direction: 'asc'
-		});
+	private async syncFeedEntries(
+		feed: Feed,
+		filter: {
+			limit?: number;
+			order?: string;
+			direction?: 'asc' | 'desc';
+			after?: number;
+		}
+	): Promise<void> {
+		const entryResult = await this.api!.fetchEntriesForFeed(feed.id, filter);
 
 		const episodes: Episode[] = entryResult.entries
 			.filter((entry) => entry.enclosures?.some((e) => e.mime_type === 'audio/mpeg'))
