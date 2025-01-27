@@ -124,7 +124,7 @@
 		border-bottom: 1px solid lightgrey;
 	}
 
-	/* less padding needed in Episodes */
+	/* less padding needed when using image */
 	.episode-card__header:has(.episode-card__image) {
 		padding: 1rem;
 	}
