@@ -4,7 +4,7 @@ interface EntryOptions {
 	order?: string;
 	direction?: string;
 	limit?: number;
-	published_after?: number;
+	after?: number;
 }
 
 class MinifluxApi {

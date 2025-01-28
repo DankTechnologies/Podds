@@ -1,8 +1,6 @@
-import { goto } from '$app/navigation';
 import MinifluxApi from '$lib/api/MinifluxApi';
-import { db } from '$lib/db/FluxcastDb';
-import { type Podcast, type Episode } from '$lib/types/db';
 import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
+import { EpisodeService } from './EpisodeService';
 import { PodcastService } from './PodcastService';
 import { SettingsService } from './SettingsService';
 
@@ -31,24 +29,57 @@ export class SyncService {
 
 	constructor() {}
 
-	async syncPodcasts(): Promise<void> {
-		await this.doSync();
-	}
-
 	async syncNewPodcasts(): Promise<void> {
+		await this.initialize();
+
 		const settings = await SettingsService.getSettings();
 		if (!settings) return;
 
-		const lastSyncAtUnixTimestamp = settings.lastSyncAt
-			? settings.lastSyncAt.getTime() / 1000
-			: undefined;
+		await SettingsService.saveSettings({ ...settings, isSyncing: true });
 
-		await this.doSync({
-			after: lastSyncAtUnixTimestamp
-		});
+		try {
+			const syncCutoffTimestamp = settings.lastSyncAt
+				? Math.floor(settings.lastSyncAt.getTime() / 1000)
+				: Math.floor((Date.now() - 4 * 60 * 60 * 1000) / 1000); // Default to 4 hours ago
+
+			const feeds = await this.getAllFeeds();
+			const currentPodcasts = await PodcastService.getPodcasts();
+
+			const toDelete = currentPodcasts.filter((x) => !feeds.map((y) => y.id).includes(x.id));
+			const toAdd = feeds.filter((x) => !currentPodcasts.map((y) => y.id).includes(x.id));
+
+			if (toDelete.length > 0) {
+				this.status = 'Removing deleted podcasts...';
+
+				const podcastIds = toDelete.map((x) => x.id);
+				await PodcastService.deletePodcasts(podcastIds);
+			}
+
+			if (toAdd.length > 0) {
+				this.status = 'Adding new podcasts...';
+
+				for (const feed of toAdd) {
+					const icon = await this.api!.fetchFeedIcon(feed.id);
+					const resizedIcon = await this.resizeBase64Image(icon, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+
+					await PodcastService.putPodcast({
+						id: feed.id,
+						title: feed.title,
+						_titleSort: this.createSortableTitle(feed.title),
+						newEpisodes: 0,
+						icon: resizedIcon
+					});
+				}
+			}
+
+			await this.syncRecentEntries(syncCutoffTimestamp);
+		} catch (error) {
+			await SettingsService.saveSettings({ ...settings, isSyncing: false });
+			throw error;
+		}
 	}
 
-	private async doSync(options?: { after?: number }): Promise<void> {
+	async syncPodcasts(): Promise<void> {
 		await this.initialize();
 
 		const settings = await SettingsService.getSettings();
@@ -58,21 +89,18 @@ export class SyncService {
 
 		try {
 			this.status = 'Syncing podcasts...';
-			const feeds = await this.syncFeeds();
 
+			const feeds = await this.syncFeeds();
 			for (const feed of feeds) {
 				this.status = `Syncing ${feed.title}...`;
 				await this.syncFeedEntries(feed, {
 					limit: 1000,
 					order: 'id',
-					direction: 'asc',
-					...options
+					direction: 'asc'
 				});
 			}
 
-			// cache invalidate icons by id map
 			await PodcastService.fetchPodcastIconsById(true);
-
 			await SettingsService.saveSettings({
 				...settings,
 				lastSyncAt: new Date(),
@@ -89,14 +117,14 @@ export class SyncService {
 	private async syncFeeds(): Promise<FeedWithIcon[]> {
 		const feedsWithIcons = await this.getAllFeedsWithIcons();
 
-		const podcasts: Podcast[] = feedsWithIcons.map((feed) => ({
+		const podcasts = feedsWithIcons.map((feed) => ({
 			id: feed.id,
 			title: feed.title,
 			_titleSort: this.createSortableTitle(feed.title),
 			newEpisodes: 0,
 			icon: feed.icon
 		}));
-		await db.podcasts.bulkPut(podcasts);
+		await PodcastService.putPodcasts(podcasts);
 
 		return feedsWithIcons;
 	}
@@ -111,35 +139,34 @@ export class SyncService {
 		}
 	): Promise<void> {
 		const entryResult = await this.api!.fetchEntriesForFeed(feed.id, filter);
+		await EpisodeService.putEpisodes(entryResult.entries);
+	}
 
-		const episodes: Episode[] = entryResult.entries
-			.filter((entry) => entry.enclosures?.some((e) => e.mime_type === 'audio/mpeg'))
-			.map((entry) => {
-				const audioEnclosure = entry.enclosures.find((e) => e.mime_type === 'audio/mpeg')!;
-				return {
-					id: entry.id,
-					podcastId: feed.id,
-					podcastTitle: feed.title,
-					title: entry.title,
-					content: entry.content,
-					publishedAt: new Date(entry.published_at),
-					durationMin: entry.reading_time,
-					url: audioEnclosure.url,
-					mime_type: audioEnclosure.mime_type,
-					size: audioEnclosure.size,
-					isDownloaded: 0,
-					isPlaying: 0
-				};
-			});
-		await db.episodes.bulkPut(episodes);
+	private async syncRecentEntries(after: number): Promise<void> {
+		const filter = {
+			limit: 1000,
+			order: 'id',
+			direction: 'asc',
+			after: after
+		};
+
+		const results = await Promise.all(
+			this.categoryIds.map((categoryId) => this.api!.fetchEntriesForCategory(categoryId, filter))
+		);
+
+		const entries = results.map((result) => result.entries).flat();
+		await EpisodeService.putEpisodes(entries);
+	}
+
+	private async getAllFeeds(): Promise<Feed[]> {
+		const feeds = await Promise.all(
+			this.categoryIds.map((categoryId) => this.api!.fetchFeedsForCategory(categoryId))
+		);
+		return feeds.flat();
 	}
 
 	private async getAllFeedsWithIcons(): Promise<FeedWithIcon[]> {
-		const categoryFeeds = await Promise.all(
-			this.categoryIds.map((categoryId) => this.api!.fetchFeedsForCategory(categoryId))
-		);
-		const feeds = categoryFeeds.flat();
-
+		const feeds = await this.getAllFeeds();
 		const feedsWithIcons = await Promise.all(
 			feeds.map(async (feed) => {
 				const icon = await this.api!.fetchFeedIcon(feed.id);

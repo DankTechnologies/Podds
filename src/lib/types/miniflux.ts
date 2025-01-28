@@ -24,6 +24,7 @@ export interface Entry {
 	content: string;
 	published_at: string;
 	reading_time: number;
+	feed: Feed;
 	enclosures: Enclosure[];
 }
 

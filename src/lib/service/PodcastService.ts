@@ -80,4 +80,17 @@ export class PodcastService {
 			};
 		});
 	}
+
+	static async deletePodcasts(podcastIds: number[]): Promise<void> {
+		await db.podcasts.bulkDelete(podcastIds);
+		await db.episodes.where('podcastId').anyOf(podcastIds).delete();
+	}
+
+	static async putPodcast(podcast: Podcast): Promise<void> {
+		await db.podcasts.put(podcast);
+	}
+
+	static async putPodcasts(podcasts: Podcast[]): Promise<void> {
+		await db.podcasts.bulkPut(podcasts);
+	}
 }
