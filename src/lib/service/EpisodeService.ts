@@ -3,6 +3,7 @@ import type { Episode } from '$lib/types/db';
 import type { Entry } from '$lib/types/miniflux';
 
 export class EpisodeService {
+	private static allowedMimeTypes = new Set(['audio/mpeg', 'audio/x-m4a']);
 	static async getEpisodeById(id: number): Promise<Episode | undefined> {
 		return await db.episodes.get(id);
 	}
@@ -21,9 +22,11 @@ export class EpisodeService {
 
 	static async putEpisodes(entries: Entry[]): Promise<void> {
 		const episodes: Episode[] = entries
-			.filter((x) => x.enclosures?.some((e) => e.mime_type === 'audio/mpeg'))
+			.filter((x) => x.enclosures?.some((e) => EpisodeService.allowedMimeTypes.has(e.mime_type)))
 			.map((x) => {
-				const audioEnclosure = x.enclosures.find((e) => e.mime_type === 'audio/mpeg')!;
+				const audioEnclosure = x.enclosures.find((e) =>
+					EpisodeService.allowedMimeTypes.has(e.mime_type)
+				)!;
 				return {
 					id: x.id,
 					podcastId: x.feed.id,

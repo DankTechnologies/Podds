@@ -29,7 +29,7 @@
 				.toArray()
 		);
 	});
-	$inspect($episodes);
+
 	async function loadMoreEpisodes() {
 		if (limit < episodeCount) limit += ITEMS_PER_PAGE;
 	}
