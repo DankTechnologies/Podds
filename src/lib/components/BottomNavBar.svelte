@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Home, ListMusic, ScrollText } from 'lucide-svelte';
+	import { Home, ListMusic, ScrollText, Settings } from 'lucide-svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -26,6 +26,11 @@
 			href: '/playlist',
 			label: 'Playlist',
 			icon: ListMusic
+		},
+		{
+			href: '/settings',
+			label: 'Settings',
+			icon: Settings
 		}
 	];
 </script>
