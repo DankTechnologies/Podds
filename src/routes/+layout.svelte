@@ -10,7 +10,7 @@
 	import { SettingsService } from '$lib/service/SettingsService';
 	import { SyncService } from '$lib/service/SyncService.svelte';
 
-	const standaloneRoutes = ['/settings', '/sync'];
+	const standaloneRoutes = ['/sync'];
 
 	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 	let settings = $state<Settings | null>(null);

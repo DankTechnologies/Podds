@@ -48,11 +48,7 @@
 
 	async function onSave() {
 		await SettingsService.saveSettings(settings);
-		if (isFirstVisit) {
-			goto('/sync');
-		} else {
-			goto('/');
-		}
+		if (isFirstVisit) goto('/sync');
 	}
 
 	async function onTest() {

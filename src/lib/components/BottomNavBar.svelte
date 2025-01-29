@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Home, ListMusic, ScrollText, Settings } from 'lucide-svelte';
 
@@ -38,12 +39,17 @@
 <nav>
 	{#each navItems as { href, label, icon }}
 		{@const Icon = icon}
-		<a {href} class="nav-item" class:active={isActive(href)}>
+		<button
+			class="nav-item"
+			class:active={isActive(href)}
+			onclick={() => goto(href)}
+			aria-label={label}
+		>
 			<Icon size={ICON_SIZE} />
 			<div class="nav-item__label">
 				{label}
 			</div>
-		</a>
+		</button>
 	{/each}
 </nav>
 
@@ -69,6 +75,9 @@
 		text-decoration: none;
 		color: slategray;
 		transition: color 0.2s ease;
+		border: 0;
+		padding: 0;
+		background: none;
 	}
 
 	.nav-item__label {
@@ -78,5 +87,10 @@
 
 	.nav-item.active {
 		color: darkorange;
+	}
+
+	.nav-item:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 </style>

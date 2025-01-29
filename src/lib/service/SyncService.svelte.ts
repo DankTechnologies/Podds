@@ -238,7 +238,6 @@ export class SyncService {
 				const settings = await SettingsService.getSettings();
 
 				if (!settings?.lastSyncAt) {
-					console.warn('Last sync at not set in settings');
 					return;
 				}
 
