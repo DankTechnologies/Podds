@@ -109,8 +109,4 @@
 	.podcast-header__episodes {
 		font-size: var(--text-small);
 	}
-
-	.podcast-section {
-		padding-bottom: 7.5rem;
-	}
 </style>

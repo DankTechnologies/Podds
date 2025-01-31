@@ -109,11 +109,16 @@ h6 {
 	}
 
 	html {
-		padding-bottom: 16rem;
+		padding-bottom: 13rem;
 		scrollbar-width: none;
+		overscroll-behavior: none;
 	}
 
 	html::-webkit-scrollbar {
 		display: none;
+	}
+
+	body {
+		overscroll-behavior-y: none;
 	}
 }
