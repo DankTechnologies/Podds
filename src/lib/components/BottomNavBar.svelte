@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { Home, ListMusic, ScrollText, Settings } from 'lucide-svelte';
 
 	const ICON_SIZE = '2rem';
@@ -44,6 +45,7 @@
 			class:active={isActive(href)}
 			onclick={() => goto(href)}
 			aria-label={label}
+			disabled={href !== '/settings' && SessionInfo.isFirstVisit}
 		>
 			<Icon size={ICON_SIZE} />
 			<div class="nav-item__label">

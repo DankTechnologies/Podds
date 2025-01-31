@@ -107,4 +107,13 @@ h6 {
 	.text-xl {
 		font-size: 1.125rem;
 	}
+
+	html {
+		padding-bottom: 16rem;
+		scrollbar-width: none;
+	}
+
+	html::-webkit-scrollbar {
+		display: none;
+	}
 }

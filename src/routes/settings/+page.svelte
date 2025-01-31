@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import MinifluxApi from '$lib/api/MinifluxApi';
 	import { type OptionalId, type Settings } from '$lib/types/db';
-	import { SettingsService } from '$lib/service/SettingsService';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
 	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
 

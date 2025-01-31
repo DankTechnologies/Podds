@@ -2,7 +2,7 @@ import MinifluxApi from '$lib/api/MinifluxApi';
 import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
 import { EpisodeService } from './EpisodeService';
 import { PodcastService } from './PodcastService';
-import { SettingsService } from './SettingsService';
+import { SessionInfo, SettingsService } from './SettingsService.svelte';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -107,6 +107,7 @@ export class SyncService {
 				isSyncing: false
 			});
 
+			SessionInfo.isFirstVisit = false;
 			this.status = 'Sync complete';
 		} catch (error) {
 			await SettingsService.saveSettings({ ...settings, isSyncing: false });

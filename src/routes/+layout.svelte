@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import '../normalize.css';
 	import '../app.css';
 	import { goto } from '$app/navigation';
@@ -7,12 +6,9 @@
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { onMount } from 'svelte';
 	import type { Settings } from '$lib/types/db';
-	import { SettingsService } from '$lib/service/SettingsService';
+	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { SyncService } from '$lib/service/SyncService.svelte';
 
-	const standaloneRoutes = ['/sync'];
-
-	let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 	let settings = $state<Settings | null>(null);
 	let sync = new SyncService();
 
@@ -21,6 +17,8 @@
 
 		if (!settings) {
 			goto('/settings');
+		} else {
+			SessionInfo.isFirstVisit = false;
 		}
 
 		sync.startPeriodicSync();
@@ -29,16 +27,8 @@
 	let { children } = $props();
 </script>
 
-<main class={{ 'nav-offset': !isStandalone }}>
+<main>
 	{@render children()}
-	{#if !isStandalone}
-		<Player />
-		<BottomNavBar />
-	{/if}
+	<Player />
+	<BottomNavBar />
 </main>
-
-<style>
-	.nav-offset {
-		padding-bottom: 4.25rem;
-	}
-</style>
