@@ -33,10 +33,15 @@
 		background: white;
 	}
 
+	.grid-item {
+		line-height: 0;
+	}
+
 	.grid-item button {
 		border: 0;
 		padding: 0;
 		background: none;
+		line-height: 0;
 	}
 
 	.grid-item img {
