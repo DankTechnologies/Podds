@@ -35,7 +35,7 @@ export class SyncService {
 		const settings = await SettingsService.getSettings();
 		if (!settings) return;
 
-		await SettingsService.saveSettings({ ...settings, isSyncing: true });
+		await SettingsService.updateSettings({ isSyncing: true });
 
 		try {
 			const syncCutoffTimestamp = settings.lastSyncAt
@@ -73,8 +73,13 @@ export class SyncService {
 			}
 
 			await this.syncRecentEntries(syncCutoffTimestamp);
+
+			await SettingsService.updateSettings({
+				lastSyncAt: new Date(),
+				isSyncing: false
+			});
 		} catch (error) {
-			await SettingsService.saveSettings({ ...settings, isSyncing: false });
+			await SettingsService.updateSettings({ isSyncing: false });
 			throw error;
 		}
 	}
@@ -85,7 +90,7 @@ export class SyncService {
 		const settings = await SettingsService.getSettings();
 		if (!settings) return;
 
-		await SettingsService.saveSettings({ ...settings, isSyncing: true });
+		await SettingsService.updateSettings({ isSyncing: true });
 
 		try {
 			this.status = 'Syncing podcasts...';
@@ -101,8 +106,7 @@ export class SyncService {
 			}
 
 			await PodcastService.fetchPodcastIconsById(true);
-			await SettingsService.saveSettings({
-				...settings,
+			await SettingsService.updateSettings({
 				lastSyncAt: new Date(),
 				isSyncing: false
 			});
@@ -110,7 +114,7 @@ export class SyncService {
 			SessionInfo.isFirstVisit = false;
 			this.status = 'Sync complete';
 		} catch (error) {
-			await SettingsService.saveSettings({ ...settings, isSyncing: false });
+			await SettingsService.updateSettings({ isSyncing: false });
 			throw error;
 		}
 	}

@@ -42,6 +42,7 @@
 			if (savedSettings) {
 				settings = savedSettings;
 				isFirstVisit = false;
+				await onTest();
 			}
 		}
 	});
@@ -69,6 +70,11 @@
 		});
 		navigator.clipboard.writeText(url);
 		alert('Shareable link copied to clipboard!');
+	}
+
+	async function onReset() {
+		await SettingsService.clearAllLocalState();
+		location.reload();
 	}
 </script>
 
@@ -142,6 +148,7 @@
 		</div>
 	{/if}
 	<div class="actions">
+		<button type="button" onclick={onReset}>Reset Data</button>
 		<button type="button" onclick={onTest}>Test Connection</button>
 		<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button>
 		<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>

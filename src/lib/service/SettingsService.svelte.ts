@@ -18,4 +18,26 @@ export class SettingsService {
 			await db.settings.add({ ...settings, id: 1 });
 		}
 	}
+
+	static async updateSettings(partialSettings: Partial<Settings>): Promise<void> {
+		const currentSettings = await this.getSettings();
+		if (!currentSettings) throw new Error('Settings not found');
+
+		await db.settings.update(1, { ...currentSettings, ...partialSettings });
+	}
+
+	static async clearAllLocalState(): Promise<void> {
+		// Clear IndexedDB
+		await db.delete();
+		await db.open();
+
+		// Clear Service Worker Caches
+		if ('caches' in window) {
+			const cacheKeys = await caches.keys();
+			await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+		}
+
+		// Reset session info
+		SessionInfo.isFirstVisit = true;
+	}
 }
