@@ -1,5 +1,6 @@
 import MinifluxApi from '$lib/api/MinifluxApi';
 import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
+import { Log } from '$lib/service/LogService';
 import { EpisodeService } from './EpisodeService';
 import { PodcastService } from './PodcastService';
 import { SessionInfo, SettingsService } from './SettingsService.svelte';
@@ -237,8 +238,6 @@ export class SyncService {
 
 	startPeriodicSync() {
 		const checkAndSync = async () => {
-			console.log('Starting periodic sync...');
-
 			try {
 				const settings = await SettingsService.getSettings();
 
@@ -251,12 +250,10 @@ export class SyncService {
 					: Infinity;
 
 				if (hoursSinceLastSync >= settings.syncIntervalHours) {
-					this.syncNewPodcasts().catch((error) => console.error('Sync failed:', error));
-				} else {
-					console.log('Not enough time has passed since last sync');
+					this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
 				}
 			} catch (error) {
-				console.error('Error checking sync status:', error);
+				Log.error(`Error checking sync status: ${error}`);
 			}
 		};
 

@@ -5,6 +5,7 @@
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
 	import type { Observable } from 'dexie';
+	import { Log } from '$lib/service/LogService';
 
 	let {
 		episodes,
@@ -45,7 +46,7 @@
 	}
 
 	function handleDownloadError(episodeId: number, err: Error | ErrorEvent) {
-		console.log(`Download failed for episode ${episodeId}:`, err);
+		Log.error(`Download failed for episode ${episodeId}: ${err}`);
 	}
 </script>
 

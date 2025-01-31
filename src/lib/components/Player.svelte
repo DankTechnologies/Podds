@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import type { SvelteMap } from 'svelte/reactivity';
 	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
+	import { Log } from '$lib/service/LogService';
 
 	const ICON_SIZE = '2rem';
 	let podcastIcons = $state<SvelteMap<number, string>>();
@@ -21,7 +22,7 @@
 	}
 
 	function handlePlaylist() {
-		console.log('Opening playlist/menu');
+		Log.info('Opening playlist/menu');
 	}
 
 	onMount(async () => {
@@ -40,7 +41,7 @@
 			oninput={(event) => {
 				const target = event.target as HTMLInputElement;
 				const newTime = Number(target.value);
-				console.log(`Attempting to set time to ${newTime} of ${playService.totalDuration}`);
+				Log.debug(`Attempting to set time to ${newTime} of ${playService.totalDuration}`);
 				playService.setCurrentTime(newTime);
 			}}
 		/>

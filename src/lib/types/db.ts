@@ -6,6 +6,7 @@ interface Settings {
 	lastSyncAt?: Date;
 	syncIntervalHours: number;
 	isSyncing?: boolean;
+	logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
 interface Podcast {
@@ -35,6 +36,13 @@ interface Episode {
 	sortOrder?: number;
 }
 
+interface LogEntry {
+	id: number;
+	timestamp: Date;
+	level: 'debug' | 'info' | 'warn' | 'error';
+	message: string;
+}
+
 type OptionalId<T extends { id: unknown }> = Omit<T, 'id'> & Partial<Pick<T, 'id'>>;
 
-export type { Settings, Podcast, Episode, OptionalId };
+export type { Settings, Podcast, Episode, LogEntry, OptionalId };

@@ -107,7 +107,18 @@ const handleRequest = async ({ request }) => {
 
 sw.addEventListener('install', (event) => {
 	console.log('Service worker installing...');
-	event.waitUntil(addResourcesToCache().then(() => self.skipWaiting()));
+	event.waitUntil(addResourcesToCache());
+});
+
+// This allows controlled updates via user interaction
+sw.addEventListener('message', (event) => {
+	console.log('Service worker received message:', event.data);
+	if (event.data && event.data.type === 'SKIP_WAITING') {
+		console.log('Calling skipWaiting()');
+		sw.skipWaiting().then(() => {
+			console.log('skipWaiting() completed!');
+		});
+	}
 });
 
 sw.addEventListener('fetch', (event) => {
@@ -122,5 +133,14 @@ sw.addEventListener('fetch', (event) => {
 
 sw.addEventListener('activate', (event) => {
 	console.log('Service worker activating...');
-	event.waitUntil(deleteOldCaches().then(() => self.clients.claim()));
+	event.waitUntil(
+		Promise.all([
+			deleteOldCaches(),
+			self.clients.claim().then(() => {
+				console.log('clients.claim() completed');
+			})
+		]).then(() => {
+			console.log('Activation complete');
+		})
+	);
 });

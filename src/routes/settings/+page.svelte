@@ -2,15 +2,20 @@
 	import { goto } from '$app/navigation';
 	import MinifluxApi from '$lib/api/MinifluxApi';
 	import { type OptionalId, type Settings } from '$lib/types/db';
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
 	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
+	import { applyUpdate } from '$lib/utils/versionUpdate';
+	import { Log } from '$lib/service/LogService';
+	import { liveQuery } from 'dexie';
+	import { db } from '$lib/db/FluxcastDb';
 
 	let settings = $state<OptionalId<Settings>>({
 		host: 'https://feed.pitpat.me',
 		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
 		categories: '5',
-		syncIntervalHours: 1
+		syncIntervalHours: 1,
+		logLevel: 'info'
 	});
 
 	let isFirstVisit = $state<boolean>(true);
@@ -23,6 +28,8 @@
 			apiStatus === 'success'
 	);
 
+	let logs = liveQuery(() => db.log.orderBy('timestamp').reverse().limit(20).toArray());
+
 	onMount(async () => {
 		const hash = window.location.hash.slice(1);
 		if (hash) {
@@ -30,12 +37,13 @@
 				const decoded = decodeShareLink(hash);
 				settings = {
 					...decoded,
-					syncIntervalHours: 1
+					syncIntervalHours: 1,
+					logLevel: 'info'
 				};
 				history.replaceState(null, '', window.location.pathname);
 				await onTest();
 			} catch (error) {
-				console.error('Invalid settings URL');
+				Log.error('Invalid settings URL');
 			}
 		} else {
 			const savedSettings = await SettingsService.getSettings();
@@ -80,6 +88,11 @@
 
 <header>
 	<h2>Miniflux Configuration</h2>
+	{#if SessionInfo.hasUpdate}
+		<button class="update-button" onclick={applyUpdate}>
+			Update Available - Click to Reload
+		</button>
+	{/if}
 </header>
 <form class="grid">
 	<div>
@@ -153,6 +166,18 @@
 		<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button>
 		<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
 	</div>
+	{#if logs}
+		<div>
+			<label for="logs">Logs</label>
+			<div id="logs" role="status" class="status" style="font-family: monospace;">
+				{#each $logs as log}
+					[{log.level}][{log.timestamp.toISOString().slice(0, 19).replace('T', ' ')}] {log.message}
+					<br />
+					<br />
+				{/each}
+			</div>
+		</div>
+	{/if}
 </form>
 
 <style>
@@ -205,5 +230,15 @@
 
 	.actions button {
 		flex: 1;
+	}
+
+	.update-button {
+		background: darkorange;
+		color: white;
+		border: none;
+		padding: 0.5rem 1rem;
+		border-radius: 0.25rem;
+		margin-top: 0.5rem;
+		cursor: pointer;
 	}
 </style>

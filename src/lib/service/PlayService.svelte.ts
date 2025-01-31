@@ -1,4 +1,5 @@
 import type { Episode } from '$lib/types/db';
+import { Log } from '$lib/service/LogService';
 import { EpisodeService } from './EpisodeService';
 
 class PlayService {
@@ -30,9 +31,6 @@ class PlayService {
 				window.clearInterval(this.updateInterval);
 			}
 			this.updateInterval = window.setInterval(async () => {
-				console.log(
-					`Updating playback position for ${this.currentEpisode!.title} to ${this.audio.currentTime} of ${this.audio.duration}`
-				);
 				await EpisodeService.updatePlaybackPosition(
 					this.currentEpisode!.id,
 					this.audio.currentTime
@@ -83,7 +81,7 @@ class PlayService {
 	public async play(episode: Episode, onComplete?: () => void, onError?: (error: Error) => void) {
 		if (!this.audio) return;
 
-		console.log(`Playing episode: ${episode.title}`);
+		Log.info(`Playing episode: ${episode.title}`);
 
 		// Set up event listeners before changing the source
 		if (onComplete) {
@@ -127,7 +125,7 @@ class PlayService {
 			'loadedmetadata',
 			() => {
 				if (episode.playbackPosition && episode.playbackPosition > 0) {
-					console.log(`Starting at ${episode.playbackPosition} seconds for ${episode.title}`);
+					Log.debug(`Starting at ${episode.playbackPosition} seconds for ${episode.title}`);
 					this.audio.currentTime = episode.playbackPosition;
 				}
 			},

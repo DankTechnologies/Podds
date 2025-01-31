@@ -3,8 +3,13 @@
 	import { page } from '$app/state';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { Home, ListMusic, ScrollText, Settings } from 'lucide-svelte';
+	import { onUpdateReady } from '$lib/utils/versionUpdate';
 
 	const ICON_SIZE = '2rem';
+
+	onUpdateReady(() => {
+		SessionInfo.hasUpdate = true;
+	});
 
 	const isActive = $derived((href: string) => {
 		if (href === '/') {
@@ -43,6 +48,7 @@
 		<button
 			class="nav-item"
 			class:active={isActive(href)}
+			class:has-update={href === '/settings' && SessionInfo.hasUpdate}
 			onclick={() => goto(href)}
 			aria-label={label}
 			disabled={href !== '/settings' && SessionInfo.isFirstVisit}
@@ -94,5 +100,20 @@
 	.nav-item:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.nav-item.has-update {
+		position: relative;
+	}
+
+	.nav-item.has-update::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 8px;
+		height: 8px;
+		background: darkorange;
+		border-radius: 50%;
 	}
 </style>

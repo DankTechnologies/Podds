@@ -2,7 +2,8 @@ import { db } from '$lib/db/FluxcastDb';
 import { type OptionalId, type Settings } from '$lib/types/db';
 
 export const SessionInfo = $state({
-	isFirstVisit: true
+	isFirstVisit: true,
+	hasUpdate: false
 });
 
 export class SettingsService {
