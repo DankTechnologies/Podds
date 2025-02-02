@@ -67,7 +67,6 @@ export class SyncService {
 						id: feed.id,
 						title: feed.title,
 						_titleSort: this.createSortableTitle(feed.title),
-						newEpisodes: 0,
 						icon: resizedIcon
 					});
 				}
