@@ -1,4 +1,3 @@
-import { db } from '$lib/db/FluxcastDb';
 import { type OptionalId, type Settings } from '$lib/types/db';
 
 export const SessionInfo = $state({
@@ -7,36 +6,36 @@ export const SessionInfo = $state({
 });
 
 export class SettingsService {
+	private static SETTINGS_KEY = 'fluxcast_settings';
+
 	static async getSettings(): Promise<Settings | null> {
-		return (await db.settings.get(1)) || null;
+		const settingsStr = localStorage.getItem(this.SETTINGS_KEY);
+		return settingsStr ? JSON.parse(settingsStr) : null;
 	}
 
 	static async saveSettings(settings: OptionalId<Settings>): Promise<void> {
-		const oldSettings = await this.getSettings();
-		if (oldSettings) {
-			await db.settings.update(1, { ...settings });
-		} else {
-			await db.settings.add({ ...settings, id: 1 });
-		}
+		const settingsToSave = { ...settings, id: 1 };
+		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settingsToSave));
 	}
 
 	static async updateSettings(partialSettings: Partial<Settings>): Promise<void> {
 		const currentSettings = await this.getSettings();
 		if (!currentSettings) throw new Error('Settings not found');
 
-		await db.settings.update(1, { ...currentSettings, ...partialSettings });
+		const updatedSettings = { ...currentSettings, ...partialSettings };
+		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(updatedSettings));
 	}
 
 	static async clearAllLocalState(): Promise<void> {
-		// Clear IndexedDB
-		await db.delete();
-		await db.open();
+		localStorage.removeItem(this.SETTINGS_KEY);
 
 		// Clear Service Worker Caches
 		if ('caches' in window) {
 			const cacheKeys = await caches.keys();
 			await Promise.all(cacheKeys.map((key) => caches.delete(key)));
 		}
+
+		// TODO: refactor if using signaldb
 
 		// Reset session info
 		SessionInfo.isFirstVisit = true;
