@@ -1,36 +1,51 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
-	import { db } from '$lib/db/FluxcastDb';
-	import { PodcastService } from '$lib/service/PodcastService';
-	import { liveQuery } from 'dexie';
 	import { onMount } from 'svelte';
-	import type { SvelteMap } from 'svelte/reactivity';
+	import { db } from '$lib/stores/db.svelte';
+	import type { Episode, Icon } from '$lib/types/db';
 
 	const ITEMS_PER_PAGE = 50;
-	let podcastIcons = $state<SvelteMap<number, string>>();
 	let limit = $state<number>(ITEMS_PER_PAGE);
-
 	let observerTarget = $state<HTMLElement | null>(null);
 
-	let episodes = $derived.by(() => {
-		// noop just to make it reactive
-		limit;
+	// Raw state holders for query results
+	let episodes = $state.raw<Episode[]>([]);
+	let icons = $state.raw<Icon[]>([]);
 
-		return liveQuery(() => db.episodes.orderBy('publishedAt').reverse().limit(limit).toArray());
+	// Set up reactive queries with proper cleanup
+	$effect(() => {
+		const episodesCursor = db.episodes.find(
+			{},
+			{
+				sort: { publishedAt: -1 },
+				limit
+			}
+		);
+		episodes = episodesCursor.fetch();
+
+		return () => {
+			episodesCursor.cleanup();
+		};
+	});
+
+	$effect(() => {
+		const iconsCursor = db.icons.find();
+		icons = iconsCursor.fetch();
+
+		return () => {
+			iconsCursor.cleanup();
+		};
 	});
 
 	async function loadMoreEpisodes() {
 		limit += ITEMS_PER_PAGE;
 	}
 
-	// @ts-ignore
-	onMount(async () => {
-		podcastIcons = await PodcastService.fetchPodcastIconsById();
-
+	onMount(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
-					if (entry.isIntersecting && $episodes) {
+					if (entry.isIntersecting && episodes?.length) {
 						loadMoreEpisodes();
 					}
 				});
@@ -45,6 +60,6 @@
 </script>
 
 {#if episodes}
-	<EpisodeList {episodes} {podcastIcons} />
+	<EpisodeList {episodes} podcastIcons={icons} />
 {/if}
 <div bind:this={observerTarget}></div>

@@ -11,6 +11,9 @@ importers:
       '@signaldb/core':
         specifier: ^1.2.2
         version: 1.2.2
+      '@signaldb/opfs':
+        specifier: ^1.0.0
+        version: 1.0.0(@signaldb/core@1.2.2)
       lucide-svelte:
         specifier: ^0.471.0
         version: 0.471.0(svelte@5.19.3)
@@ -416,6 +419,11 @@ packages:
 
   '@signaldb/core@1.2.2':
     resolution: {integrity: sha512-p9Xpb1b/XdmyVn7dr+slSKLdndOh0n7u3Wfd+DEXNzvacRqE/Mho+1651zguxbt+jykHwLNR41SFeo0gOhxKlg==}
+
+  '@signaldb/opfs@1.0.0':
+    resolution: {integrity: sha512-AA4VJFRjXdQ3K4A9uRPc07035TKskqFdXafMAPscrNBfdPqnlcJnePOK1a2WxS2lDHsa8a7Ztl3OkZgG8AOcig==}
+    peerDependencies:
+      '@signaldb/core': 1.x
 
   '@sveltejs/adapter-static@3.0.8':
     resolution: {integrity: sha512-YaDrquRpZwfcXbnlDsSrBQNCChVOT9MGuSg+dMAyfsAa1SmiAhrA5jUYUiIMC59G92kIbY/AaQOWcBdq+lh+zg==}
@@ -1525,6 +1533,10 @@ snapshots:
     dependencies:
       fast-sort: 3.4.1
       mingo: 6.5.2
+
+  '@signaldb/opfs@1.0.0(@signaldb/core@1.2.2)':
+    dependencies:
+      '@signaldb/core': 1.2.2
 
   '@sveltejs/adapter-static@3.0.8(@sveltejs/kit@2.16.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10)))(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10)))':
     dependencies:

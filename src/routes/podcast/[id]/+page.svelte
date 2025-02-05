@@ -1,49 +1,46 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { PodcastService } from '$lib/service/PodcastService';
+	import type { Episode, Icon } from '$lib/types/db';
+	import { db } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import type { Podcast } from '$lib/types/db';
-	import Dexie, { liveQuery } from 'dexie';
-	import { db } from '$lib/db/FluxcastDb';
 
-	const podcastId = parseInt(page.params.id);
+	const podcastId = page.params.id;
 
 	const ITEMS_PER_PAGE = 50;
-	let podcast = $state<Podcast | null>(null);
-	let episodeCount = $state<number>(0);
 	let limit = $state<number>(ITEMS_PER_PAGE);
-
 	let observerTarget = $state<HTMLElement | null>(null);
 
-	let episodes = $derived.by(() => {
-		// noop just to make it reactive
-		limit;
+	// Raw state holders for query results
+	let episodes = $state.raw<Episode[]>([]);
+	let icon = $state.raw<Icon>();
 
-		return liveQuery(() =>
-			db.episodes
-				.where('[podcastId+id]') // can't use orderBy and where
-				.between([podcastId, Dexie.minKey], [podcastId, Dexie.maxKey])
-				.reverse()
-				.limit(limit)
-				.toArray()
+	// Set up reactive queries with proper cleanup
+	$effect(() => {
+		const episodesCursor = db.episodes.find(
+			{ 'podcast.id': podcastId },
+			{
+				sort: { publishedAt: -1 },
+				limit
+			}
 		);
+		episodes = episodesCursor.fetch();
+		icon = db.icons.findOne({ id: podcastId });
+
+		return () => {
+			episodesCursor.cleanup();
+		};
 	});
 
 	async function loadMoreEpisodes() {
-		if (limit < episodeCount) limit += ITEMS_PER_PAGE;
+		limit += ITEMS_PER_PAGE;
 	}
 
 	onMount(() => {
-		PodcastService.getPodcastWithDetails(podcastId, 0, ITEMS_PER_PAGE).then((details) => {
-			podcast = details.podcast;
-			episodeCount = details.episodeCount;
-		});
-
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
+					if (entry.isIntersecting && episodes?.length) {
 						loadMoreEpisodes();
 					}
 				});
@@ -57,15 +54,13 @@
 	});
 </script>
 
-{#if podcast}
+{#if episodes.length > 0}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
-		<img class="podcast-header__image" src={`data:${podcast.icon}`} alt={podcast.title} />
+		<img class="podcast-header__image" src={`data:${icon?.data}`} alt={episodes[0].podcast.title} />
 		<div class="podcast-header__content">
-			<div class="podcast-header__title">{podcast.title}</div>
-			{#if episodeCount}
-				<div class="podcast-header__episodes">{episodeCount} episodes</div>
-			{/if}
+			<div class="podcast-header__title">{episodes[0].podcast.title}</div>
+			<div class="podcast-header__episodes">{episodes.length} episodes</div>
 		</div>
 	</header>
 

@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { type OptionalId, type Settings } from '$lib/types/db';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
 	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { Log } from '$lib/service/LogService';
-	import { liveQuery } from 'dexie';
-	import { db } from '$lib/db/FluxcastDb';
 	import MinifluxClient from '$lib/api/miniflux';
-	let settings = $state<OptionalId<Settings>>({
+	import { db } from '$lib/stores/db.svelte';
+	import type { LogEntry } from '$lib/types/db';
+
+	let settings: Settings = $state<Settings>({
 		host: 'https://feed.pitpat.me',
 		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
 		categories: '5',
@@ -27,7 +27,19 @@
 			apiStatus === 'success'
 	);
 
-	let logs = liveQuery(() => db.log.orderBy('timestamp').reverse().limit(20).toArray());
+	// Raw state holders for query results
+	let logs = $state.raw<LogEntry[]>([]);
+
+	// Set up reactive queries with proper cleanup
+	$effect(() => {
+		const logsCursor = db.logs.find({}, { sort: { timestamp: -1 }, limit: 20 });
+
+		logs = logsCursor.fetch();
+
+		return () => {
+			logsCursor.cleanup();
+		};
+	});
 
 	onMount(async () => {
 		const hash = window.location.hash.slice(1);
@@ -169,8 +181,8 @@
 		<div>
 			<label for="logs">Logs</label>
 			<div id="logs" role="status" class="status" style="font-family: monospace;">
-				{#each $logs as log}
-					[{log.level}][{log.timestamp.toISOString().slice(0, 19).replace('T', ' ')}] {log.message}
+				{#each logs as log}
+					[{log.level}][{new Date(log.id).toISOString().slice(0, 19).replace('T', ' ')}] {log.message}
 					<br />
 					<br />
 				{/each}

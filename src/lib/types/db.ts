@@ -1,26 +1,17 @@
-interface Settings {
-	id: number;
-	host: string;
-	apiKey: string;
-	categories: string;
-	lastSyncAt?: Date;
-	syncIntervalHours: number;
-	isSyncing?: boolean;
-	logLevel: 'debug' | 'info' | 'warn' | 'error';
-}
-
-interface Podcast {
-	id: number;
-	title: string;
+export interface Icon {
+	id: string;
+	data: string;
 	lastUpdatedAt?: Date;
-	icon: string;
-	_titleSort: string;
 }
 
-interface Episode {
-	id: number;
-	podcastId: number;
-	podcastTitle: string;
+export interface Podcast {
+	id: string;
+	title: string;
+}
+
+export interface Episode {
+	id: string;
+	podcast: Podcast;
 	title: string;
 	publishedAt: Date;
 	lastPlayedAt?: Date;
@@ -35,13 +26,14 @@ interface Episode {
 	sortOrder?: number;
 }
 
-interface LogEntry {
+export interface LogEntry {
 	id: number;
-	timestamp: Date;
 	level: 'debug' | 'info' | 'warn' | 'error';
 	message: string;
 }
 
-type OptionalId<T extends { id: unknown }> = Omit<T, 'id'> & Partial<Pick<T, 'id'>>;
+// Helper type for creating new records without an ID
+export type WithoutId<T> = Omit<T, 'id'>;
 
-export type { Settings, Podcast, Episode, LogEntry, OptionalId };
+// Helper type for partial updates
+export type UpdateFields<T> = Partial<Omit<T, 'id'>>;

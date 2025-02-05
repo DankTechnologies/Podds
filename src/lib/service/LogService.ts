@@ -1,16 +1,16 @@
-import { db } from '$lib/db/FluxcastDb';
-import type { LogEntry, OptionalId } from '$lib/types/db';
+import { db } from '$lib/stores/db.svelte';
+import type { LogEntry } from '$lib/types/db';
 
 export class Log {
 	private static async write(level: LogEntry['level'], message: string) {
-		const entry: OptionalId<LogEntry> = {
-			timestamp: new Date(),
+		const entry: LogEntry = {
+			id: Date.now(),
 			level,
 			message
 		};
 
 		console[level](message);
-		await db.log.add(entry);
+		db.logs.insert(entry);
 	}
 
 	static debug(message: string) {

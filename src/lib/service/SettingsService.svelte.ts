@@ -1,5 +1,3 @@
-import { type OptionalId, type Settings } from '$lib/types/db';
-
 export const SessionInfo = $state({
 	isFirstVisit: true,
 	hasUpdate: false
@@ -13,9 +11,8 @@ export class SettingsService {
 		return settingsStr ? JSON.parse(settingsStr) : null;
 	}
 
-	static async saveSettings(settings: OptionalId<Settings>): Promise<void> {
-		const settingsToSave = { ...settings, id: 1 };
-		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settingsToSave));
+	static async saveSettings(settings: Settings): Promise<void> {
+		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
 	}
 
 	static async updateSettings(partialSettings: Partial<Settings>): Promise<void> {

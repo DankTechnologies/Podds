@@ -1,13 +1,21 @@
 <script lang="ts">
 	import { playService } from '$lib/service/PlayService.svelte';
-	import { PodcastService } from '$lib/service/PodcastService';
-	import { onMount } from 'svelte';
-	import type { SvelteMap } from 'svelte/reactivity';
 	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
 	import { Log } from '$lib/service/LogService';
+	import type { Icon } from '$lib/types/db';
+	import { db } from '$lib/stores/db.svelte';
 
 	const ICON_SIZE = '2rem';
-	let podcastIcons = $state<SvelteMap<number, string>>();
+	let icons = $state.raw<Icon[]>([]);
+
+	$effect(() => {
+		const iconsCursor = db.icons.find({ id: playService?.episode?.podcast.id });
+		icons = iconsCursor.fetch();
+
+		return () => {
+			iconsCursor.cleanup();
+		};
+	});
 
 	function handleBack() {
 		playService.seek(-10);
@@ -24,10 +32,6 @@
 	function handlePlaylist() {
 		Log.info('Opening playlist/menu');
 	}
-
-	onMount(async () => {
-		podcastIcons = await PodcastService.fetchPodcastIconsById();
-	});
 </script>
 
 {#if playService.episode}
@@ -48,7 +52,12 @@
 
 		<div class="player__controls">
 			<div class="player__artwork">
-				<img src={`data:${podcastIcons?.get(playService.episode.podcastId)}`} alt="" />
+				{#if icons}
+					<img
+						src={`data:${icons.find((x) => x.id === playService?.episode?.podcast?.id)?.data}`}
+						alt=""
+					/>
+				{/if}
 			</div>
 
 			<button class="player__button" onclick={handleBack}>

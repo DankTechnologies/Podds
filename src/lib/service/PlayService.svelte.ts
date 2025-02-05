@@ -1,10 +1,11 @@
 import type { Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { EpisodeService } from './EpisodeService';
+import { db } from '$lib/stores/db.svelte';
 
 class PlayService {
 	private static readonly UPDATE_INTERVAL_MS = 1000;
-	private currentEpisode = $state<Episode | null>(null);
+	private currentEpisode = $state<Episode | undefined>(undefined);
 	private currentTimeValue = $state<number>(0);
 	private currentDurationValue = $state<number>(0);
 	private isPausedValue = $state<boolean>(true);
@@ -15,12 +16,11 @@ class PlayService {
 		this.audio = new Audio();
 		this.setupAudioListeners();
 
-		EpisodeService.getPlayingEpisode().then((episode) => {
-			if (!episode) return;
+		this.currentEpisode = db.episodes.findOne({ isPlaying: 1 });
 
-			this.currentEpisode = episode;
-			this.audio.src = episode.url;
-		});
+		if (this.currentEpisode) {
+			this.audio.src = this.currentEpisode.url;
+		}
 	}
 
 	private setupAudioListeners() {
@@ -173,6 +173,10 @@ class PlayService {
 
 	public get isPaused() {
 		return this.isPausedValue;
+	}
+
+	public getIcon(iconId: string) {
+		return db.icons.findOne({ id: iconId });
 	}
 }
 

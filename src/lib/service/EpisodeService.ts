@@ -1,78 +1,24 @@
-import { db } from '$lib/db/FluxcastDb';
-import type { Episode } from '$lib/types/db';
-import type { Entry } from '$lib/types/miniflux';
+import { db } from '$lib/stores/db.svelte';
 
 export class EpisodeService {
-	private static allowedMimeTypes = new Set(['audio/mpeg', 'audio/x-m4a']);
-	static async getEpisodeById(id: number): Promise<Episode | undefined> {
-		return await db.episodes.get(id);
-	}
-
-	static async getPlayingEpisode(): Promise<Episode | undefined> {
-		return await db.episodes.where('isPlaying').equals(1).first();
-	}
-
-	static async getUpNextEpisodes(): Promise<Episode[]> {
-		return await db.episodes.where('sortOrder').above(0).toArray();
-	}
-
-	static async getDownloadedEpisodes(): Promise<Episode[]> {
-		return await db.episodes.where('isDownloaded').equals(1).toArray();
-	}
-
-	static async putEpisodes(entries: Entry[]): Promise<void> {
-		const episodes: Episode[] = entries
-			.filter((x) => x.enclosures?.some((e) => EpisodeService.allowedMimeTypes.has(e.mime_type)))
-			.map((x) => {
-				const audioEnclosure = x.enclosures.find((e) =>
-					EpisodeService.allowedMimeTypes.has(e.mime_type)
-				)!;
-				return {
-					id: x.id,
-					podcastId: x.feed.id,
-					podcastTitle: x.feed.title,
-					title: x.title,
-					content: x.content,
-					publishedAt: new Date(x.published_at),
-					durationMin: x.reading_time,
-					url: audioEnclosure.url,
-					mime_type: audioEnclosure.mime_type,
-					size: audioEnclosure.size,
-					isDownloaded: 0,
-					isPlaying: 0
-				};
-			});
-		await db.episodes.bulkPut(episodes);
-	}
-
-	static async setPlayingEpisode(episodeId: number): Promise<void> {
-		await db.transaction('rw', db.episodes, async () => {
-			const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
-
-			if (currentPlayingEpisode) {
-				await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
-			}
-
-			await db.episodes.update(episodeId, { isPlaying: 1 });
-		});
+	static async setPlayingEpisode(episodeId: string): Promise<void> {
+		await db.episodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
+		await db.episodes.updateOne({ id: episodeId }, { $set: { isPlaying: 1 } });
 	}
 
 	static async clearPlayingEpisode(): Promise<void> {
-		const currentPlayingEpisode = await EpisodeService.getPlayingEpisode();
-		if (currentPlayingEpisode) {
-			await db.episodes.update(currentPlayingEpisode.id, { isPlaying: 0 });
-		}
+		await db.episodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
 	}
 
-	static async clearDownloaded(episodeId: number): Promise<void> {
-		await db.episodes.update(episodeId, { isDownloaded: 0 });
+	static async updatePlaybackPosition(episodeId: string, pos: number): Promise<void> {
+		await db.episodes.updateOne({ id: episodeId }, { $set: { playbackPosition: pos } });
 	}
 
-	static async markDownloaded(episodeId: number): Promise<void> {
-		await db.episodes.update(episodeId, { isDownloaded: 1 });
+	static async markDownloaded(episodeId: string): Promise<void> {
+		await db.episodes.updateOne({ id: episodeId }, { $set: { isDownloaded: 1 } });
 	}
 
-	static async updatePlaybackPosition(episodeId: number, pos: number): Promise<void> {
-		await db.episodes.update(episodeId, { playbackPosition: pos });
+	static async clearDownloaded(episodeId: string): Promise<void> {
+		await db.episodes.updateOne({ id: episodeId }, { $set: { isDownloaded: 0 } });
 	}
 }

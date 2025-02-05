@@ -1,19 +1,14 @@
 <script lang="ts">
 	import { EpisodeService } from '$lib/service/EpisodeService';
-	import type { Episode } from '$lib/types/db';
-	import { SvelteMap } from 'svelte/reactivity';
+	import type { Episode, Icon } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
-	import type { Observable } from 'dexie';
 	import { Log } from '$lib/service/LogService';
 
-	let {
-		episodes,
-		podcastIcons
-	}: { episodes: Observable<Episode[]>; podcastIcons?: SvelteMap<number, string> } = $props();
-	let expandedEpisodeIds = $state<number[]>([]);
+	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
+	let expandedEpisodeIds = $state<string[]>([]);
 
-	function toggleExpanded(episodeId: number) {
+	function toggleExpanded(episodeId: string) {
 		if (isExpanded(episodeId)) {
 			expandedEpisodeIds = expandedEpisodeIds.filter((id) => id !== episodeId);
 		} else {
@@ -21,7 +16,7 @@
 		}
 	}
 
-	function isExpanded(episodeId: number) {
+	function isExpanded(episodeId: string) {
 		return expandedEpisodeIds.includes(episodeId);
 	}
 
@@ -41,17 +36,17 @@
 		);
 	}
 
-	function handleDownloadComplete(episodeId: number) {
+	function handleDownloadComplete(episodeId: string) {
 		EpisodeService.markDownloaded(episodeId);
 	}
 
-	function handleDownloadError(episodeId: number, err: Error | ErrorEvent) {
+	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
 		Log.error(`Download failed for episode ${episodeId}: ${err}`);
 	}
 </script>
 
 <div class="episode-list" role="list">
-	{#each $episodes as episode}
+	{#each episodes as episode}
 		<article class="episode-card">
 			<button
 				class="episode-card__header"
@@ -63,7 +58,7 @@
 				{#if podcastIcons}
 					<img
 						class="episode-card__image"
-						src={`data:${podcastIcons.get(episode.podcastId)}`}
+						src={`data:${podcastIcons.find((x) => x.id === episode.podcast?.id)?.data}`}
 						alt=""
 					/>
 				{/if}
