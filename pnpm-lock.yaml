@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      dexie:
-        specifier: ^4.0.11
-        version: 4.0.11
+      '@signaldb/core':
+        specifier: ^1.2.2
+        version: 1.2.2
       lucide-svelte:
         specifier: ^0.471.0
         version: 0.471.0(svelte@5.19.3)
@@ -414,6 +414,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@signaldb/core@1.2.2':
+    resolution: {integrity: sha512-p9Xpb1b/XdmyVn7dr+slSKLdndOh0n7u3Wfd+DEXNzvacRqE/Mho+1651zguxbt+jykHwLNR41SFeo0gOhxKlg==}
+
   '@sveltejs/adapter-static@3.0.8':
     resolution: {integrity: sha512-YaDrquRpZwfcXbnlDsSrBQNCChVOT9MGuSg+dMAyfsAa1SmiAhrA5jUYUiIMC59G92kIbY/AaQOWcBdq+lh+zg==}
     peerDependencies:
@@ -655,9 +658,6 @@ packages:
   devalue@5.1.1:
     resolution: {integrity: sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw==}
 
-  dexie@4.0.11:
-    resolution: {integrity: sha512-SOKO002EqlvBYYKQSew3iymBoN2EQ4BDw/3yprjh7kAfFzjBYkaMNa/pZvcA7HSWlcKSQb9XhPe3wKyQ0x4A8A==}
-
   es-module-lexer@1.6.0:
     resolution: {integrity: sha512-qqnD1yMU6tk/jnaMosogGySTZP8YtUgAffA9nMN+E/rjxcfRQ6IEk7IiozUjgxKoFHBGjTLnrHB/YC45r/59EQ==}
 
@@ -767,6 +767,9 @@ packages:
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
+
+  fast-sort@3.4.1:
+    resolution: {integrity: sha512-76uvGPsF6So53sZAqenP9UVT3p5l7cyTHkLWVCMinh41Y8NDrK1IYXJgaBMfc1gk7nJiSRZp676kddFG2Aa5+A==}
 
   fastq@1.18.0:
     resolution: {integrity: sha512-QKHXPW0hD8g4UET03SdOdunzSouc9N4AuHdsX8XNcTsuz+yYFILVNIX4l9yHABMhiEI9Db0JTTIpu0wB+Y1QQw==}
@@ -918,6 +921,9 @@ packages:
   micromatch@4.0.8:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
+
+  mingo@6.5.2:
+    resolution: {integrity: sha512-dDa8txMjCxpJg3jXlgwHmiePfa1yNeNGNvwHeS/h5sU2vsnnOUE346FR29632Edi8yAx844rr8QWiNxEq6F2NA==}
 
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -1515,6 +1521,11 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.32.0':
     optional: true
 
+  '@signaldb/core@1.2.2':
+    dependencies:
+      fast-sort: 3.4.1
+      mingo: 6.5.2
+
   '@sveltejs/adapter-static@3.0.8(@sveltejs/kit@2.16.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10)))(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10)))':
     dependencies:
       '@sveltejs/kit': 2.16.1(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10)))(svelte@5.19.3)(vite@6.0.11(@types/node@22.10.10))
@@ -1784,8 +1795,6 @@ snapshots:
 
   devalue@5.1.1: {}
 
-  dexie@4.0.11: {}
-
   es-module-lexer@1.6.0: {}
 
   esbuild@0.24.2:
@@ -1949,6 +1958,8 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
+  fast-sort@3.4.1: {}
+
   fastq@1.18.0:
     dependencies:
       reusify: 1.0.4
@@ -2068,6 +2079,8 @@ snapshots:
     dependencies:
       braces: 3.0.3
       picomatch: 2.3.1
+
+  mingo@6.5.2: {}
 
   minimatch@3.1.2:
     dependencies:

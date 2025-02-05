@@ -1,16 +1,20 @@
-import Dexie, { type EntityTable } from 'dexie';
-import { type Podcast, type Episode, type LogEntry } from '$lib/types/db';
-const db = new Dexie('fluxcast') as Dexie & {
-	podcasts: EntityTable<Podcast, 'id'>;
-	episodes: EntityTable<Episode, 'id'>;
-	log: EntityTable<LogEntry, 'id'>;
-};
+import { Collection } from '@signaldb/core';
 
-db.version(1).stores({
-	podcasts: '++id, _titleSort',
-	episodes:
-		'++id, podcastId, title, state, publishedAt, lastUpdatedAt, sortOrder, isPlaying, isDownloaded, [podcastId+id]',
-	log: '++id, timestamp, level'
+const Posts = new Collection({
+	reactivity: {
+		create() {
+			let dep = $state(0);
+			return {
+				depend() {
+					dep;
+				},
+				notify() {
+					dep += 1;
+				}
+			};
+		},
+		isInScope: () => !!$effect.tracking()
+	}
 });
 
-export { db };
+export { Posts };
