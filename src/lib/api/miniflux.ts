@@ -7,7 +7,7 @@ interface EntryOptions {
 	after?: number;
 }
 
-class MinifluxApi {
+class MinifluxClient {
 	private host: string;
 	private apiKey: string;
 
@@ -66,4 +66,4 @@ class MinifluxApi {
 	}
 }
 
-export default MinifluxApi;
+export default MinifluxClient;

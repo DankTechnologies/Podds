@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import MinifluxApi from '$lib/api/MinifluxApi';
 	import { type OptionalId, type Settings } from '$lib/types/db';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
@@ -9,7 +8,7 @@
 	import { Log } from '$lib/service/LogService';
 	import { liveQuery } from 'dexie';
 	import { db } from '$lib/db/FluxcastDb';
-
+	import MinifluxClient from '$lib/api/miniflux';
 	let settings = $state<OptionalId<Settings>>({
 		host: 'https://feed.pitpat.me',
 		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
@@ -61,7 +60,7 @@
 	}
 
 	async function onTest() {
-		const api = new MinifluxApi(settings.host, settings.apiKey);
+		const api = new MinifluxClient(settings.host, settings.apiKey);
 		try {
 			await api.fetchCategories();
 			apiStatus = 'success';

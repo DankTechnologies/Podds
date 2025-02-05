@@ -1,9 +1,9 @@
-import MinifluxApi from '$lib/api/MinifluxApi';
 import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
 import { Log } from '$lib/service/LogService';
 import { EpisodeService } from './EpisodeService';
 import { PodcastService } from './PodcastService';
 import { SessionInfo, SettingsService } from './SettingsService.svelte';
+import MinifluxClient from '$lib/api/miniflux';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -11,7 +11,7 @@ const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 export class SyncService {
 	status = $state<string>('');
-	private api: MinifluxApi | null = null;
+	private api: MinifluxClient | null = null;
 	private categoryIds: number[] = [];
 	private initialized = false;
 
@@ -23,7 +23,7 @@ export class SyncService {
 			throw new Error('Miniflux settings not found');
 		}
 
-		this.api = new MinifluxApi(settings.host, settings.apiKey);
+		this.api = new MinifluxClient(settings.host, settings.apiKey);
 		this.categoryIds = settings.categories.split(',').map(Number);
 		this.initialized = true;
 	}
