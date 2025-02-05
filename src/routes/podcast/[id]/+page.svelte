@@ -7,7 +7,7 @@
 
 	const podcastId = page.params.id;
 
-	const ITEMS_PER_PAGE = 50;
+	const ITEMS_PER_PAGE = 100;
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
