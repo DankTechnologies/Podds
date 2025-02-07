@@ -61,7 +61,6 @@
 			if (savedSettings) {
 				settings = savedSettings;
 				isFirstVisit = false;
-				await onTest();
 			}
 		}
 	});
@@ -94,6 +93,18 @@
 	async function onReset() {
 		await SettingsService.clearAllLocalState();
 		location.reload();
+	}
+
+	async function debugSetLastSync() {
+		const currentSettings = await SettingsService.getSettings();
+		if (!currentSettings) return;
+
+		// @ts-ignore
+		settings.lastSyncAt -= 3 * 60 * 60 * 1000;
+
+		await SettingsService.updateSettings({
+			lastSyncAt: settings.lastSyncAt
+		});
 	}
 </script>
 
@@ -176,6 +187,7 @@
 		<button type="button" onclick={onTest}>Test Connection</button>
 		<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button>
 		<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
+		<button type="button" onclick={debugSetLastSync}>Debug: Set Last Sync -3h</button>
 	</div>
 	{#if logs}
 		<div>

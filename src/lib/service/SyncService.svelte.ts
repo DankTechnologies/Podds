@@ -7,7 +7,7 @@ import type { Episode } from '$lib/types/db';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
-const CHECK_INTERVAL_MS = 5 * 60 * 1000;
+const CHECK_INTERVAL_MS = 1 * 60 * 1000;
 
 export class SyncService {
 	status = $state<string>('');
@@ -38,18 +38,17 @@ export class SyncService {
 		await SettingsService.updateSettings({ isSyncing: true });
 
 		try {
-			const syncCutoffTimestamp =
-				settings.lastSyncAt || Math.floor(Date.now() / 1000) - 4 * 60 * 60;
+			const syncCutoffTimestampMs = settings.lastSyncAt || Math.floor(Date.now()) - 4 * 60 * 60;
 
 			await this.syncFeeds({
 				limit: 1000,
 				order: 'id',
 				direction: 'asc',
-				after: syncCutoffTimestamp
+				after: Math.floor(syncCutoffTimestampMs / 1000)
 			});
 
 			await SettingsService.updateSettings({
-				lastSyncAt: Math.floor(Date.now() / 1000),
+				lastSyncAt: Math.floor(Date.now()),
 				isSyncing: false
 			});
 		} catch (error) {
@@ -70,7 +69,7 @@ export class SyncService {
 			await this.syncFeeds();
 
 			await SettingsService.updateSettings({
-				lastSyncAt: Math.floor(Date.now() / 1000),
+				lastSyncAt: Date.now(),
 				isSyncing: false
 			});
 
@@ -121,11 +120,7 @@ export class SyncService {
 				};
 			});
 
-		db.episodes.batch(() => {
-			for (const episode of episodes) {
-				db.episodes.insert(episode);
-			}
-		});
+		db.episodes.insertMany(episodes);
 	}
 
 	private async syncFeeds(filter?: {
@@ -221,17 +216,12 @@ export class SyncService {
 	}
 
 	startPeriodicSync() {
-		const checkAndSync = async () => {
+		const sync = async () => {
 			try {
 				const settings = await SettingsService.getSettings();
+				if (!settings?.lastSyncAt) return;
 
-				if (!settings?.lastSyncAt) {
-					return;
-				}
-
-				const hoursSinceLastSync =
-					(Math.floor(Date.now() / 1000) - settings.lastSyncAt) / (60 * 60);
-
+				const hoursSinceLastSync = (Date.now() - settings.lastSyncAt) / (1000 * 60 * 60);
 				if (hoursSinceLastSync >= settings.syncIntervalHours) {
 					this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
 				}
@@ -240,8 +230,6 @@ export class SyncService {
 			}
 		};
 
-		checkAndSync();
-
-		setInterval(checkAndSync, CHECK_INTERVAL_MS);
+		setInterval(sync, CHECK_INTERVAL_MS);
 	}
 }

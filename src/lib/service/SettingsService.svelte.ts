@@ -32,7 +32,16 @@ export class SettingsService {
 			await Promise.all(cacheKeys.map((key) => caches.delete(key)));
 		}
 
-		// TODO: refactor if using signaldb
+		// Clear OPFS
+		try {
+			const root = await navigator.storage.getDirectory();
+			// @ts-ignore
+			for await (const handle of root.values()) {
+				await root.removeEntry(handle.name, { recursive: true });
+			}
+		} catch (error) {
+			console.error('Failed to clear OPFS:', error);
+		}
 
 		// Reset session info
 		SessionInfo.isFirstVisit = true;

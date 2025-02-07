@@ -9,7 +9,6 @@ export function onUpdateReady(callback: () => void): void {
 		return;
 	}
 
-	Log.info('Initializing service worker update monitoring');
 	navigator.serviceWorker.ready
 		.then((registration) => {
 			Log.debug('Service worker is ready');
