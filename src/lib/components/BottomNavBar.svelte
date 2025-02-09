@@ -22,42 +22,52 @@
 		{
 			href: '/',
 			label: 'Podcasts',
-			icon: Home
+			icon: Home,
+			hasUpdate: () => false,
+			disabled: () => SessionInfo.isFirstVisit
 		},
 		{
 			href: '/new-episodes',
 			label: 'Episodes',
-			icon: ScrollText
+			icon: ScrollText,
+			hasUpdate: () => false,
+			disabled: () => SessionInfo.isFirstVisit
 		},
 		{
 			href: '/playlist',
 			label: 'Playlist',
-			icon: ListMusic
+			icon: ListMusic,
+			hasUpdate: () => false,
+			disabled: () => SessionInfo.isFirstVisit
 		},
 		{
 			href: '/settings',
 			label: 'Settings',
-			icon: Settings
+			icon: Settings,
+			hasUpdate: () => SessionInfo.hasUpdate,
+			disabled: () => false
 		}
 	];
 </script>
 
+{#snippet NavButton(href: string, label: string, icon: any, hasUpdate: boolean, disabled: boolean)}
+	{@const Icon = icon}
+	<button
+		class="nav-item"
+		class:active={isActive(href)}
+		class:has-update={hasUpdate}
+		onclick={() => goto(href)}
+		aria-label={label}
+		{disabled}
+	>
+		<Icon size={ICON_SIZE} />
+		<div class="nav-item__label">{label}</div>
+	</button>
+{/snippet}
+
 <nav>
-	{#each navItems as { href, label, icon }}
-		{@const Icon = icon}
-		<button
-			class="nav-item"
-			class:active={isActive(href)}
-			class:has-update={href === '/settings' && SessionInfo.hasUpdate}
-			onclick={() => goto(href)}
-			aria-label={label}
-			disabled={href !== '/settings' && SessionInfo.isFirstVisit}
-		>
-			<Icon size={ICON_SIZE} />
-			<div class="nav-item__label">
-				{label}
-			</div>
-		</button>
+	{#each navItems as { href, label, icon, hasUpdate, disabled }}
+		{@render NavButton(href, label, icon, hasUpdate(), disabled())}
 	{/each}
 </nav>
 

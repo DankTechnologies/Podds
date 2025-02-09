@@ -1,4 +1,4 @@
-import type { Feed, FeedWithIcon } from '$lib/types/miniflux';
+import type { Feed } from '$lib/types/miniflux';
 import { Log } from '$lib/service/LogService';
 import { SessionInfo, SettingsService } from './SettingsService.svelte';
 import MinifluxClient from '$lib/api/miniflux';
@@ -10,7 +10,7 @@ const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 1 * 60 * 1000;
 
 export class SyncService {
-	status = $state<string>('');
+	isSyncActive = $state<boolean>(false);
 	private api: MinifluxClient | null = null;
 	private categoryIds: number[] = [];
 	private initialized = false;
@@ -38,6 +38,7 @@ export class SyncService {
 		await SettingsService.updateSettings({ isSyncing: true });
 
 		try {
+			this.isSyncActive = true;
 			const syncCutoffTimestampMs = settings.lastSyncAt || Math.floor(Date.now()) - 4 * 60 * 60;
 
 			await this.syncFeeds({
@@ -54,6 +55,8 @@ export class SyncService {
 		} catch (error) {
 			await SettingsService.updateSettings({ isSyncing: false });
 			throw error;
+		} finally {
+			this.isSyncActive = false;
 		}
 	}
 
@@ -65,7 +68,7 @@ export class SyncService {
 		await SettingsService.updateSettings({ isSyncing: true });
 
 		try {
-			this.status = 'Syncing podcasts...';
+			this.isSyncActive = true;
 			await this.syncFeeds();
 
 			await SettingsService.updateSettings({
@@ -74,10 +77,11 @@ export class SyncService {
 			});
 
 			SessionInfo.isFirstVisit = false;
-			this.status = 'Sync complete';
 		} catch (error) {
 			await SettingsService.updateSettings({ isSyncing: false });
 			throw error;
+		} finally {
+			this.isSyncActive = false;
 		}
 	}
 
@@ -229,6 +233,8 @@ export class SyncService {
 				Log.error(`Error checking sync status: ${error}`);
 			}
 		};
+
+		sync();
 
 		setInterval(sync, CHECK_INTERVAL_MS);
 	}

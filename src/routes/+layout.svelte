@@ -5,7 +5,6 @@
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { onMount } from 'svelte';
-	import type { Settings } from '$lib/types/db';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { SyncService } from '$lib/service/SyncService.svelte';
 
