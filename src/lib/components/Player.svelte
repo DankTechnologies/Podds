@@ -103,18 +103,18 @@
 		display: flex;
 		flex-direction: column;
 		position: fixed;
-		bottom: 4.25rem;
+		bottom: 5.75rem;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		background-color: white;
+		background-color: var(--bg-100);
 	}
 
 	.player__playback {
 		display: flex;
 		flex: 1;
 		appearance: none;
-		background: lightgrey;
+		background: var(--accent-50);
 	}
 
 	.player__playback::-webkit-slider-thumb {
@@ -122,7 +122,7 @@
 		appearance: none;
 		width: 1rem;
 		height: 0.5rem;
-		background: darkorange;
+		background: var(--accent-500);
 	}
 
 	.player__controls {
@@ -148,7 +148,7 @@
 	.player__button {
 		border: none;
 		background: none;
-		color: slategray;
+		color: var(--primary-700);
 	}
 
 	.stack-cell {
@@ -169,12 +169,12 @@
 	.play-pause__circle {
 		width: 3rem;
 		height: 3rem;
-		background-color: darkorange;
+		background-color: var(--primary-500);
 		border-radius: 50%;
 	}
 
 	.play-pause__icon {
-		color: whitesmoke;
+		color: var(--bg-50);
 		opacity: 0.85;
 		place-self: center;
 	}

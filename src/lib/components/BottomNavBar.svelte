@@ -73,16 +73,18 @@
 
 <style>
 	nav {
-		display: flex;
-		justify-content: space-between;
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 2rem;
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		height: 3.25rem;
-		padding: 1rem;
-		background-color: var(--bg-primary);
+		height: 3.5rem;
+		padding: 1rem 0.5rem;
+		background-color: var(--bg-50);
+		border-top: 0.25rem solid var(--primary-500);
 	}
 
 	.nav-item {
@@ -91,14 +93,14 @@
 		align-items: center;
 		text-decoration: none;
 		color: var(--primary-800);
-		transition: color 0.2s ease;
+		/* transition: color 0.2s ease; */
 		border: 0;
 		padding: 0;
 		background: none;
 	}
 
 	.nav-item__label {
-		margin-top: 0.25rem;
+		margin-top: 0.3rem;
 	}
 
 	.nav-item.active {
@@ -121,7 +123,7 @@
 		right: 0;
 		width: 8px;
 		height: 8px;
-		background: var(--accent-400);
+		background: var(--accent-800);
 		border-radius: 50%;
 	}
 </style>
