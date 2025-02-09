@@ -81,9 +81,8 @@
 		right: 0;
 		z-index: 50;
 		height: 3.25rem;
-		padding: 0.5rem 1rem;
-		border-top: 3px solid darkorange;
-		background-color: white;
+		padding: 1rem;
+		background-color: var(--bg-primary);
 	}
 
 	.nav-item {
@@ -91,7 +90,7 @@
 		flex-direction: column;
 		align-items: center;
 		text-decoration: none;
-		color: slategray;
+		color: var(--primary-800);
 		transition: color 0.2s ease;
 		border: 0;
 		padding: 0;
@@ -99,12 +98,11 @@
 	}
 
 	.nav-item__label {
-		font-size: 0.75rem;
 		margin-top: 0.25rem;
 	}
 
 	.nav-item.active {
-		color: darkorange;
+		color: var(--primary-500);
 	}
 
 	.nav-item:disabled {
@@ -123,7 +121,7 @@
 		right: 0;
 		width: 8px;
 		height: 8px;
-		background: darkorange;
+		background: var(--accent-400);
 		border-radius: 50%;
 	}
 </style>

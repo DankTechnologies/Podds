@@ -11,6 +11,40 @@
 	--text-medium: clamp(1rem, 2vw, 1.1rem);
 	--text-large: clamp(1.125rem, 2.5vw, 1.25rem);
 	--text-xl: clamp(1.25rem, 3vw, 1.5rem);
+
+	/* Primary colors using oklch - blue-ish */
+	--primary-50: oklch(98% 0.02 240);
+	--primary-100: oklch(95% 0.04 240);
+	--primary-200: oklch(90% 0.08 240);
+	--primary-300: oklch(80% 0.12 240);
+	--primary-400: oklch(70% 0.14 240);
+	--primary-500: oklch(60% 0.18 240);
+	--primary-600: oklch(50% 0.18 240);
+	--primary-700: oklch(40% 0.16 240);
+	--primary-800: oklch(30% 0.16 240);
+	--primary-900: oklch(20% 0.16 240);
+
+	/* Accent colors using oklch - purple-ish */
+	--accent-50: oklch(98% 0.02 300);
+	--accent-100: oklch(95% 0.04 300);
+	--accent-200: oklch(90% 0.08 300);
+	--accent-300: oklch(80% 0.12 300);
+	--accent-400: oklch(70% 0.14 300);
+	--accent-500: oklch(60% 0.18 300);
+	--accent-600: oklch(50% 0.18 300);
+	--accent-700: oklch(40% 0.16 300);
+	--accent-800: oklch(30% 0.16 300);
+	--accent-900: oklch(20% 0.16 300);
+
+	/* Background colors with subtle tints */
+	--bg-primary: oklch(98% 0.01 240);
+	--bg-secondary: oklch(96% 0.02 240);
+	--bg-tertiary: oklch(94% 0.03 240);
+
+	/* Dark mode backgrounds */
+	--dark-bg-primary: oklch(20% 0.02 240);
+	--dark-bg-secondary: oklch(25% 0.03 240);
+	--dark-bg-tertiary: oklch(30% 0.04 240);
 }
 
 body {
