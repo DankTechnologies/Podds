@@ -60,20 +60,6 @@
 			border: 1px solid var(--bg-less);
 			color: inherit;
 		}
-
-		input:focus {
-			outline: none;
-			border-color: var(--primary-less);
-			box-shadow: 0 0 0 1px var(--primary-less);
-		}
-
-		input:-webkit-autofill,
-		input:-webkit-autofill:hover,
-		input:-webkit-autofill:focus {
-			-webkit-text-fill-color: inherit;
-			-webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
-			transition: background-color 5000s ease-in-out 0s;
-		}
 	}
 }
 
@@ -82,6 +68,12 @@ body {
 	color: var(--text);
 	font-family: var(--font-sans);
 	line-height: var(--line-height-normal);
+}
+
+input:focus {
+	outline: none;
+	border-color: var(--primary-less);
+	box-shadow: 0 0 0 1px var(--primary-less);
 }
 
 a {

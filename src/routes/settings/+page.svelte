@@ -110,8 +110,7 @@
 
 <header>
 	<h2>Miniflux Configuration</h2>
-	<!-- {#if SessionInfo.hasUpdate} -->
-	{#if true}
+	{#if SessionInfo.hasUpdate}
 		<button class="update-button" onclick={applyUpdate}>Update</button>
 	{/if}
 </header>
@@ -211,18 +210,24 @@
 		display: grid;
 		gap: 0.5rem;
 		padding: 0 1rem;
-	}
 
-	form > div {
-		display: flex;
-		flex-direction: column;
-		padding: 1.5rem;
-	}
+		& > div {
+			display: flex;
+			flex-direction: column;
+			padding: 1.5rem;
+		}
 
-	label {
-		font-weight: 600;
-		font-size: var(--text-large);
-		padding-bottom: 1rem;
+		label {
+			font-weight: 600;
+			font-size: var(--text-large);
+			padding-bottom: 1rem;
+		}
+
+		input {
+			background-color: var(--bg-less);
+			border: 1px solid var(--bg-less);
+			color: var(--text);
+		}
 	}
 
 	input,
@@ -244,20 +249,18 @@
 
 	.actions {
 		display: flex;
-		gap: 0.5rem;
+		gap: 1rem;
 	}
 
 	.actions button {
 		flex: 1;
-		/* background: var(--bg-less); */
 	}
 
 	.update-button {
 		border: none;
 		font-weight: 600;
-		/* background: var(--accent); */
-		background-color: var(--accent);
-		color: var(--text-more);
+		background: var(--primary-less);
+		color: var(--neutral);
 		padding: 0.5rem 1rem;
 		border-radius: 0.25rem;
 		margin-top: 0.5rem;

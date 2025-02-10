@@ -188,6 +188,7 @@
 
 	.episode-card__action-btn {
 		background: var(--primary-less);
+		color: var(--neutral);
 		border: none;
 		/* font-weight: 500; */
 		padding: 1rem;
