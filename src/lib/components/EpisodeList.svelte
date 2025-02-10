@@ -4,6 +4,7 @@
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
 	import { Log } from '$lib/service/LogService';
+	import { Check, Play, Plus } from 'lucide-svelte';
 
 	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
 	let expandedEpisodeIds = $state<string[]>([]);
@@ -70,7 +71,7 @@
 							day: 'numeric'
 						})}
 						{#if episode.isDownloaded}
-							<span class="episode-card__download-check">✅</span>
+							<Check size="14" />
 						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
@@ -85,14 +86,14 @@
 							aria-label="Play episode"
 							onclick={() => playEpisode(episode)}
 						>
-							<span aria-hidden="true">▶️</span> Play
+							<Play size="1rem" /> Play
 						</button>
 						<button
 							class="episode-card__action-btn"
 							aria-label="Save episode"
 							onclick={() => downloadEpisode(episode)}
 						>
-							<span aria-hidden="true">➕</span> Up Next
+							<Plus size="1rem" /> Up Next
 						</button>
 					</div>
 					<div class="episode-card__content">
@@ -117,7 +118,8 @@
 		border: none;
 		padding: 1.5rem;
 		text-align: left;
-		border-bottom: 1px solid lightgrey;
+		color: var(--text);
+		border-bottom: 1px solid var(--primary-less);
 	}
 
 	/* less padding needed when using image */
@@ -146,13 +148,12 @@
 
 	.episode-card__time {
 		font-size: 0.75rem;
-		color: darkslategray;
-	}
-
-	.episode-card__download-check {
-		opacity: 0.5;
-		filter: grayscale(100%);
-		padding-left: 0.125rem;
+		font-family: monospace;
+		color: var(--primary);
+		min-height: 1.5rem; /* Ensure height consistency */
+		display: flex;
+		align-items: center;
+		gap: 4px; /* Add spacing between text and icon */
 	}
 
 	.episode-card__details {
@@ -176,19 +177,20 @@
 
 	.episode-card__content {
 		padding: 1.5rem;
-		border-bottom: 1px solid lightgray;
+		border-bottom: 1px solid var(--primary-less);
 	}
 
 	.episode-card__actions {
 		float: right;
 		display: flex;
-		margin: 1rem;
+		/* margin: 1rem; */
 	}
 
 	.episode-card__action-btn {
-		background: none;
+		background: var(--primary-less);
 		border: none;
-		font-weight: 500;
+		/* font-weight: 500; */
 		padding: 1rem;
+		/* color: var(--text); */
 	}
 </style>

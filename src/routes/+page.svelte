@@ -56,7 +56,6 @@
 		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
 		gap: 0.25rem;
 		padding: 0.25rem;
-		background: white;
 	}
 
 	.grid-item {
@@ -68,6 +67,8 @@
 		padding: 0;
 		background: none;
 		line-height: 0;
+		height: 100%;
+		width: 100%;
 	}
 
 	.grid-item img {

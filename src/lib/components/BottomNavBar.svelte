@@ -83,8 +83,8 @@
 		z-index: 50;
 		height: 3.5rem;
 		padding: 1rem 0.5rem;
-		background-color: var(--bg-50);
-		border-top: 0.25rem solid var(--primary-500);
+		background-color: var(--bg-less);
+		border-top: 0.15rem solid var(--primary);
 	}
 
 	.nav-item {
@@ -92,7 +92,7 @@
 		flex-direction: column;
 		align-items: center;
 		text-decoration: none;
-		color: var(--primary-800);
+		color: var(--primary-less);
 		/* transition: color 0.2s ease; */
 		border: 0;
 		padding: 0;
@@ -104,7 +104,7 @@
 	}
 
 	.nav-item.active {
-		color: var(--primary-500);
+		color: var(--primary-more);
 	}
 
 	.nav-item:disabled {

@@ -69,7 +69,7 @@
 				</div>
 			</button>
 
-			<button class="player__button" onclick={handlePlayPause}>
+			<button class="player__button play-pause" onclick={handlePlayPause}>
 				<div class="stack-cell">
 					<div class="play-pause__circle"></div>
 					<div class="play-pause__icon">
@@ -103,39 +103,57 @@
 		display: flex;
 		flex-direction: column;
 		position: fixed;
-		bottom: 5.75rem;
+		bottom: 5.5rem;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		background-color: var(--bg-100);
+		opacity: 0.99;
+		backdrop-filter: blur(1rem) saturate(50%);
+		background: rgba(var(--neutral-rgb), 0.7);
+		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
 	}
 
 	.player__playback {
 		display: flex;
 		flex: 1;
 		appearance: none;
-		background: var(--accent-50);
+		background: var(--primary);
+		margin-top: 0.5rem;
 	}
 
 	.player__playback::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
-		width: 1rem;
-		height: 0.5rem;
-		background: var(--accent-500);
+		width: 1.25rem;
+		height: 1.5rem;
+		background-color: var(--primary-more);
+		border-top: 2px solid var(--primary-less);
+		border-left: 2px solid var(--primary-less);
+		border-right: 2px solid var(--primary-less);
+		margin-top: -0.5rem;
+		border-top-left-radius: 0.25rem;
+		border-top-right-radius: 0.25rem;
+	}
+
+	.player__playback::-moz-range-thumb {
+		width: 1.25rem;
+		height: 1.25rem;
+		background-color: var(--primary-more);
+		border: none;
 	}
 
 	.player__controls {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 1rem;
+		padding: 1rem 0;
 		height: 3.25rem;
 	}
 
 	.player__artwork {
-		width: 3.5rem;
-		height: 3.5rem;
+		width: 5.25rem;
+		height: 5.25rem;
 	}
 
 	.player__artwork img {
@@ -148,7 +166,7 @@
 	.player__button {
 		border: none;
 		background: none;
-		color: var(--primary-700);
+		color: var(--primary-more);
 	}
 
 	.stack-cell {
@@ -166,15 +184,18 @@
 		place-self: center;
 	}
 
+	.play-pause {
+		color: white;
+	}
 	.play-pause__circle {
 		width: 3rem;
 		height: 3rem;
-		background-color: var(--primary-500);
+		background-color: var(--primary);
 		border-radius: 50%;
 	}
 
 	.play-pause__icon {
-		color: var(--bg-50);
+		color: var(--neutral);
 		opacity: 0.85;
 		place-self: center;
 	}

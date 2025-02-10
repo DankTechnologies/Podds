@@ -58,10 +58,7 @@
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<img class="podcast-header__image" src={`data:${icon?.data}`} alt={episodes[0].podcast.title} />
-		<div class="podcast-header__content">
-			<div class="podcast-header__title">{episodes[0].podcast.title}</div>
-			<div class="podcast-header__episodes">{episodes.length} episodes</div>
-		</div>
+		<div class="podcast-header__title">{episodes[0].podcast.title}</div>
 	</header>
 
 	<!-- Episodes List -->
@@ -76,7 +73,7 @@
 <style>
 	.podcast-header {
 		display: flex;
-		gap: 1rem;
+		gap: 2.5rem;
 		padding: 1rem;
 	}
 
@@ -90,18 +87,8 @@
 		object-fit: cover;
 	}
 
-	.podcast-header__content {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
 	.podcast-header__title {
 		font-size: 1.75rem;
 		font-weight: 600;
-	}
-
-	.podcast-header__episodes {
-		font-size: var(--text-small);
 	}
 </style>

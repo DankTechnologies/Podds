@@ -110,10 +110,9 @@
 
 <header>
 	<h2>Miniflux Configuration</h2>
-	{#if SessionInfo.hasUpdate}
-		<button class="update-button" onclick={applyUpdate}>
-			Update Available - Click to Reload
-		</button>
+	<!-- {#if SessionInfo.hasUpdate} -->
+	{#if true}
+		<button class="update-button" onclick={applyUpdate}>Update</button>
 	{/if}
 </header>
 <form class="grid">
@@ -210,17 +209,19 @@
 
 	form {
 		display: grid;
+		gap: 0.5rem;
+		padding: 0 1rem;
 	}
 
 	form > div {
 		display: flex;
 		flex-direction: column;
-		padding: 1.25rem;
+		padding: 1.5rem;
 	}
 
 	label {
-		font-weight: bold;
-		font-size: larger;
+		font-weight: 600;
+		font-size: var(--text-large);
 		padding-bottom: 1rem;
 	}
 
@@ -229,17 +230,12 @@
 		padding: 0.5em;
 	}
 
-	.status {
-		padding: 0.5rem;
-		background: whitesmoke;
-	}
-
 	.status.success {
-		color: darkgreen;
+		color: var(--success);
 	}
 
 	.status.error {
-		color: darkred;
+		color: var(--error);
 	}
 
 	button:disabled {
@@ -253,12 +249,15 @@
 
 	.actions button {
 		flex: 1;
+		/* background: var(--bg-less); */
 	}
 
 	.update-button {
-		background: darkorange;
-		color: white;
 		border: none;
+		font-weight: 600;
+		/* background: var(--accent); */
+		background-color: var(--accent);
+		color: var(--text-more);
 		padding: 0.5rem 1rem;
 		border-radius: 0.25rem;
 		margin-top: 0.5rem;
