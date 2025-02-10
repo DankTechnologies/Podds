@@ -5,6 +5,7 @@
 	import { playService } from '$lib/service/PlayService.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus } from 'lucide-svelte';
+	import { formatDate, formatDuration } from '$lib/utils/time';
 
 	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
 	let expandedEpisodeIds = $state<string[]>([]);
@@ -65,13 +66,16 @@
 				{/if}
 				<div class="episode-card__heading">
 					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>
-						{new Date(episode.publishedAt).toLocaleDateString(undefined, {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						})}
+						<div>
+							{formatDate(episode.publishedAt)}
+						</div>
+						<div>
+							{formatDuration(episode.durationMin)}
+						</div>
 						{#if episode.isDownloaded}
-							<Check size="14" />
+							<div>
+								<Check size="14" />
+							</div>
 						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
@@ -150,10 +154,10 @@
 		font-size: 0.75rem;
 		font-family: monospace;
 		color: var(--primary);
-		min-height: 1.5rem; /* Ensure height consistency */
+		min-height: 1.5rem;
 		display: flex;
 		align-items: center;
-		gap: 4px; /* Add spacing between text and icon */
+		gap: 0.5rem;
 	}
 
 	.episode-card__details {

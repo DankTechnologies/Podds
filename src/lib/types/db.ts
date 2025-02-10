@@ -13,8 +13,8 @@ export interface Episode {
 	id: string;
 	podcast: Podcast;
 	title: string;
-	publishedAt: Date;
-	lastPlayedAt?: Date;
+	publishedAt: number;
+	lastPlayedAt?: number;
 	content: string;
 	url: string;
 	mime_type: string;

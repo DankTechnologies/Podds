@@ -4,6 +4,7 @@
 	import { Log } from '$lib/service/LogService';
 	import type { Icon } from '$lib/types/db';
 	import { db } from '$lib/stores/db.svelte';
+	import { formatPlaybackPosition } from '$lib/utils/time';
 
 	const ICON_SIZE = '2rem';
 	let icons = $state.raw<Icon[]>([]);
@@ -36,6 +37,14 @@
 
 {#if playService.episode}
 	<div class="player">
+		<div class="player__time">
+			<div>
+				{formatPlaybackPosition(playService.currentTime)}
+			</div>
+			<div>
+				-{formatPlaybackPosition(playService.totalDuration - playService.currentTime)}
+			</div>
+		</div>
 		<input
 			class="player__playback"
 			type="range"
@@ -49,7 +58,6 @@
 				playService.setCurrentTime(newTime);
 			}}
 		/>
-
 		<div class="player__controls">
 			<div class="player__artwork">
 				{#if icons}
@@ -112,6 +120,13 @@
 		background: rgba(var(--neutral-rgb), 0.7);
 		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.player__time {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--text-small);
+		padding: 0.25rem 0.5rem 0;
 	}
 
 	.player__playback {
