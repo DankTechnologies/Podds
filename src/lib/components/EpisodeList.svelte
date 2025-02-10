@@ -4,7 +4,7 @@
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { playService } from '$lib/service/PlayService.svelte';
 	import { Log } from '$lib/service/LogService';
-	import { Check, Play, Plus } from 'lucide-svelte';
+	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatDate, formatDuration } from '$lib/utils/time';
 
 	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
@@ -68,6 +68,9 @@
 					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>
 						<div>
 							{formatDate(episode.publishedAt)}
+						</div>
+						<div>
+							<Dot size="14" />
 						</div>
 						<div>
 							{formatDuration(episode.durationMin)}
@@ -157,7 +160,7 @@
 		min-height: 1.5rem;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.25rem;
 	}
 
 	.episode-card__details {

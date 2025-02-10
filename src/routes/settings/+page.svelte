@@ -10,9 +10,9 @@
 	import type { LogEntry } from '$lib/types/db';
 
 	let settings: Settings = $state<Settings>({
-		host: 'https://feed.pitpat.me',
-		apiKey: '78tRkPYOUcdIl9-0JfwNQ4rKFhLR77hIjHzVTBdCFXI=',
-		categories: '5',
+		host: import.meta.env.VITE_MINIFLUX_HOST || '',
+		apiKey: import.meta.env.VITE_MINIFLUX_API_KEY || '',
+		categories: import.meta.env.VITE_MINIFLUX_CATEGORIES || '',
 		syncIntervalHours: 1,
 		logLevel: 'info'
 	});
