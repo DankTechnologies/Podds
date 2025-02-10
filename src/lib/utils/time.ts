@@ -1,8 +1,3 @@
-/**
- * Formats seconds into human readable duration (HH:MM:SS or MM:SS)
- * @param seconds - Number of seconds to format
- * @returns Formatted duration string
- */
 export function formatPlaybackPosition(seconds: number): string {
 	if (!isFinite(seconds) || seconds < 0) return '0:00';
 
@@ -16,12 +11,7 @@ export function formatPlaybackPosition(seconds: number): string {
 		: `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-/**
- * Formats a date into a human readable string
- * @param input - Date object or timestamp to format
- * @returns Formatted date string showing relative or absolute date
- */
-export function formatDate(input: Date | number | string): string {
+export function formatEpisodeDate(input: Date | number | string): string {
 	const date = input instanceof Date ? input : new Date(input);
 	const now = new Date();
 
@@ -43,12 +33,7 @@ export function formatDate(input: Date | number | string): string {
 	return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-/**
- * Formats minutes into human readable duration (1h 55m or 55m)
- * @param durationMin - Number of minutes to format
- * @returns Formatted duration string
- */
-export function formatDuration(durationMin: number): string {
+export function formatEpisodeDuration(durationMin: number): string {
 	const hours = Math.floor(durationMin / 60);
 	const minutes = Math.floor(durationMin % 60);
 

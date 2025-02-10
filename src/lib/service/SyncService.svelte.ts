@@ -104,12 +104,11 @@ export class SyncService {
 					(e) => e.mime_type === 'audio/mpeg' || e.mime_type === 'audio/x-m4a'
 				)!;
 
-				return {
+				const episode: Episode = {
 					id: `miniflux_${entry.id}`,
 					podcast: {
 						id: `miniflux_${feed.id}`,
-						title: feed.title,
-						iconId: `miniflux_${feed.id}`
+						title: feed.title
 					},
 					title: entry.title,
 					content: entry.content,
@@ -122,6 +121,7 @@ export class SyncService {
 					isPlaying: 0,
 					playbackPosition: 0
 				};
+				return episode;
 			});
 
 		db.episodes.insertMany(episodes);

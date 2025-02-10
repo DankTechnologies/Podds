@@ -8,7 +8,7 @@
 	onMount(async () => {
 		syncService = new SyncService();
 		await syncService.syncPodcasts();
-		setTimeout(() => goto('/'), 1000);
+		goto('/');
 	});
 </script>
 
@@ -17,9 +17,6 @@
 		<div>
 			<h1>Syncing Podcasts</h1>
 		</div>
-		<div>
-			<p>{syncService.status}</p>
-		</div>
 	</div>
 {/if}
 
@@ -27,9 +24,5 @@
 	.grid {
 		display: grid;
 		padding: 2rem;
-	}
-
-	p {
-		font-size: larger;
 	}
 </style>

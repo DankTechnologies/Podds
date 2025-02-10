@@ -5,7 +5,7 @@
 	import { playService } from '$lib/service/PlayService.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
-	import { formatDate, formatDuration } from '$lib/utils/time';
+	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 
 	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
 	let expandedEpisodeIds = $state<string[]>([]);
@@ -65,15 +65,15 @@
 					/>
 				{/if}
 				<div class="episode-card__heading">
-					<time class="episode-card__time" datetime={new Date(episode.publishedAt).toISOString()}>
+					<time class="episode-card__time">
 						<div>
-							{formatDate(episode.publishedAt)}
+							{formatEpisodeDate(episode.publishedAt)}
 						</div>
 						<div>
 							<Dot size="14" />
 						</div>
 						<div>
-							{formatDuration(episode.durationMin)}
+							{formatEpisodeDuration(episode.durationMin)}
 						</div>
 						{#if episode.isDownloaded}
 							<div>
