@@ -32,10 +32,6 @@
 		};
 	});
 
-	async function loadMoreEpisodes() {
-		limit += ITEMS_PER_PAGE;
-	}
-
 	onMount(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -52,13 +48,30 @@
 
 		return () => observer.disconnect();
 	});
+
+	function loadMoreEpisodes() {
+		limit += ITEMS_PER_PAGE;
+	}
+
+	function getTitle(title: string): string {
+		const match = title.match(/^(.*?)(?:[-:])(.*)/);
+		return match ? match[1].trim() : title.trim();
+	}
+
+	function getSubtitle(title: string): string {
+		const match = title.match(/^(.*?)(?:[-:])(.*)/);
+		return match ? match[2].trim() : '';
+	}
 </script>
 
 {#if episodes.length > 0}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<img class="podcast-header__image" src={`data:${icon?.data}`} alt={episodes[0].podcast.title} />
-		<div class="podcast-header__title">{episodes[0].podcast.title}</div>
+		<div class="podcast-header__content">
+			<h1 class="podcast-header__title">{getTitle(episodes[0].podcast.title)}</h1>
+			<span class="podcast-header__subtitle">{getSubtitle(episodes[0].podcast.title)}</span>
+		</div>
 	</header>
 
 	<!-- Episodes List -->
@@ -73,7 +86,7 @@
 <style>
 	.podcast-header {
 		display: flex;
-		gap: 2.5rem;
+		gap: 1.5rem;
 		padding: 1rem;
 	}
 
@@ -87,8 +100,16 @@
 		object-fit: cover;
 	}
 
+	.podcast-header__content {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding-top: 1rem;
+	}
+
 	.podcast-header__title {
 		font-size: 1.75rem;
 		font-weight: 600;
+		margin: 0;
 	}
 </style>
