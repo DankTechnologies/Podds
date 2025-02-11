@@ -1,4 +1,3 @@
-import { Log } from '$lib/service/LogService';
 import type { Category, EntrySearchResult, Feed, FeedIconResult } from '../types/miniflux';
 
 interface EntryOptions {
@@ -44,8 +43,6 @@ class MinifluxClient {
 		options: EntryOptions = {}
 	): Promise<EntrySearchResult> {
 		const queryParams = new URLSearchParams(options as Record<string, string>);
-
-		Log.debug(`Fetching entries for feed ${feedId} with options ${queryParams.toString()}`);
 		return this.fetchJSON<EntrySearchResult>(
 			`/v1/feeds/${feedId}/entries?${queryParams.toString()}`
 		);

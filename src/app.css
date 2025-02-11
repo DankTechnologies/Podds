@@ -172,7 +172,7 @@ svg {
 
 	html {
 		padding-bottom: 13rem;
-		scrollbar-width: thin;
+		scrollbar-width: none;
 		-webkit-overflow-scrolling: touch;
 		overscroll-behavior: none;
 	}

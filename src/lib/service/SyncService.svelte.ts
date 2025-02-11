@@ -237,7 +237,7 @@ export class SyncService {
 			const hoursSinceLastSync = (Date.now() - settings.lastSyncAt) / (1000 * 60 * 60);
 			if (hoursSinceLastSync >= settings.syncIntervalHours) {
 				Log.info('Sync starting...');
-				this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
+				await this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
 				Log.info('Sync complete');
 			}
 		};

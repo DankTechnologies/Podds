@@ -109,113 +109,114 @@
 	}
 </script>
 
-<header>
-	<h2>Miniflux Configuration</h2>
-	{#if SessionInfo.hasUpdate}
-		<button class="update-button" onclick={applyUpdate}>Update</button>
-	{/if}
-</header>
-<form class="grid">
-	<div>
-		<label for="host">Host</label>
-		<input
-			id="host"
-			type="url"
-			bind:value={settings.host}
-			onchange={() => (apiStatus = 'untested')}
-			required
-		/>
-	</div>
-	<div>
-		<label for="apiKey">API Key</label>
-		<input
-			id="apiKey"
-			type="text"
-			bind:value={settings.apiKey}
-			onchange={() => (apiStatus = 'untested')}
-			required
-		/>
-	</div>
-	<div>
-		<label for="categories">Categories</label>
-		<input
-			id="categories"
-			placeholder="Comma-separated IDs"
-			bind:value={settings.categories}
-			required
-		/>
-	</div>
-	<div>
-		<label for="connectionStatus">Connection Status</label>
-		<div
-			id="connectionStatus"
-			role="status"
-			class="status"
-			class:success={apiStatus === 'success'}
-			class:error={apiStatus === 'error'}
-		>
-			{#if apiStatus === 'untested'}
-				Not tested
-			{:else if apiStatus === 'success'}
-				Connection successful
-			{:else}
-				Connection failed
-			{/if}
-		</div>
-	</div>
-	<div>
-		<label for="syncInterval">Sync Interval (hours)</label>
-		<input
-			id="syncInterval"
-			type="number"
-			min="1"
-			bind:value={settings.syncIntervalHours}
-			required
-		/>
-	</div>
-	{#if settings.lastSyncAt}
+<div class="settings">
+	<header>
+		<h2>Miniflux Configuration</h2>
+		{#if SessionInfo.hasUpdate}
+			<button class="update-button" onclick={applyUpdate}>Update</button>
+		{/if}
+	</header>
+	<form>
 		<div>
-			<label for="lastSync">Last Sync</label>
-			<div id="lastSync" role="status" class="status">
-				{new Date(settings.lastSyncAt).toLocaleString()}
+			<label for="host">Host</label>
+			<input
+				id="host"
+				type="url"
+				bind:value={settings.host}
+				onchange={() => (apiStatus = 'untested')}
+				required
+			/>
+		</div>
+		<div>
+			<label for="apiKey">API Key</label>
+			<input
+				id="apiKey"
+				type="text"
+				bind:value={settings.apiKey}
+				onchange={() => (apiStatus = 'untested')}
+				required
+			/>
+		</div>
+		<div>
+			<label for="categories">Categories</label>
+			<input
+				id="categories"
+				placeholder="Comma-separated IDs"
+				bind:value={settings.categories}
+				required
+			/>
+		</div>
+		<div>
+			<label for="connectionStatus">Connection Status</label>
+			<div
+				id="connectionStatus"
+				role="status"
+				class="status"
+				class:success={apiStatus === 'success'}
+				class:error={apiStatus === 'error'}
+			>
+				{#if apiStatus === 'untested'}
+					Not tested
+				{:else if apiStatus === 'success'}
+					Connection successful
+				{:else}
+					Connection failed
+				{/if}
 			</div>
 		</div>
-	{/if}
-	<div class="actions">
-		<button type="button" onclick={onReset}>Reset Data</button>
-		<button type="button" onclick={onTest}>Test Connection</button>
-		<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button>
-		<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
-		<button type="button" onclick={debugSetLastSync}>Debug: Set Last Sync -3h</button>
-	</div>
-	{#if logs}
 		<div>
-			<label for="logs">Logs</label>
-			<div id="logs" role="status" class="status" style="font-family: monospace;">
-				{#each logs as log}
-					[{log.level}][{formatTimestamp(log.timestamp)}] {log.message}
-					<br />
-					<br />
-				{/each}
-			</div>
+			<label for="syncInterval">Sync Interval (hours)</label>
+			<input
+				id="syncInterval"
+				type="number"
+				min="1"
+				bind:value={settings.syncIntervalHours}
+				required
+			/>
 		</div>
-	{/if}
-</form>
+		{#if settings.lastSyncAt}
+			<div>
+				<label for="lastSync">Last Sync</label>
+				<div id="lastSync" role="status" class="status">
+					{new Date(settings.lastSyncAt).toLocaleString()}
+				</div>
+			</div>
+		{/if}
+		<div class="actions">
+			<button type="button" onclick={onReset}>Reset Data</button>
+			<button type="button" onclick={onTest}>Test Connection</button>
+			<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button
+			>
+			<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
+			<button type="button" onclick={debugSetLastSync}>Debug: Set Last Sync -3h</button>
+		</div>
+		{#if logs}
+			<div>
+				<label for="logs">Logs</label>
+				<div id="logs" class="logs">
+					{#each logs as log}
+						[{log.level}][{formatTimestamp(log.timestamp)}] {log.message}
+						<br />
+						<br />
+					{/each}
+				</div>
+			</div>
+		{/if}
+	</form>
+</div>
 
 <style>
-	header {
-		padding: 0 1.25rem;
+	.settings {
+		padding: 0 2rem;
 	}
 
 	form {
-		display: grid;
-		gap: 0.5rem;
-		padding: 0 1rem;
+		box-sizing: border-box;
 
 		& > div {
+			padding-bottom: 2rem;
 			display: flex;
 			flex-direction: column;
-			padding: 1.5rem;
 		}
 
 		label {
@@ -266,5 +267,14 @@
 		border-radius: 0.25rem;
 		margin-top: 0.5rem;
 		cursor: pointer;
+	}
+
+	.logs {
+		height: 80vh;
+		overflow-y: scroll;
+		background-color: var(--bg-less);
+		font-family: monospace;
+		font-size: var(--text-xs);
+		word-break: break-all;
 	}
 </style>
