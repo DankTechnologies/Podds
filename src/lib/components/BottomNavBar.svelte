@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
-	import { Home, ListMusic, ScrollText, Settings } from 'lucide-svelte';
+	import { Home, ListMusic, ScrollText, Search, Settings } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
 
 	const ICON_SIZE = '2rem';
@@ -40,6 +40,14 @@
 			hasUpdate: () => false,
 			disabled: () => SessionInfo.isFirstVisit
 		},
+		// {
+		// 	href: '/find',
+		// 	label: 'Find',
+		// 	icon: Search,
+		// 	hasUpdate: () => false,
+		// 	disabled: () => false,
+		// 	hidden: () => false
+		// }
 		{
 			href: '/settings',
 			label: 'Settings',
@@ -60,7 +68,10 @@
 		aria-label={label}
 		{disabled}
 	>
-		<Icon size={ICON_SIZE} />
+		<Icon
+			style={isActive(href) ? 'filter: drop-shadow(0 0 0.5rem var(--accent));' : ''}
+			size={ICON_SIZE}
+		/>
 		<div class="nav-item__label">{label}</div>
 	</button>
 {/snippet}
@@ -75,14 +86,12 @@
 	nav {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
-		gap: 2rem;
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		height: 3.5rem;
-		padding: 1rem 0.5rem;
+		height: 4rem;
 		background-color: var(--bg-less);
 		border-top: 0.15rem solid var(--primary);
 	}
@@ -95,12 +104,13 @@
 		color: var(--primary-less);
 		/* transition: color 0.2s ease; */
 		border: 0;
-		padding: 0;
+		padding: 0.5rem;
 		background: none;
 	}
 
 	.nav-item__label {
 		margin-top: 0.3rem;
+		font-size: var(--text-small);
 	}
 
 	.nav-item.active {
@@ -123,7 +133,7 @@
 		right: 0;
 		width: 8px;
 		height: 8px;
-		background: var(--accent-800);
+		background: var(--accent);
 		border-radius: 50%;
 	}
 </style>
