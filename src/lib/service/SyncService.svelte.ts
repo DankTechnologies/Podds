@@ -4,6 +4,7 @@ import { SessionInfo, SettingsService } from './SettingsService.svelte';
 import MinifluxClient from '$lib/api/miniflux';
 import { db } from '$lib/stores/db.svelte';
 import type { Episode } from '$lib/types/db';
+import { resizeBase64Image } from '$lib/utils/resizeImage';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -124,17 +125,21 @@ export class SyncService {
 				return episode;
 			});
 
-		episodes.forEach((x) => {
-			const match = db.episodes.findOne({ id: x.id });
+		if (filter.after) {
+			episodes.forEach((x) => {
+				const match = db.episodes.findOne({ id: x.id });
 
-			if (match) {
-				Log.debug(`Updating ${x.podcast.title} - ${x.title}`);
-				db.episodes.updateOne({ id: x.id }, { $set: { x } });
-			} else {
-				Log.debug(`Adding ${x.podcast.title} - ${x.title}`);
-				db.episodes.insert(x);
-			}
-		});
+				if (match) {
+					Log.debug(`Updating ${x.podcast.title} - ${x.title}`);
+					db.episodes.updateOne({ id: x.id }, { $set: { x } });
+				} else {
+					Log.debug(`Adding ${x.podcast.title} - ${x.title}`);
+					db.episodes.insert(x);
+				}
+			});
+		} else {
+			db.episodes.insertMany(episodes);
+		}
 	}
 
 	private async syncFeeds(filter?: {
@@ -155,11 +160,7 @@ export class SyncService {
 				if (!existingIcon) {
 					const iconData = await this.api!.fetchFeedIcon(feed.id);
 
-					const resizedIcon = await this.resizeBase64Image(
-						iconData,
-						ICON_MAX_WIDTH,
-						ICON_MAX_HEIGHT
-					);
+					const resizedIcon = await resizeBase64Image(iconData, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
 
 					await db.icons.insert({
 						id: iconId,
@@ -186,47 +187,6 @@ export class SyncService {
 			this.categoryIds.map((categoryId) => this.api!.fetchFeedsForCategory(categoryId))
 		);
 		return feeds.flat();
-	}
-
-	private async resizeBase64Image(
-		dataUrl: string,
-		maxWidth: number,
-		maxHeight: number
-	): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const img = new Image();
-
-			img.onload = function () {
-				let { width, height } = img;
-				if (width > maxWidth || height > maxHeight) {
-					const aspectRatio = width / height;
-					if (width > height) {
-						width = maxWidth;
-						height = Math.round(width / aspectRatio);
-					} else {
-						height = maxHeight;
-						width = Math.round(height * aspectRatio);
-					}
-				}
-
-				const canvas = document.createElement('canvas');
-				canvas.width = width;
-				canvas.height = height;
-				const ctx = canvas.getContext('2d')!;
-
-				// Fill with white background
-				ctx.fillStyle = '#FFFFFF';
-				ctx.fillRect(0, 0, width, height);
-
-				// Draw image on top
-				ctx.drawImage(img, 0, 0, width, height);
-
-				resolve(canvas.toDataURL('image/png'));
-			};
-
-			img.onerror = () => reject(new Error('Failed to load image'));
-			img.src = `data:${dataUrl}`;
-		});
 	}
 
 	startPeriodicSync() {
