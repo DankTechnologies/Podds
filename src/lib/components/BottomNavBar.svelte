@@ -71,6 +71,7 @@
 		<Icon
 			style={isActive(href) ? 'filter: drop-shadow(0 0 0.5rem var(--accent));' : ''}
 			size={ICON_SIZE}
+			strokeWidth={isActive(href) ? 2.25 : 1.5}
 		/>
 		<div class="nav-item__label">{label}</div>
 	</button>
