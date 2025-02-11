@@ -8,6 +8,7 @@
 	import MinifluxClient from '$lib/api/miniflux';
 	import { db } from '$lib/stores/db.svelte';
 	import type { LogEntry } from '$lib/types/db';
+	import { formatTimestamp } from '$lib/utils/time';
 
 	let settings: Settings = $state<Settings>({
 		host: import.meta.env.VITE_MINIFLUX_HOST || '',
@@ -32,7 +33,7 @@
 
 	// Set up reactive queries with proper cleanup
 	$effect(() => {
-		const logsCursor = db.logs.find({}, { sort: { timestamp: -1 }, limit: 20 });
+		const logsCursor = db.logs.find({}, { sort: { timestamp: -1 }, limit: 100 });
 
 		logs = logsCursor.fetch();
 
@@ -192,7 +193,7 @@
 			<label for="logs">Logs</label>
 			<div id="logs" role="status" class="status" style="font-family: monospace;">
 				{#each logs as log}
-					[{log.level}][{new Date(log.id).toISOString().slice(0, 19).replace('T', ' ')}] {log.message}
+					[{log.level}][{formatTimestamp(log.timestamp)}] {log.message}
 					<br />
 					<br />
 				{/each}

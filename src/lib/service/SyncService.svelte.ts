@@ -124,7 +124,17 @@ export class SyncService {
 				return episode;
 			});
 
-		db.episodes.insertMany(episodes);
+		episodes.forEach((x) => {
+			const match = db.episodes.findOne({ id: x.id });
+
+			if (match) {
+				Log.debug(`Updating ${x.podcast.title} - ${x.title}`);
+				db.episodes.updateOne({ id: x.id }, { $set: { x } });
+			} else {
+				Log.debug(`Adding ${x.podcast.title} - ${x.title}`);
+				db.episodes.insert(x);
+			}
+		});
 	}
 
 	private async syncFeeds(filter?: {
@@ -221,16 +231,14 @@ export class SyncService {
 
 	startPeriodicSync() {
 		const sync = async () => {
-			try {
-				const settings = await SettingsService.getSettings();
-				if (!settings?.lastSyncAt) return;
+			const settings = await SettingsService.getSettings();
+			if (!settings?.lastSyncAt) return;
 
-				const hoursSinceLastSync = (Date.now() - settings.lastSyncAt) / (1000 * 60 * 60);
-				if (hoursSinceLastSync >= settings.syncIntervalHours) {
-					this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
-				}
-			} catch (error) {
-				Log.error(`Error checking sync status: ${error}`);
+			const hoursSinceLastSync = (Date.now() - settings.lastSyncAt) / (1000 * 60 * 60);
+			if (hoursSinceLastSync >= settings.syncIntervalHours) {
+				Log.info('Sync starting...');
+				this.syncNewPodcasts().catch((error) => Log.error(`Sync failed: ${error}`));
+				Log.info('Sync complete');
 			}
 		};
 

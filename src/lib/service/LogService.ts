@@ -4,7 +4,8 @@ import type { LogEntry } from '$lib/types/db';
 export class Log {
 	private static async write(level: LogEntry['level'], message: string) {
 		const entry: LogEntry = {
-			id: Date.now(),
+			id: crypto.randomUUID(),
+			timestamp: Date.now(),
 			level,
 			message
 		};

@@ -27,7 +27,8 @@ export interface Episode {
 }
 
 export interface LogEntry {
-	id: number;
+	id: string;
+	timestamp: number;
 	level: 'debug' | 'info' | 'warn' | 'error';
 	message: string;
 }
