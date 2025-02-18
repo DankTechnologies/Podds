@@ -15,7 +15,7 @@
 	let feed = $derived(getAllFeeds().find((f) => f.id === feedId));
 
 	$effect(() => {
-		const episodesCursor = db.episodes.find(
+		let episodesCursor = db.episodes.find(
 			{ feedId: feedId },
 			{
 				sort: { publishedAt: -1 },

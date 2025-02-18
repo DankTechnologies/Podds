@@ -15,7 +15,7 @@
 	);
 
 	$effect(() => {
-		const episodesCursor = db.episodes.find(
+		let episodesCursor = db.episodes.find(
 			{},
 			{
 				sort: { publishedAt: -1 },

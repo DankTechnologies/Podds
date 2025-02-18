@@ -1,6 +1,7 @@
 import type { Episode, Feed, LogEntry, Settings } from '$lib/types/db';
 import createOPFSAdapter from '@signaldb/opfs';
 import { Collection } from '@signaldb/core';
+import { Log } from '$lib/service/LogService';
 
 // Shared reactivity configuration for all collections
 const reactivityConfig = {
@@ -45,13 +46,14 @@ export const db = {
 
 let feeds = $state.raw<Feed[]>([]);
 let playingEpisode = $state.raw<Episode>();
-let mostRecentEpisode = $state.raw<Episode>();
 let settings = $state.raw<Settings>();
 
 $effect.root(() => {
 	$effect(() => {
 		const feedsCursor = db.feeds.find();
 		feeds = feedsCursor.fetch();
+
+		Log.debug(`feeds updated: ${feeds.length}`);
 
 		return () => {
 			feedsCursor.cleanup();
@@ -60,14 +62,14 @@ $effect.root(() => {
 
 	$effect(() => {
 		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
-	});
 
-	$effect(() => {
-		mostRecentEpisode = db.episodes.findOne({}, { sort: { publishedAt: -1 } });
+		Log.debug(`playingEpisode updated: ${playingEpisode?.title}`);
 	});
 
 	$effect(() => {
 		settings = db.settings.findOne({ id: '1' });
+
+		Log.debug(`settings updated: ${settings?.id}`);
 	});
 });
 
