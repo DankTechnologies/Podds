@@ -40,14 +40,14 @@
 			hasUpdate: () => false,
 			disabled: () => SessionInfo.isFirstVisit
 		},
-		// {
-		// 	href: '/find',
-		// 	label: 'Find',
-		// 	icon: Search,
-		// 	hasUpdate: () => false,
-		// 	disabled: () => false,
-		// 	hidden: () => false
-		// }
+		{
+			href: '/search',
+			label: 'Search',
+			icon: Search,
+			hasUpdate: () => false,
+			disabled: () => false,
+			hidden: () => false
+		},
 		{
 			href: '/settings',
 			label: 'Settings',
@@ -86,7 +86,7 @@
 <style>
 	nav {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(5, 1fr);
 		position: fixed;
 		bottom: 0;
 		left: 0;

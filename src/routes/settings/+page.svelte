@@ -5,26 +5,30 @@
 	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { Log } from '$lib/service/LogService';
-	import MinifluxClient from '$lib/api/miniflux';
 	import { db } from '$lib/stores/db.svelte';
 	import type { LogEntry } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
+	import PodcastIndexClient from '$lib/api/podcast-index';
+	import { FeedService } from '$lib/service/FeedService';
+	let feedService = new FeedService();
 
 	let settings: Settings = $state<Settings>({
-		host: import.meta.env.VITE_MINIFLUX_HOST || '',
-		apiKey: import.meta.env.VITE_MINIFLUX_API_KEY || '',
-		categories: import.meta.env.VITE_MINIFLUX_CATEGORIES || '',
-		syncIntervalHours: 1,
+		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
+		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
+		syncIntervalMinutes: 10,
 		logLevel: 'info'
 	});
+
+	let importFeedIds = $state<string>(
+		'6596894,637281,2138618,5320480,1074603,3240656,522889,1329334,542376,853158,3745116,1052374,5928182,743229,6752757,548735,223113,214340,309699,577105'
+	);
 
 	let isFirstVisit = $state<boolean>(true);
 	let apiStatus = $state<'untested' | 'success' | 'error'>('untested');
 	let isValid = $derived(
-		settings.host &&
-			settings.apiKey &&
-			settings.categories &&
-			settings.syncIntervalHours > 0 &&
+		settings.podcastIndexKey &&
+			settings.podcastIndexSecret &&
+			settings.syncIntervalMinutes > 0 &&
 			apiStatus === 'success'
 	);
 
@@ -49,7 +53,7 @@
 				const decoded = decodeShareLink(hash);
 				settings = {
 					...decoded,
-					syncIntervalHours: 1,
+					syncIntervalMinutes: 10,
 					logLevel: 'info'
 				};
 				history.replaceState(null, '', window.location.pathname);
@@ -68,24 +72,29 @@
 
 	async function onSave() {
 		await SettingsService.saveSettings(settings);
-		if (isFirstVisit) goto('/sync');
+		if (isFirstVisit) goto('/search');
 	}
 
 	async function onTest() {
-		const api = new MinifluxClient(settings.host, settings.apiKey);
-		try {
-			await api.fetchCategories();
-			apiStatus = 'success';
-		} catch (error) {
-			apiStatus = 'error';
-		}
+		const api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
+		apiStatus = (await api.testConnection()) ? 'success' : 'error';
 	}
 
-	function generateShareableLink() {
+	async function onImportFeeds() {
+		await feedService.importFeeds(importFeedIds);
+		SessionInfo.isFirstVisit = false;
+	}
+
+	function onExportFeeds() {
+		const feedIds = feedService.exportFeeds();
+		navigator.clipboard.writeText(feedIds);
+		alert('Feed IDs copied to clipboard!');
+	}
+
+	function generateShareLink() {
 		const url = encodeShareLink({
-			host: settings.host,
-			apiKey: settings.apiKey,
-			categories: settings.categories
+			podcastIndexKey: settings.podcastIndexKey,
+			podcastIndexSecret: settings.podcastIndexSecret
 		});
 		navigator.clipboard.writeText(url);
 		alert('Shareable link copied to clipboard!');
@@ -95,54 +104,33 @@
 		await SettingsService.clearAllLocalState();
 		location.reload();
 	}
-
-	async function debugSetLastSync() {
-		const currentSettings = await SettingsService.getSettings();
-		if (!currentSettings) return;
-
-		// @ts-ignore
-		settings.lastSyncAt -= 3 * 60 * 60 * 1000;
-
-		await SettingsService.updateSettings({
-			lastSyncAt: settings.lastSyncAt
-		});
-	}
 </script>
 
 <div class="settings">
 	<header>
-		<h2>Miniflux Configuration</h2>
+		<h2>Podcast Index Configuration</h2>
 		{#if SessionInfo.hasUpdate}
 			<button class="update-button" onclick={applyUpdate}>Update</button>
 		{/if}
 	</header>
 	<form>
 		<div>
-			<label for="host">Host</label>
+			<label for="podcastIndexKey">Podcast Index Key</label>
 			<input
-				id="host"
-				type="url"
-				bind:value={settings.host}
-				onchange={() => (apiStatus = 'untested')}
-				required
-			/>
-		</div>
-		<div>
-			<label for="apiKey">API Key</label>
-			<input
-				id="apiKey"
+				id="podcastIndexKey"
 				type="text"
-				bind:value={settings.apiKey}
+				bind:value={settings.podcastIndexKey}
 				onchange={() => (apiStatus = 'untested')}
 				required
 			/>
 		</div>
 		<div>
-			<label for="categories">Categories</label>
+			<label for="podcastIndexSecret">Podcast Index Secret</label>
 			<input
-				id="categories"
-				placeholder="Comma-separated IDs"
-				bind:value={settings.categories}
+				id="podcastIndexSecret"
+				type="text"
+				bind:value={settings.podcastIndexSecret}
+				onchange={() => (apiStatus = 'untested')}
 				required
 			/>
 		</div>
@@ -165,30 +153,24 @@
 			</div>
 		</div>
 		<div>
-			<label for="syncInterval">Sync Interval (hours)</label>
+			<label for="importFeeds">Import Feeds</label>
 			<input
-				id="syncInterval"
-				type="number"
-				min="1"
-				bind:value={settings.syncIntervalHours}
-				required
+				id="importFeeds"
+				type="text"
+				bind:value={importFeedIds}
+				placeholder="Enter feed IDs separated by commas"
 			/>
+			<button type="button" onclick={onImportFeeds}>Import</button>
 		</div>
-		{#if settings.lastSyncAt}
-			<div>
-				<label for="lastSync">Last Sync</label>
-				<div id="lastSync" role="status" class="status">
-					{new Date(settings.lastSyncAt).toLocaleString()}
-				</div>
-			</div>
-		{/if}
+		<div>
+			<label for="exportFeeds">Export Feeds</label>
+			<button type="button" onclick={onExportFeeds}>Export</button>
+		</div>
 		<div class="actions">
 			<button type="button" onclick={onReset}>Reset Data</button>
 			<button type="button" onclick={onTest}>Test Connection</button>
-			<button type="button" disabled={!isValid} onclick={generateShareableLink}>Share Config</button
-			>
+			<button type="button" disabled={!isValid} onclick={generateShareLink}>Share Config</button>
 			<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
-			<button type="button" onclick={debugSetLastSync}>Debug: Set Last Sync -3h</button>
 		</div>
 		{#if logs}
 			<div>

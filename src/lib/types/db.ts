@@ -1,17 +1,13 @@
-export interface Icon {
-	id: string;
-	data: string;
-	lastUpdatedAt?: Date;
-}
-
-export interface Podcast {
+export interface Feed {
 	id: string;
 	title: string;
+	iconData: string;
+	lastUpdatedAt?: Date;
 }
 
 export interface Episode {
 	id: string;
-	podcast: Podcast;
+	feedId: string;
 	title: string;
 	publishedAt: Date;
 	lastPlayedAt?: Date;

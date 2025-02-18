@@ -1,11 +1,11 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import type { Episode, Icon } from '$lib/types/db';
+	import type { Episode, Feed } from '$lib/types/db';
 	import { db } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 
-	const podcastId = page.params.id;
+	const feedId = page.params.id;
 
 	const ITEMS_PER_PAGE = 100;
 	let limit = $state<number>(ITEMS_PER_PAGE);
@@ -13,19 +13,22 @@
 
 	// Raw state holders for query results
 	let episodes = $state.raw<Episode[]>([]);
-	let icon = $state.raw<Icon>();
+	let feed = $state.raw<Feed>();
 
 	// Set up reactive queries with proper cleanup
 	$effect(() => {
+		feed = db.feeds.findOne({ id: feedId });
+
+		if (!feed) return;
+
 		const episodesCursor = db.episodes.find(
-			{ 'podcast.id': podcastId },
+			{ feedId: feed.id },
 			{
 				sort: { publishedAt: -1 },
 				limit
 			}
 		);
 		episodes = episodesCursor.fetch();
-		icon = db.icons.findOne({ id: podcastId });
 
 		return () => {
 			episodesCursor.cleanup();
@@ -53,12 +56,14 @@
 		limit += ITEMS_PER_PAGE;
 	}
 
-	function getTitle(title: string): string {
+	function getTitle(title: string | undefined): string {
+		if (!title) return '';
 		const match = title.match(/^(.*?)(?:[-:])(.*)/);
 		return match ? match[1].trim() : title.trim();
 	}
 
-	function getSubtitle(title: string): string {
+	function getSubtitle(title: string | undefined): string {
+		if (!title) return '';
 		const match = title.match(/^(.*?)(?:[-:])(.*)/);
 		return match ? match[2].trim() : '';
 	}
@@ -67,10 +72,10 @@
 {#if episodes.length > 0}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
-		<img class="podcast-header__image" src={`data:${icon?.data}`} alt={episodes[0].podcast.title} />
+		<img class="podcast-header__image" src={`data:${feed?.iconData}`} alt={feed?.title} />
 		<div class="podcast-header__content">
-			<h1 class="podcast-header__title">{getTitle(episodes[0].podcast.title)}</h1>
-			<span class="podcast-header__subtitle">{getSubtitle(episodes[0].podcast.title)}</span>
+			<h1 class="podcast-header__title">{getTitle(feed?.title)}</h1>
+			<span class="podcast-header__subtitle">{getSubtitle(feed?.title)}</span>
 		</div>
 	</header>
 

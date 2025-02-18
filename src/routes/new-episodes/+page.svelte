@@ -2,7 +2,8 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { onMount } from 'svelte';
 	import { db } from '$lib/stores/db.svelte';
-	import type { Episode, Icon } from '$lib/types/db';
+	import type { Episode, Feed } from '$lib/types/db';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	const ITEMS_PER_PAGE = 100;
 	let limit = $state<number>(ITEMS_PER_PAGE);
@@ -10,7 +11,7 @@
 
 	// Raw state holders for query results
 	let episodes = $state.raw<Episode[]>([]);
-	let icons = $state.raw<Icon[]>([]);
+	let feedIconsById = $state.raw<SvelteMap<string, string>>(new SvelteMap());
 
 	// Set up reactive queries with proper cleanup
 	$effect(() => {
@@ -21,6 +22,7 @@
 				limit
 			}
 		);
+
 		episodes = episodesCursor.fetch();
 
 		return () => {
@@ -29,11 +31,15 @@
 	});
 
 	$effect(() => {
-		const iconsCursor = db.icons.find();
-		icons = iconsCursor.fetch();
+		const feedsCursor = db.feeds.find();
+		const feeds = feedsCursor.fetch();
+
+		feeds.forEach((feed) => {
+			feedIconsById.set(feed.id, feed.iconData);
+		});
 
 		return () => {
-			iconsCursor.cleanup();
+			feedsCursor.cleanup();
 		};
 	});
 
@@ -60,6 +66,6 @@
 </script>
 
 {#if episodes}
-	<EpisodeList {episodes} podcastIcons={icons} />
+	<EpisodeList {episodes} {feedIconsById} />
 {/if}
 <div bind:this={observerTarget}></div>

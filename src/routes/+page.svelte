@@ -1,20 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import type { Episode, Icon, Podcast } from '$lib/types/db';
+	import type { Feed } from '$lib/types/db';
 	import { db } from '$lib/stores/db.svelte';
 	// Raw state holders for query results
-	let podcasts = $state.raw<Podcast[]>([]);
-	let icons = $state.raw<Icon[]>([]);
+	let feeds = $state.raw<Feed[]>([]);
 
 	// Set up reactive queries with proper cleanup
 	$effect(() => {
-		const podcastsCursor = db.episodes.find({}, { fields: { podcast: 1 } });
-		podcasts = podcastsCursor
+		const feedsCursor = db.feeds.find();
+		feeds = feedsCursor
 			.fetch()
-			.map((episode) => episode.podcast)
-			.reduce((unique: Podcast[], podcast) => {
-				if (!unique.some((p) => p.id === podcast.id)) {
-					unique.push(podcast);
+			.reduce((unique: Feed[], feed) => {
+				if (!unique.some((f) => f.id === feed.id)) {
+					unique.push(feed);
 				}
 				return unique;
 			}, [])
@@ -24,27 +22,20 @@
 				return titleA.localeCompare(titleB);
 			});
 
-		const iconsCursor = db.icons.find();
-		icons = iconsCursor.fetch();
-
 		return () => {
-			podcastsCursor.cleanup();
-			iconsCursor.cleanup();
+			feedsCursor.cleanup();
 		};
 	});
 </script>
 
 <div class="grid">
-	{#each podcasts || [] as podcast}
+	{#each feeds || [] as feed}
 		<div class="grid-item">
 			<button
-				onclick={() => goto(`/podcast/${podcast.id}`)}
-				aria-label={`Go to ${podcast.title} podcast`}
+				onclick={() => goto(`/podcast/${feed.id}`)}
+				aria-label={`Go to ${feed.title} podcast`}
 			>
-				<img
-					src={`data:${icons.find((icon) => icon.id === podcast.id)?.data}`}
-					alt={podcast.title}
-				/>
+				<img src={`data:${feed.iconData}`} alt={feed.title} />
 			</button>
 		</div>
 	{/each}

@@ -1,10 +1,11 @@
 export function resizeBase64Image(
-	dataUrl: string,
+	url: string,
 	maxWidth: number,
 	maxHeight: number
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const img = new Image();
+		img.crossOrigin = 'anonymous';
 
 		img.onload = function () {
 			let { width, height } = img;
@@ -35,6 +36,6 @@ export function resizeBase64Image(
 		};
 
 		img.onerror = () => reject(new Error('Failed to load image'));
-		img.src = `data:${dataUrl}`;
+		img.src = url;
 	});
 }

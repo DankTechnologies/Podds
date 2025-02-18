@@ -1,7 +1,6 @@
 interface ShareConfig {
-	host: string;
-	apiKey: string;
-	categories: string;
+	podcastIndexKey: string;
+	podcastIndexSecret: string;
 }
 
 export function encodeShareLink(config: ShareConfig): string {

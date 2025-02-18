@@ -46,8 +46,12 @@ const deleteOldCaches = async () => {
 // =====================
 
 const handleRequest = async ({ request }) => {
-	// Serve the cached shell for navigation requests
-	if (request.mode === 'navigate') {
+	// Only handle static assets from our own origin
+	const url = new URL(request.url);
+	const isOwnOrigin = url.origin === self.location.origin;
+
+	// Serve the cached shell for navigation requests from our origin
+	if (request.mode === 'navigate' && isOwnOrigin) {
 		console.log('Navigation request, serving cached shell:', request.url);
 		const cachedShell = await caches.match('/');
 		if (cachedShell) {
@@ -65,8 +69,8 @@ const handleRequest = async ({ request }) => {
 		return responseFromCache;
 	}
 
-	// Static asset handling
-	if (ASSETS.includes(new URL(request.url).pathname)) {
+	// Static asset handling - only for our origin
+	if (isOwnOrigin && ASSETS.includes(url.pathname)) {
 		console.warn('Static asset not found in cache, fetching from network:', request.url);
 		const networkResponse = await fetch(request);
 

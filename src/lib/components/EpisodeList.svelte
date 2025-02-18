@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { EpisodeService } from '$lib/service/EpisodeService';
-	import type { Episode, Icon } from '$lib/types/db';
+	import type { Episode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
-	import { playService } from '$lib/service/PlayService.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 
-	let { episodes, podcastIcons }: { episodes: Episode[]; podcastIcons?: Icon[] } = $props();
+	let { episodes, feedIconsById }: { episodes: Episode[]; feedIconsById?: Map<string, string> } =
+		$props();
 	let expandedEpisodeIds = $state<string[]>([]);
 
 	function toggleExpanded(episodeId: string) {
@@ -23,11 +23,7 @@
 	}
 
 	function playEpisode(episode: Episode) {
-		playService.play(
-			episode,
-			() => handleDownloadComplete(episode.id!),
-			(err) => handleDownloadError(episode.id!, err)
-		);
+		EpisodeService.setPlayingEpisode(episode.id);
 	}
 
 	function downloadEpisode(episode: Episode) {
@@ -57,10 +53,10 @@
 				aria-expanded={isExpanded(episode.id!)}
 				aria-controls="details-{episode.id}"
 			>
-				{#if podcastIcons}
+				{#if feedIconsById}
 					<img
 						class="episode-card__image"
-						src={`data:${podcastIcons.find((x) => x.id === episode.podcast?.id)?.data}`}
+						src={`data:${feedIconsById.get(episode.feedId)}`}
 						alt=""
 					/>
 				{/if}

@@ -1,33 +1,44 @@
 <script lang="ts">
-	import { playService } from '$lib/service/PlayService.svelte';
 	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
 	import { Log } from '$lib/service/LogService';
-	import type { Icon } from '$lib/types/db';
 	import { db } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
+	import { EpisodeService } from '$lib/service/EpisodeService';
+	import type { Episode, Feed } from '$lib/types/db';
 
 	const ICON_SIZE = '2rem';
-	let icons = $state.raw<Icon[]>([]);
+
+	let episode = $state.raw<Episode>();
+	let feed = $state.raw<Feed>();
+
+	let audio = $state<HTMLAudioElement>();
+	let currentTime = $state(0);
+	let duration = $state(0);
+	let paused = $state(true);
 
 	$effect(() => {
-		const iconsCursor = db.icons.find({ id: playService?.episode?.podcast.id });
-		icons = iconsCursor.fetch();
-
-		return () => {
-			iconsCursor.cleanup();
-		};
+		episode = db.episodes.findOne({ isPlaying: 1 });
+		currentTime = episode?.playbackPosition ?? 0;
+		feed = db.feeds.findOne({ id: episode?.feedId });
 	});
 
 	function handleBack() {
-		playService.seek(-10);
+		if (!episode) return;
+		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
+		currentTime = newTime;
+		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
 	function handlePlayPause() {
-		playService.togglePlayPause();
+		if (!episode) return;
+		paused = !paused;
 	}
 
 	function handleForward() {
-		playService.seek(30);
+		if (!episode) return;
+		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
+		currentTime = newTime;
+		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
 	function handlePlaylist() {
@@ -35,36 +46,37 @@
 	}
 </script>
 
-{#if playService.episode}
+{#if episode}
+	<audio bind:this={audio} src={episode.url} bind:duration bind:currentTime bind:paused></audio>
 	<div class="player">
 		<div class="player__time">
 			<div>
-				{formatPlaybackPosition(playService.currentTime)}
+				{formatPlaybackPosition(currentTime)}
 			</div>
 			<div>
-				-{formatPlaybackPosition(playService.totalDuration - playService.currentTime)}
+				-{formatPlaybackPosition(duration - currentTime)}
 			</div>
 		</div>
 		<input
 			class="player__playback"
 			type="range"
 			min="0"
-			bind:value={playService.currentTime}
-			max={playService.totalDuration}
+			bind:value={currentTime}
+			max={duration}
 			oninput={(event) => {
 				const target = event.target as HTMLInputElement;
 				const newTime = Number(target.value);
-				Log.debug(`Attempting to set time to ${newTime} of ${playService.totalDuration}`);
-				playService.setCurrentTime(newTime);
+				Log.debug(`Attempting to set time to ${newTime} of ${duration}`);
+				if (episode) {
+					currentTime = newTime;
+					EpisodeService.updatePlaybackPosition(episode.id, newTime);
+				}
 			}}
 		/>
 		<div class="player__controls">
 			<div class="player__artwork">
-				{#if icons}
-					<img
-						src={`data:${icons.find((x) => x.id === playService?.episode?.podcast?.id)?.data}`}
-						alt=""
-					/>
+				{#if feed?.iconData}
+					<img src={`data:${feed.iconData}`} alt="" />
 				{/if}
 			</div>
 
@@ -81,7 +93,7 @@
 				<div class="stack-cell">
 					<div class="play-pause__circle"></div>
 					<div class="play-pause__icon">
-						{#if playService.isPaused}
+						{#if paused}
 							<Play class="play-pause__icon--play" size={ICON_SIZE} />
 						{:else}
 							<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
@@ -111,7 +123,7 @@
 		display: flex;
 		flex-direction: column;
 		position: fixed;
-		bottom: 5.5rem;
+		bottom: 4rem;
 		left: 0;
 		right: 0;
 		z-index: 50;

@@ -12,9 +12,9 @@ declare global {
 	}
 
 	interface ImportMetaEnv {
-		VITE_MINIFLUX_HOST: string;
-		VITE_MINIFLUX_API_KEY: string;
-		VITE_MINIFLUX_CATEGORIES: string;
+		VITE_PODCAST_INDEX_KEY: string;
+		VITE_PODCAST_INDEX_SECRET: string;
+		VITE_CORS_HELPER_URL: string;
 	}
 }
 

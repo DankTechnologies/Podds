@@ -9,9 +9,5 @@ Most podcast clients suck
 ## Tech Stack
 
 - SvelteKit
-- Dexie
-- Miniflux API
-
-## TODO
-
-- optimize images
+- SignalDB
+- Podcast Index API

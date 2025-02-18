@@ -6,10 +6,10 @@
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { onMount } from 'svelte';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
-	import { SyncService } from '$lib/service/SyncService.svelte';
+	import { FeedService } from '$lib/service/FeedService';
 
+	let feedService = new FeedService();
 	let settings = $state<Settings | null>(null);
-	let sync = new SyncService();
 
 	onMount(async () => {
 		settings = await SettingsService.getSettings();
@@ -20,7 +20,7 @@
 			SessionInfo.isFirstVisit = false;
 		}
 
-		sync.startPeriodicSync();
+		feedService.startPeriodicUpdates();
 	});
 
 	let { children } = $props();

@@ -1,9 +1,8 @@
 interface Settings {
-	host: string;
-	apiKey: string;
-	categories: string;
+	podcastIndexKey: string;
+	podcastIndexSecret: string;
 	lastSyncAt?: number;
-	syncIntervalHours: number;
+	syncIntervalMinutes: number;
 	isSyncing?: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';
 }

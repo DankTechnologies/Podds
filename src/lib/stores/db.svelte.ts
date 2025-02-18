@@ -1,4 +1,4 @@
-import type { Episode, Icon, LogEntry } from '$lib/types/db';
+import type { Episode, Feed, LogEntry } from '$lib/types/db';
 import createOPFSAdapter from '@signaldb/opfs';
 import { Collection } from '@signaldb/core';
 
@@ -19,10 +19,10 @@ const reactivityConfig = {
 };
 
 export const db = {
-	icons: new Collection<Icon>({
-		name: 'icons',
+	feeds: new Collection<Feed>({
+		name: 'feeds',
 		reactivity: reactivityConfig,
-		persistence: createOPFSAdapter('icons.json')
+		persistence: createOPFSAdapter('feeds.json')
 	}),
 	episodes: new Collection<Episode>({
 		name: 'episodes',
