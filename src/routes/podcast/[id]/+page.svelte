@@ -2,7 +2,7 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
 	import type { Episode, Feed } from '$lib/types/db';
-	import { db } from '$lib/stores/db.svelte';
+	import { db, getAllFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 
 	const feedId = page.params.id;
@@ -11,18 +11,12 @@
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
-	// Raw state holders for query results
 	let episodes = $state.raw<Episode[]>([]);
-	let feed = $state.raw<Feed>();
+	let feed = $derived(getAllFeeds().find((f) => f.id === feedId));
 
-	// Set up reactive queries with proper cleanup
 	$effect(() => {
-		feed = db.feeds.findOne({ id: feedId });
-
-		if (!feed) return;
-
 		const episodesCursor = db.episodes.find(
-			{ feedId: feed.id },
+			{ feedId: feedId },
 			{
 				sort: { publishedAt: -1 },
 				limit

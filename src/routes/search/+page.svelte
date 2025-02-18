@@ -6,10 +6,9 @@
 	import { onMount } from 'svelte';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { db } from '$lib/stores/db.svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import { Log } from '$lib/service/LogService';
-	import type { Feed } from '$lib/types/db';
+	import { getAllFeeds } from '$lib/stores/db.svelte';
 
 	let query = $state('');
 	let feedResults = $state<PIApiFeed[]>([]);
@@ -20,20 +19,6 @@
 
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
-
-	// Raw state holders for query results
-	let feeds = $state.raw<Feed[]>();
-
-	// Set up reactive queries with proper cleanup
-	$effect(() => {
-		const feedsCursor = db.feeds.find({});
-
-		feeds = feedsCursor.fetch();
-
-		return () => {
-			feedsCursor.cleanup();
-		};
-	});
 
 	onMount(async () => {
 		const settings = await SettingsService.getSettings();
@@ -111,7 +96,7 @@
 					<button
 						onclick={() => addFeed(feed)}
 						aria-label={`Add ${feed.title} podcast`}
-						disabled={feeds?.some((f) => f.id === feed.id.toString())}
+						disabled={getAllFeeds()?.some((f) => f.id === feed.id.toString())}
 					>
 						<div class="image-container">
 							{#if !resizedImageById.has(feed.id)}
@@ -123,7 +108,7 @@
 									<span>{feed.title[0]?.toUpperCase() || '?'}</span>
 								</div>
 							{/if}
-							{#if feeds?.some((f) => f.id === feed.id.toString())}
+							{#if getAllFeeds()?.some((f) => f.id === feed.id.toString())}
 								<div class="added-overlay">
 									<Check size="2rem" />
 								</div>

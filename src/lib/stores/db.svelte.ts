@@ -35,3 +35,34 @@ export const db = {
 		persistence: createOPFSAdapter('logs.json')
 	})
 };
+
+// consolidate live queries here
+
+let feeds = $state.raw<Feed[]>([]);
+
+$effect.root(() => {
+	$effect(() => {
+		const feedsCursor = db.feeds.find();
+		feeds = feedsCursor.fetch();
+
+		return () => {
+			feedsCursor.cleanup();
+		};
+	});
+});
+
+export function getAllFeeds() {
+	return feeds;
+}
+
+let playingEpisode = $state.raw<Episode>();
+
+$effect.root(() => {
+	$effect(() => {
+		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
+	});
+});
+
+export function getPlayingEpisode() {
+	return playingEpisode;
+}

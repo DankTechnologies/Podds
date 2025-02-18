@@ -1,25 +1,21 @@
 <script lang="ts">
 	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
 	import { Log } from '$lib/service/LogService';
-	import { db } from '$lib/stores/db.svelte';
+	import { getAllFeeds, getPlayingEpisode } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService';
-	import type { Episode, Feed } from '$lib/types/db';
 
 	const ICON_SIZE = '2rem';
 
-	let episode = $state.raw<Episode>();
-	let feed = $state.raw<Feed>();
-
-	let audio = $state<HTMLAudioElement>();
+	let episode = $derived(getPlayingEpisode());
+	let feed = $derived(getAllFeeds().find((f) => f.id === episode?.feedId));
 	let currentTime = $state(0);
+	let audio = $state<HTMLAudioElement>();
 	let duration = $state(0);
 	let paused = $state(true);
 
 	$effect(() => {
-		episode = db.episodes.findOne({ isPlaying: 1 });
 		currentTime = episode?.playbackPosition ?? 0;
-		feed = db.feeds.findOne({ id: episode?.feedId });
 	});
 
 	function handleBack() {

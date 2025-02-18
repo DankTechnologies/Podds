@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { getAllFeeds } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
-	import { db } from '$lib/stores/db.svelte';
-	// Raw state holders for query results
-	let feeds = $state.raw<Feed[]>([]);
 
-	// Set up reactive queries with proper cleanup
-	$effect(() => {
-		const feedsCursor = db.feeds.find();
-		feeds = feedsCursor
-			.fetch()
+	let feeds = $derived(
+		getAllFeeds()
 			.reduce((unique: Feed[], feed) => {
 				if (!unique.some((f) => f.id === feed.id)) {
 					unique.push(feed);
@@ -20,16 +15,12 @@
 				const titleA = a.title.replace(/^(the|a|an)\s+/i, '');
 				const titleB = b.title.replace(/^(the|a|an)\s+/i, '');
 				return titleA.localeCompare(titleB);
-			});
-
-		return () => {
-			feedsCursor.cleanup();
-		};
-	});
+			})
+	);
 </script>
 
 <div class="grid">
-	{#each feeds || [] as feed}
+	{#each feeds as feed}
 		<div class="grid-item">
 			<button
 				onclick={() => goto(`/podcast/${feed.id}`)}
