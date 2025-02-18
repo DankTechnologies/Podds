@@ -1,26 +1,30 @@
+import { db, getSettings } from '$lib/stores/db.svelte';
+import type { Settings } from '$lib/types/db';
+
 export const SessionInfo = $state({
-	isFirstVisit: true,
 	hasUpdate: false
 });
 
 export class SettingsService {
 	private static SETTINGS_KEY = 'fluxcast_settings';
 
-	static async getSettings(): Promise<Settings | null> {
-		const settingsStr = localStorage.getItem(this.SETTINGS_KEY);
-		return settingsStr ? JSON.parse(settingsStr) : null;
+	static saveSettings(settings: Settings): void {
+		let currentSettings = getSettings();
+
+		if (!currentSettings) {
+			db.settings.insert(settings);
+		} else {
+			db.settings.updateOne({ id: '1' }, { $set: { settings } });
+		}
 	}
 
-	static async saveSettings(settings: Settings): Promise<void> {
-		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
-	}
+	static updateLastSyncAt(): void {
+		let currentSettings = getSettings();
 
-	static async updateSettings(partialSettings: Partial<Settings>): Promise<void> {
-		const currentSettings = await this.getSettings();
-		if (!currentSettings) throw new Error('Settings not found');
-
-		const updatedSettings = { ...currentSettings, ...partialSettings };
-		localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(updatedSettings));
+		if (!currentSettings) {
+			throw new Error('Settings not found');
+		}
+		db.settings.updateOne({ id: '1' }, { $set: { lastSyncAt: new Date() } });
 	}
 
 	static async clearAllLocalState(): Promise<void> {
@@ -42,8 +46,5 @@ export class SettingsService {
 		} catch (error) {
 			console.error('Failed to clear OPFS:', error);
 		}
-
-		// Reset session info
-		SessionInfo.isFirstVisit = true;
 	}
 }

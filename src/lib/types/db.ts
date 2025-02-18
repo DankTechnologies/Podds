@@ -29,6 +29,16 @@ export interface LogEntry {
 	message: string;
 }
 
+export interface Settings {
+	id: string;
+	podcastIndexKey: string;
+	podcastIndexSecret: string;
+	lastSyncAt?: Date;
+	syncIntervalMinutes: number;
+	isSyncing?: boolean;
+	logLevel: 'debug' | 'info' | 'warn' | 'error';
+}
+
 // Helper type for creating new records without an ID
 export type WithoutId<T> = Omit<T, 'id'>;
 

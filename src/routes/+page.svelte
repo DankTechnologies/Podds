@@ -19,18 +19,24 @@
 	);
 </script>
 
-<div class="grid">
-	{#each feeds as feed}
-		<div class="grid-item">
-			<button
-				onclick={() => goto(`/podcast/${feed.id}`)}
-				aria-label={`Go to ${feed.title} podcast`}
-			>
-				<img src={`data:${feed.iconData}`} alt={feed.title} />
-			</button>
-		</div>
-	{/each}
-</div>
+{#if feeds.length === 0}
+	<h1>modpod</h1>
+	<p>Welcome to modpod</p>
+	<p>Go to <a href="/settings">settings</a> page to configure</p>
+{:else}
+	<div class="grid">
+		{#each feeds as feed}
+			<div class="grid-item">
+				<button
+					onclick={() => goto(`/podcast/${feed.id}`)}
+					aria-label={`Go to ${feed.title} podcast`}
+				>
+					<img src={`data:${feed.iconData}`} alt={feed.title} />
+				</button>
+			</div>
+		{/each}
+	</div>
+{/if}
 
 <style>
 	.grid {

@@ -4,12 +4,16 @@
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { Home, ListMusic, ScrollText, Search, Settings } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
+	import { getAllFeeds, getSettings } from '$lib/stores/db.svelte';
 
 	const ICON_SIZE = '2rem';
 
 	onUpdateReady(() => {
 		SessionInfo.hasUpdate = true;
 	});
+
+	let hasFeeds = $derived(getAllFeeds().length > 0);
+	let hasSettings = $derived(getSettings() !== undefined);
 
 	const isActive = $derived((href: string) => {
 		if (href === '/') {
@@ -24,28 +28,28 @@
 			label: 'Podcasts',
 			icon: Home,
 			hasUpdate: () => false,
-			disabled: () => SessionInfo.isFirstVisit
+			disabled: () => false
 		},
 		{
 			href: '/new-episodes',
 			label: 'Episodes',
 			icon: ScrollText,
 			hasUpdate: () => false,
-			disabled: () => SessionInfo.isFirstVisit
+			disabled: () => !hasFeeds
 		},
 		{
 			href: '/playlist',
 			label: 'Playlist',
 			icon: ListMusic,
 			hasUpdate: () => false,
-			disabled: () => SessionInfo.isFirstVisit
+			disabled: () => !hasFeeds
 		},
 		{
 			href: '/search',
 			label: 'Search',
 			icon: Search,
 			hasUpdate: () => false,
-			disabled: () => false,
+			disabled: () => !hasSettings,
 			hidden: () => false
 		},
 		{

@@ -5,14 +5,15 @@
 	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { Log } from '$lib/service/LogService';
-	import { db } from '$lib/stores/db.svelte';
-	import type { LogEntry } from '$lib/types/db';
+	import { db, getSettings } from '$lib/stores/db.svelte';
+	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
 	import PodcastIndexClient from '$lib/api/podcast-index';
 	import { FeedService } from '$lib/service/FeedService';
 	let feedService = new FeedService();
 
 	let settings: Settings = $state<Settings>({
+		id: '1',
 		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
 		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
 		syncIntervalMinutes: 10,
@@ -46,23 +47,24 @@
 		};
 	});
 
-	onMount(async () => {
+	onMount(() => {
 		const hash = window.location.hash.slice(1);
 		if (hash) {
 			try {
 				const decoded = decodeShareLink(hash);
 				settings = {
-					...decoded,
+					id: '1',
 					syncIntervalMinutes: 10,
-					logLevel: 'info'
+					logLevel: 'info',
+					...decoded
 				};
 				history.replaceState(null, '', window.location.pathname);
-				await onTest();
+				onTest();
 			} catch (error) {
 				Log.error('Invalid settings URL');
 			}
 		} else {
-			const savedSettings = await SettingsService.getSettings();
+			const savedSettings = getSettings();
 			if (savedSettings) {
 				settings = savedSettings;
 				isFirstVisit = false;
@@ -71,7 +73,7 @@
 	});
 
 	async function onSave() {
-		await SettingsService.saveSettings(settings);
+		SettingsService.saveSettings(settings);
 		if (isFirstVisit) goto('/search');
 	}
 
@@ -82,7 +84,6 @@
 
 	async function onImportFeeds() {
 		await feedService.importFeeds(importFeedIds);
-		SessionInfo.isFirstVisit = false;
 	}
 
 	function onExportFeeds() {

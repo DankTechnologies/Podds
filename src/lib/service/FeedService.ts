@@ -1,5 +1,5 @@
 import PodcastIndexClient from '$lib/api/podcast-index';
-import { db } from '$lib/stores/db.svelte';
+import { db, getAllFeeds, getSettings } from '$lib/stores/db.svelte';
 import type { Episode } from '$lib/types/db';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
@@ -9,6 +9,7 @@ import { SettingsService } from './SettingsService.svelte';
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
@@ -17,7 +18,7 @@ export class FeedService {
 	private async initialize() {
 		if (this.initialized) return;
 
-		const settings = await SettingsService.getSettings();
+		let settings = getSettings();
 		if (!settings || !settings.podcastIndexKey || !settings.podcastIndexSecret) {
 			throw new Error('Podcast Index settings not found');
 		}
@@ -28,22 +29,37 @@ export class FeedService {
 
 	async updateAllFeeds() {
 		try {
-			let feeds = db.feeds
-				.find(
-					{},
-					{
-						fields: { id: 1 }
-					}
-				)
-				.fetch();
+			let settings = getSettings();
 
-			const mostRecentEpisode = db.episodes.findOne({}, { sort: { publishedAt: -1 } });
-			const since = mostRecentEpisode?.publishedAt
-				? Math.floor(new Date(mostRecentEpisode.publishedAt).getTime() / 1000)
-				: undefined;
+			if (!settings) {
+				Log.warn('Settings not found, skipping update');
+				return;
+			}
 
-			let feedIds = feeds.map((feed) => feed.id);
-			await this.updateFeedEpisodes(feedIds.join(','), since);
+			let feedIds = getAllFeeds().map((feed) => feed.id);
+
+			if (feedIds.length === 0) {
+				Log.warn('No feeds found, skipping update');
+				return;
+			}
+
+			const timestampNow = Math.floor(Date.now() / 1000);
+
+			const timestampLastSync = settings.lastSyncAt
+				? Math.floor(new Date(settings.lastSyncAt).getTime() / 1000)
+				: timestampNow - ONE_DAY_IN_SECONDS;
+
+			if (timestampNow - timestampLastSync < settings.syncIntervalMinutes * 60) {
+				return;
+			}
+
+			Log.info('Starting update of all feeds');
+
+			await this.updateFeedEpisodes(feedIds.join(','), timestampLastSync);
+
+			SettingsService.updateLastSyncAt();
+
+			Log.info('Finished update of all feeds');
 		} catch (error) {
 			Log.error(`Error updating all feeds: ${error}`);
 		}
@@ -72,7 +88,21 @@ export class FeedService {
 				})
 			);
 
-			db.episodes.insertMany(episodes);
+			if (since) {
+				episodes.forEach((x) => {
+					const match = db.episodes.findOne({ id: x.id });
+
+					if (match) {
+						Log.debug(`Updating ${x.title}`);
+						db.episodes.updateOne({ id: x.id }, { $set: { x } });
+					} else {
+						Log.debug(`Adding ${x.title}`);
+						db.episodes.insert(x);
+					}
+				});
+			} else {
+				db.episodes.insertMany(episodes);
+			}
 		} catch (error) {
 			Log.error(`Error updating feed: ${error}`);
 		}
@@ -120,9 +150,7 @@ export class FeedService {
 
 	startPeriodicUpdates() {
 		const sync = async () => {
-			Log.info('Starting update of all feeds');
 			await this.updateAllFeeds();
-			Log.info('Finished update of all feeds');
 		};
 
 		// Delay first sync by 1 second

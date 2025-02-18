@@ -10,7 +10,6 @@
 	let episode = $derived(getPlayingEpisode());
 	let feed = $derived(getAllFeeds().find((f) => f.id === episode?.feedId));
 	let currentTime = $state(0);
-	let audio = $state<HTMLAudioElement>();
 	let duration = $state(0);
 	let paused = $state(true);
 
@@ -43,7 +42,7 @@
 </script>
 
 {#if episode}
-	<audio bind:this={audio} src={episode.url} bind:duration bind:currentTime bind:paused></audio>
+	<audio src={episode.url} bind:duration bind:currentTime bind:paused></audio>
 	<div class="player">
 		<div class="player__time">
 			<div>

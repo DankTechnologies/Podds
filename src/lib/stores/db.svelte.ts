@@ -1,4 +1,4 @@
-import type { Episode, Feed, LogEntry } from '$lib/types/db';
+import type { Episode, Feed, LogEntry, Settings } from '$lib/types/db';
 import createOPFSAdapter from '@signaldb/opfs';
 import { Collection } from '@signaldb/core';
 
@@ -33,12 +33,20 @@ export const db = {
 		name: 'logs',
 		reactivity: reactivityConfig,
 		persistence: createOPFSAdapter('logs.json')
+	}),
+	settings: new Collection<Settings>({
+		name: 'settings',
+		reactivity: reactivityConfig,
+		persistence: createOPFSAdapter('settings.json')
 	})
 };
 
 // consolidate live queries here
 
 let feeds = $state.raw<Feed[]>([]);
+let playingEpisode = $state.raw<Episode>();
+let mostRecentEpisode = $state.raw<Episode>();
+let settings = $state.raw<Settings>();
 
 $effect.root(() => {
 	$effect(() => {
@@ -49,20 +57,30 @@ $effect.root(() => {
 			feedsCursor.cleanup();
 		};
 	});
-});
 
-export function getAllFeeds() {
-	return feeds;
-}
-
-let playingEpisode = $state.raw<Episode>();
-
-$effect.root(() => {
 	$effect(() => {
 		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
 	});
+
+	$effect(() => {
+		mostRecentEpisode = db.episodes.findOne({}, { sort: { publishedAt: -1 } });
+	});
+
+	$effect(() => {
+		settings = db.settings.findOne({ id: '1' });
+	});
 });
 
-export function getPlayingEpisode() {
+function getAllFeeds() {
+	return feeds;
+}
+
+function getPlayingEpisode() {
 	return playingEpisode;
 }
+
+function getSettings() {
+	return settings;
+}
+
+export { getAllFeeds, getPlayingEpisode, getSettings };
