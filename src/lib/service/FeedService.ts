@@ -10,6 +10,7 @@ const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
+const ONE_HOUR_IN_SECONDS = 60 * 60;
 
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
@@ -57,9 +58,12 @@ export class FeedService {
 				return;
 			}
 
-			Log.info(`Starting update of all feeds, since=${timestampLastSync}`);
+			// backtrack a bit to avoid missing episodes
+			const since = timestampLastSync - ONE_HOUR_IN_SECONDS;
 
-			await this.updateFeedEpisodes(feedIds.join(','), timestampLastSync);
+			Log.info('Starting update of all feeds');
+
+			await this.updateFeedEpisodes(feedIds.join(','), since);
 
 			SettingsService.updateLastSyncAt();
 
@@ -94,17 +98,23 @@ export class FeedService {
 
 			Log.debug(`${episodes.length} episodes found`);
 
-			if (since) {
-				episodes.forEach((x) => {
-					const match = db.episodes.findOne({ id: x.id });
+			if (episodes.length === 0) {
+				return;
+			}
 
-					if (match) {
-						Log.debug(`Updating ${x.title}`);
-						db.episodes.updateOne({ id: x.id }, { $set: { x } });
-					} else {
-						Log.debug(`Adding ${x.title}`);
-						db.episodes.insert(x);
-					}
+			if (since) {
+				db.episodes.batch(() => {
+					episodes.forEach((x) => {
+						const match = db.episodes.findOne({ id: x.id });
+
+						if (match) {
+							Log.debug(`Updating ${x.title}`);
+							db.episodes.updateOne({ id: x.id }, { $set: { x } });
+						} else {
+							Log.debug(`Adding ${x.title}`);
+							db.episodes.insert(x);
+						}
+					});
 				});
 			} else {
 				db.episodes.insertMany(episodes);
@@ -155,6 +165,7 @@ export class FeedService {
 	}
 
 	startPeriodicUpdates() {
+		Log.debug('Starting registering periodic updates');
 		const sync = async () => {
 			await this.updateAllFeeds();
 		};
