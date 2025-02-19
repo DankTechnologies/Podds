@@ -8,7 +8,7 @@ import { SettingsService } from './SettingsService.svelte';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
-const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 
 export class FeedService {
@@ -57,7 +57,7 @@ export class FeedService {
 				return;
 			}
 
-			Log.info('Starting update of all feeds');
+			Log.info(`Starting update of all feeds, since=${timestampLastSync}`);
 
 			await this.updateFeedEpisodes(feedIds.join(','), timestampLastSync);
 
@@ -91,6 +91,8 @@ export class FeedService {
 					playbackPosition: 0
 				})
 			);
+
+			Log.debug(`${episodes.length} episodes found`);
 
 			if (since) {
 				episodes.forEach((x) => {

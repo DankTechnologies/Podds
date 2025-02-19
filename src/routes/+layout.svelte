@@ -5,23 +5,25 @@
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import { db } from '$lib/stores/db.svelte';
-
+	import { onMount } from 'svelte';
 	let feedService = new FeedService();
 
-	$effect(() => {
-		if (!isLoading) {
+	let isDbLoaded = $derived(
+		!db.feeds.isLoading() && !db.episodes.isLoading() && !db.settings.isLoading()
+	);
+	let initialized = $state(true);
+
+	onMount(() => {
+		if (isDbLoaded) {
+			initialized = true;
 			feedService.startPeriodicUpdates();
 		}
 	});
 
 	let { children } = $props();
-
-	let isLoading = $derived(
-		db.feeds.isLoading() || db.episodes.isLoading() || db.settings.isLoading()
-	);
 </script>
 
-{#if isLoading}
+{#if !initialized}
 	<div class="loading">Loading...</div>
 {:else}
 	<main>

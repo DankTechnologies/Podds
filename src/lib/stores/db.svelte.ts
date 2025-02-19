@@ -49,10 +49,6 @@ let settings = $state.raw<Settings>();
 
 $effect.root(() => {
 	$effect(() => {
-		if (db.feeds.isLoading()) {
-			return;
-		}
-
 		const feedsCursor = db.feeds.find();
 		feeds = feedsCursor.fetch();
 
@@ -64,20 +60,12 @@ $effect.root(() => {
 	});
 
 	$effect(() => {
-		if (db.episodes.isLoading()) {
-			return;
-		}
-
 		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
 
 		Log.debug(`playingEpisode updated: ${playingEpisode?.title}`);
 	});
 
 	$effect(() => {
-		if (db.settings.isLoading()) {
-			return;
-		}
-
 		settings = db.settings.findOne({ id: '1' });
 
 		Log.debug(`settings updated: ${settings?.id}`);
