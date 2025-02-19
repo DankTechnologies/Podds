@@ -49,7 +49,11 @@ export class FeedService {
 				? Math.floor(new Date(settings.lastSyncAt).getTime() / 1000)
 				: timestampNow - ONE_DAY_IN_SECONDS;
 
-			if (timestampNow - timestampLastSync < settings.syncIntervalMinutes * 60) {
+			const lastSyncAtSeconds = timestampNow - timestampLastSync;
+			if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
+				const minutes = Math.floor(lastSyncAtSeconds / 60);
+				const seconds = lastSyncAtSeconds % 60;
+				Log.debug(`Last sync was ${minutes}m${seconds}s ago, skipping update`);
 				return;
 			}
 
