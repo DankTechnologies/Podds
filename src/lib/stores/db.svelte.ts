@@ -52,8 +52,6 @@ $effect.root(() => {
 		const feedsCursor = db.feeds.find();
 		feeds = feedsCursor.fetch();
 
-		Log.debug(`feeds updated: ${feeds.length}`);
-
 		return () => {
 			feedsCursor.cleanup();
 		};
@@ -61,14 +59,10 @@ $effect.root(() => {
 
 	$effect(() => {
 		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
-
-		Log.debug(`playingEpisode updated: ${playingEpisode?.title}`);
 	});
 
 	$effect(() => {
 		settings = db.settings.findOne({ id: '1' });
-
-		Log.debug(`settings updated: ${settings?.id}`);
 	});
 });
 
