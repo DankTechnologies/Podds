@@ -11,7 +11,7 @@ importers:
       '@signaldb/core':
         specifier: ^1.3.0
         version: 1.3.1
-      '@signaldb/opfs':
+      '@signaldb/indexeddb':
         specifier: ^1.0.0
         version: 1.0.0(@signaldb/core@1.3.1)
       lucide-svelte:
@@ -420,8 +420,8 @@ packages:
   '@signaldb/core@1.3.1':
     resolution: {integrity: sha512-6w1bnYS1LcnbQi9rAXo61fT2eYm1Anzbs4l+Ca2uTBJOerj5zGQSIysrc8bRfPInUvuebsS0kc9kwJcaZnFa8g==}
 
-  '@signaldb/opfs@1.0.0':
-    resolution: {integrity: sha512-AA4VJFRjXdQ3K4A9uRPc07035TKskqFdXafMAPscrNBfdPqnlcJnePOK1a2WxS2lDHsa8a7Ztl3OkZgG8AOcig==}
+  '@signaldb/indexeddb@1.0.0':
+    resolution: {integrity: sha512-hqRt/ZeMBJXYqQNtalhT6R2fRlmT5niOXwIzaZ7mOV74YoyDOFyu7zk47GIGnFn3D84qQ3fhHBdFeyyf213uTg==}
     peerDependencies:
       '@signaldb/core': 1.x
 
@@ -1534,7 +1534,7 @@ snapshots:
       fast-sort: 3.4.1
       mingo: 6.5.3
 
-  '@signaldb/opfs@1.0.0(@signaldb/core@1.3.1)':
+  '@signaldb/indexeddb@1.0.0(@signaldb/core@1.3.1)':
     dependencies:
       '@signaldb/core': 1.3.1
 

@@ -1,7 +1,6 @@
 import type { Episode, Feed, LogEntry, Settings } from '$lib/types/db';
-import createOPFSAdapter from '@signaldb/opfs';
+import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
-import { Log } from '$lib/service/LogService';
 
 const reactivityConfig = {
 	create() {
@@ -22,22 +21,22 @@ export const db = {
 	feeds: new Collection<Feed>({
 		name: 'feeds',
 		reactivity: reactivityConfig,
-		persistence: createOPFSAdapter('feeds.json')
+		persistence: createIndexedDBAdapter('feeds.json')
 	}),
 	episodes: new Collection<Episode>({
 		name: 'episodes',
 		reactivity: reactivityConfig,
-		persistence: createOPFSAdapter('episodes.json')
+		persistence: createIndexedDBAdapter('episodes.json')
 	}),
 	logs: new Collection<LogEntry>({
 		name: 'logs',
 		reactivity: reactivityConfig,
-		persistence: createOPFSAdapter('logs.json')
+		persistence: createIndexedDBAdapter('logs.json')
 	}),
 	settings: new Collection<Settings>({
 		name: 'settings',
 		reactivity: reactivityConfig,
-		persistence: createOPFSAdapter('settings.json')
+		persistence: createIndexedDBAdapter('settings.json')
 	})
 };
 
