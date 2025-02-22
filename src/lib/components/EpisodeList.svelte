@@ -5,28 +5,20 @@
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
+	import { pushState } from '$app/navigation';
 
 	let { episodes, feedIconsById }: { episodes: Episode[]; feedIconsById?: Map<string, string> } =
 		$props();
-	let expandedEpisodeIds = $state<string[]>([]);
-
-	function toggleExpanded(episodeId: string) {
-		if (isExpanded(episodeId)) {
-			expandedEpisodeIds = expandedEpisodeIds.filter((id) => id !== episodeId);
-		} else {
-			expandedEpisodeIds = [...expandedEpisodeIds, episodeId];
-		}
-	}
-
-	function isExpanded(episodeId: string) {
-		return expandedEpisodeIds.includes(episodeId);
-	}
 
 	function playEpisode(episode: Episode) {
+		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
+		dialog.close();
 		EpisodeService.setPlayingEpisode(episode.id);
 	}
 
 	function downloadEpisode(episode: Episode) {
+		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
+		dialog.close();
 		downloadAudio(
 			episode.url,
 			() => handleDownloadComplete(episode.id!),
@@ -41,6 +33,20 @@
 	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
 		Log.error(`Download failed for episode ${episodeId}: ${err}`);
 	}
+
+	function showEpisodeDetails(episode: Episode) {
+		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
+		dialog.showModal();
+		// Push state so back button will close dialog
+		pushState('', {});
+
+		// Handle back button
+		const handlePopState = () => {
+			dialog.close();
+			window.removeEventListener('popstate', handlePopState);
+		};
+		window.addEventListener('popstate', handlePopState);
+	}
 </script>
 
 <div class="episode-list" role="list">
@@ -49,9 +55,7 @@
 			<button
 				class="episode-card__header"
 				type="button"
-				onclick={() => toggleExpanded(episode.id!)}
-				aria-expanded={isExpanded(episode.id!)}
-				aria-controls="details-{episode.id}"
+				onclick={() => showEpisodeDetails(episode)}
 			>
 				{#if feedIconsById}
 					<img
@@ -81,29 +85,38 @@
 				</div>
 			</button>
 
-			{#if isExpanded(episode.id!)}
-				<div id="details-{episode.id}" class="episode-card__details">
-					<div class="episode-card__actions">
-						<button
-							class="episode-card__action-btn"
-							aria-label="Play episode"
-							onclick={() => playEpisode(episode)}
-						>
-							<Play size="1rem" /> Play
-						</button>
-						<button
-							class="episode-card__action-btn"
-							aria-label="Save episode"
-							onclick={() => downloadEpisode(episode)}
-						>
-							<Plus size="1rem" /> Up Next
-						</button>
-					</div>
-					<div class="episode-card__content">
+			<dialog id="details-{episode.id}" class="episode-details">
+				<div class="episode-details__content">
+					<header class="episode-details__header">
+						{#if feedIconsById}
+							<img
+								class="episode-details__image"
+								src={`data:${feedIconsById.get(episode.feedId)}`}
+								alt=""
+							/>
+						{/if}
+						<div class="episode-details__title">{episode.title}</div>
+						<time class="episode-details__time">
+							<div>{formatEpisodeDate(episode.publishedAt)}</div>
+							<div><Dot size="14" /></div>
+							<div>{formatEpisodeDuration(episode.durationMin)}</div>
+						</time>
+					</header>
+
+					<div class="episode-details__description">
 						{@html episode.content}
 					</div>
+
+					<footer class="episode-details__actions">
+						<button class="episode-details__action-btn" onclick={() => playEpisode(episode)}>
+							<Play size="1.5rem" /> Play
+						</button>
+						<button class="episode-details__action-btn" onclick={() => downloadEpisode(episode)}>
+							<Plus size="1.5rem" /> Up Next
+						</button>
+					</footer>
 				</div>
-			{/if}
+			</dialog>
 		</article>
 	{/each}
 </div>
@@ -150,7 +163,7 @@
 	}
 
 	.episode-card__time {
-		font-size: 0.75rem;
+		font-size: var(--text-small);
 		font-family: monospace;
 		color: var(--primary);
 		min-height: 1.5rem;
@@ -159,42 +172,82 @@
 		gap: 0.25rem;
 	}
 
-	.episode-card__details {
-		font-size: 0.875rem;
-
-		/* dynamic @html content requires :global */
-		/* but styles remain scoped to .episode-card__description */
-
-		:global(p:first-child) {
-			margin-top: 0;
-		}
-
-		:global(p:last-child) {
-			margin-bottom: 0;
-		}
-
-		:global(img) {
-			display: none;
-		}
+	.episode-details {
+		height: 100vh;
+		max-width: 100vw;
+		max-height: 100vh;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		border: none;
+		background: var(--bg);
+		color: var(--text);
 	}
 
-	.episode-card__content {
-		padding: 1.5rem;
-		border-bottom: 1px solid var(--primary-less);
+	.episode-details__content {
+		display: grid;
+		height: 100vh;
+		grid-template-rows: auto 1fr auto;
+		gap: 2rem;
+		box-sizing: border-box;
+		padding: 2rem;
 	}
 
-	.episode-card__actions {
-		float: right;
+	.episode-details__header {
 		display: flex;
-		/* margin: 1rem; */
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 2rem;
 	}
 
-	.episode-card__action-btn {
+	.episode-details__image {
+		max-width: 60vw;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: 0.5rem;
+	}
+
+	.episode-details__title {
+		font-size: var(--text-2xl);
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.episode-details__time {
+		font-size: var(--text-medium);
+		font-family: monospace;
+		color: var(--primary);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.episode-details__description {
+		overflow-y: auto;
+	}
+
+	.episode-details__actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		padding: 1rem 0;
+	}
+
+	.episode-details__action-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 		background: var(--primary-less);
 		color: var(--neutral);
 		border: none;
-		/* font-weight: 500; */
-		padding: 1rem;
-		/* color: var(--text); */
+		padding: 1rem 2rem;
+		border-radius: 0.5rem;
+		font-weight: 500;
+		cursor: pointer;
+	}
+
+	.episode-details__action-btn:hover {
+		background: var(--primary);
 	}
 </style>

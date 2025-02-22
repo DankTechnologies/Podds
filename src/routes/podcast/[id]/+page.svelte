@@ -1,18 +1,18 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import type { Episode, Feed } from '$lib/types/db';
-	import { db, getAllFeeds } from '$lib/stores/db.svelte';
+	import type { Episode } from '$lib/types/db';
+	import { db } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 
 	const feedId = page.params.id;
 
-	const ITEMS_PER_PAGE = 100;
+	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
 	let episodes = $state.raw<Episode[]>([]);
-	let feed = $derived(getAllFeeds().find((f) => f.id === feedId));
+	let feed = db.feeds.findOne({ id: feedId });
 
 	$effect(() => {
 		let episodesCursor = db.episodes.find(
@@ -93,9 +93,6 @@
 		width: 150px;
 		height: 150px;
 		border-radius: 0.5rem;
-		box-shadow:
-			4px 6px 6px -1px rgb(0 0 0 / 0.3),
-			2px 4px 4px -2px rgb(0 0 0 / 0.2);
 		object-fit: cover;
 	}
 

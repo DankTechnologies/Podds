@@ -2,10 +2,10 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { onMount } from 'svelte';
 	import { db, getAllFeeds } from '$lib/stores/db.svelte';
-	import type { Episode, Feed } from '$lib/types/db';
+	import type { Episode } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	const ITEMS_PER_PAGE = 100;
+	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
