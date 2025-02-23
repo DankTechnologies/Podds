@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { RotateCcw, RotateCw, Play, Pause, Menu } from 'lucide-svelte';
+	import { RotateCcw, RotateCw, Play, Pause, X } from 'lucide-svelte';
 	import { Log } from '$lib/service/LogService';
-	import { getAllFeeds, getPlayingEpisode } from '$lib/stores/db.svelte';
+	import { getFeeds, getPlayingEpisode } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService';
 
 	const ICON_SIZE = '2rem';
 
 	let episode = $derived(getPlayingEpisode());
-	let feed = $derived(getAllFeeds().find((f) => f.id === episode?.feedId));
+	let feed = $derived(getFeeds().find((f) => f.id === episode?.feedId));
 	let currentTime = $state(0);
 	let duration = $state(0);
 	let paused = $state(true);
@@ -34,6 +34,11 @@
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		currentTime = newTime;
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
+	}
+
+	function handleStop() {
+		if (!episode) return;
+		EpisodeService.clearPlayingEpisode();
 	}
 
 	function handlePlaylist() {
@@ -106,8 +111,8 @@
 				</div>
 			</button>
 
-			<button class="player__button" onclick={handlePlaylist}>
-				<Menu size={ICON_SIZE} />
+			<button class="player__button" onclick={handleStop}>
+				<X size={ICON_SIZE} />
 			</button>
 		</div>
 	</div>

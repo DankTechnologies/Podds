@@ -1,6 +1,7 @@
 import type { Episode, Feed, LogEntry, Settings } from '$lib/types/db';
 import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
+import { SvelteMap } from 'svelte/reactivity';
 
 const reactivityConfig = {
 	create() {
@@ -43,6 +44,7 @@ export const db = {
 // consolidate live queries here
 
 let feeds = $state.raw<Feed[]>([]);
+let episodes = $state.raw<Episode[]>([]);
 let playingEpisode = $state.raw<Episode>();
 let settings = $state.raw<Settings>();
 
@@ -57,6 +59,15 @@ $effect.root(() => {
 	});
 
 	$effect(() => {
+		const episodesCursor = db.episodes.find();
+		episodes = episodesCursor.fetch();
+
+		return () => {
+			episodesCursor.cleanup();
+		};
+	});
+
+	$effect(() => {
 		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
 	});
 
@@ -65,16 +76,24 @@ $effect.root(() => {
 	});
 });
 
-function getAllFeeds() {
+function getFeeds() {
 	return feeds;
+}
+
+function getFeedIconsById() {
+	return new SvelteMap(getFeeds().map((feed) => [feed.id, feed.iconData]));
 }
 
 function getPlayingEpisode() {
 	return playingEpisode;
 }
 
+function getEpisodes() {
+	return episodes;
+}
+
 function getSettings() {
 	return settings;
 }
 
-export { getAllFeeds, getPlayingEpisode, getSettings };
+export { getFeeds, getFeedIconsById, getPlayingEpisode, getSettings, getEpisodes };

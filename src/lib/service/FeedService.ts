@@ -1,5 +1,5 @@
 import PodcastIndexClient from '$lib/api/podcast-index';
-import { db, getAllFeeds, getSettings } from '$lib/stores/db.svelte';
+import { db, getFeeds, getSettings } from '$lib/stores/db.svelte';
 import type { Episode } from '$lib/types/db';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
@@ -37,7 +37,7 @@ export class FeedService {
 				return;
 			}
 
-			let feedIds = getAllFeeds().map((feed) => feed.id);
+			let feedIds = getFeeds().map((feed) => feed.id);
 
 			if (feedIds.length === 0) {
 				Log.warn('No feeds found, skipping update');

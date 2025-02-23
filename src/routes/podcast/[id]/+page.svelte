@@ -1,8 +1,7 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import type { Episode } from '$lib/types/db';
-	import { db } from '$lib/stores/db.svelte';
+	import { getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 
 	const feedId = page.params.id;
@@ -11,23 +10,13 @@
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
-	let episodes = $state.raw<Episode[]>([]);
-	let feed = db.feeds.findOne({ id: feedId });
-
-	$effect(() => {
-		let episodesCursor = db.episodes.find(
-			{ feedId: feedId },
-			{
-				sort: { publishedAt: -1 },
-				limit
-			}
-		);
-		episodes = episodesCursor.fetch();
-
-		return () => {
-			episodesCursor.cleanup();
-		};
-	});
+	let episodes = $derived(
+		getEpisodes()
+			.filter((episode) => episode.feedId === feedId)
+			.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+			.slice(0, limit)
+	);
+	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 
 	onMount(() => {
 		const observer = new IntersectionObserver(

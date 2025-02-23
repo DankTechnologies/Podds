@@ -4,7 +4,7 @@
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { Home, ListMusic, ScrollText, Search, Settings } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
-	import { getAllFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -12,7 +12,7 @@
 		SessionInfo.hasUpdate = true;
 	});
 
-	let hasFeeds = $derived(getAllFeeds().length > 0);
+	let hasFeeds = $derived(getFeeds().length > 0);
 	let hasSettings = $derived(getSettings() !== undefined);
 
 	const isActive = $derived((href: string) => {

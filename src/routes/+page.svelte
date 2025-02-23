@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getAllFeeds } from '$lib/stores/db.svelte';
+	import { getFeeds } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
 
 	let feeds = $derived(
-		getAllFeeds()
+		getFeeds()
 			.reduce((unique: Feed[], feed) => {
 				if (!unique.some((f) => f.id === feed.id)) {
 					unique.push(feed);

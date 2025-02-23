@@ -1,34 +1,19 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { onMount } from 'svelte';
-	import { db, getAllFeeds } from '$lib/stores/db.svelte';
-	import type { Episode } from '$lib/types/db';
-	import { SvelteMap } from 'svelte/reactivity';
+	import { getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
 
 	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
-	let episodes = $state.raw<Episode[]>([]);
-	let feedIconsById = $derived(
-		new SvelteMap(getAllFeeds().map((feed) => [feed.id, feed.iconData]))
+	let feedIconsById = $derived(getFeedIconsById());
+
+	let episodes = $derived(
+		getEpisodes()
+			.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+			.slice(0, limit)
 	);
-
-	$effect(() => {
-		let episodesCursor = db.episodes.find(
-			{},
-			{
-				sort: { publishedAt: -1 },
-				limit
-			}
-		);
-
-		episodes = episodesCursor.fetch();
-
-		return () => {
-			episodesCursor.cleanup();
-		};
-	});
 
 	async function loadMoreEpisodes() {
 		limit += ITEMS_PER_PAGE;

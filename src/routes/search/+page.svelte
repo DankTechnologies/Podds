@@ -2,13 +2,12 @@
 	import { PodcastIndexClient } from '$lib/api/podcast-index';
 	import type { PIApiFeed } from '$lib/types/podcast-index';
 	import { Search as SearchIcon, Check } from 'lucide-svelte';
-	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService';
 	import { Log } from '$lib/service/LogService';
-	import { getAllFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 
 	let query = $state('');
 	let feedResults = $state<PIApiFeed[]>([]);
@@ -95,7 +94,7 @@
 					<button
 						onclick={() => addFeed(feed)}
 						aria-label={`Add ${feed.title} podcast`}
-						disabled={getAllFeeds()?.some((f) => f.id === feed.id.toString())}
+						disabled={getFeeds()?.some((f) => f.id === feed.id.toString())}
 					>
 						<div class="image-container">
 							{#if !resizedImageById.has(feed.id)}
@@ -107,7 +106,7 @@
 									<span>{feed.title[0]?.toUpperCase() || '?'}</span>
 								</div>
 							{/if}
-							{#if getAllFeeds()?.some((f) => f.id === feed.id.toString())}
+							{#if getFeeds()?.some((f) => f.id === feed.id.toString())}
 								<div class="added-overlay">
 									<Check size="2rem" />
 								</div>
