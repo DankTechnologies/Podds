@@ -13,7 +13,7 @@ const config = {
 			relative: false
 		},
 		serviceWorker: {
-			register: process.env.NODE_ENV === 'production'
+			register: true //process.env.NODE_ENV === 'production'
 		}
 	}
 };

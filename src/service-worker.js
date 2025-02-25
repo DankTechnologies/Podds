@@ -84,7 +84,7 @@ const handleRequest = async ({ request }) => {
 	}
 
 	// MP3 caching logic
-	if (request.destination === 'audio') {
+	if (url.href.endsWith('cacheAudio=true')) {
 		console.log('Fetching MP3 resource:', request.url);
 
 		// don't await the fetch, as that blocks playback until the full MP3 downloaded

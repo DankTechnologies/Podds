@@ -6,32 +6,42 @@
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { pushState } from '$app/navigation';
+	import { AudioService } from '$lib/service/AudioService.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	let { episodes, feedIconsById }: { episodes: Episode[]; feedIconsById?: Map<string, string> } =
 		$props();
 
+	let downloadProgress = $state(new SvelteMap<string, number>());
+
 	function playEpisode(episode: Episode) {
-		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
-		dialog.close();
+		// Start download if not already downloaded
+		downloadEpisode(episode);
+
 		EpisodeService.setPlayingEpisode(episode.id);
+		AudioService.play(episode.url, episode.playbackPosition ?? 0);
 	}
 
 	function downloadEpisode(episode: Episode) {
 		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
 		dialog.close();
+
 		downloadAudio(
 			episode.url,
 			() => handleDownloadComplete(episode.id!),
-			(err) => handleDownloadError(episode.id!, err)
+			(err) => handleDownloadError(episode.id!, err),
+			(progress) => downloadProgress.set(episode.id!, progress)
 		);
 	}
 
 	function handleDownloadComplete(episodeId: string) {
 		EpisodeService.markDownloaded(episodeId);
+		downloadProgress.delete(episodeId);
 	}
 
 	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
-		Log.error(`Download failed for episode ${episodeId}: ${err}`);
+		EpisodeService.clearDownloaded(episodeId);
+		Log.error(`Download failed for episode ${episodeId}: ${err.message ?? err.toString()}`);
 	}
 
 	function showEpisodeDetails(episode: Episode) {
@@ -78,6 +88,10 @@
 						{#if episode.isDownloaded}
 							<div>
 								<Check size="14" />
+							</div>
+						{:else if downloadProgress.has(episode.id)}
+							<div class="download-progress">
+								{Math.round(downloadProgress.get(episode.id) ?? 0)}%
 							</div>
 						{/if}
 					</time>
@@ -249,5 +263,11 @@
 
 	.episode-details__action-btn:hover {
 		background: var(--primary);
+	}
+
+	.download-progress {
+		color: var(--primary);
+		font-size: var(--text-small);
+		min-width: 3ch;
 	}
 </style>

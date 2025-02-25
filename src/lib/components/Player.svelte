@@ -1,53 +1,91 @@
 <script lang="ts">
 	import { RotateCcw, RotateCw, Play, Pause, X } from 'lucide-svelte';
 	import { Log } from '$lib/service/LogService';
-	import { getFeeds, getPlayingEpisode } from '$lib/stores/db.svelte';
+	import { getPlayingEpisode, getPlayingEpisodeFeed } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService';
+	import { AudioService } from '$lib/service/AudioService.svelte';
+	import { onMount } from 'svelte';
 
 	const ICON_SIZE = '2rem';
 
 	let episode = $derived(getPlayingEpisode());
-	let feed = $derived(getFeeds().find((f) => f.id === episode?.feedId));
+	let feed = $derived(getPlayingEpisodeFeed());
 	let currentTime = $state(0);
 	let duration = $state(0);
 	let paused = $state(true);
 
+	onMount(() => {
+		if (episode) {
+			AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
+		}
+	});
+
 	$effect(() => {
-		currentTime = episode?.playbackPosition ?? 0;
+		const updateTime = () => {
+			currentTime = AudioService.getCurrentTime();
+		};
+
+		AudioService.addEventListener('timeupdate', updateTime);
+
+		return () => {
+			AudioService.removeEventListener('timeupdate', updateTime);
+		};
+	});
+
+	$effect(() => {
+		const updateDuration = () => {
+			duration = AudioService.getDuration();
+		};
+
+		AudioService.addEventListener('durationchange', updateDuration);
+
+		return () => {
+			AudioService.removeEventListener('durationchange', updateDuration);
+		};
+	});
+
+	$effect(() => {
+		const updatePaused = () => {
+			paused = AudioService.getPaused();
+		};
+
+		AudioService.addEventListener('pause', updatePaused);
+		AudioService.addEventListener('play', updatePaused);
+
+		return () => {
+			AudioService.removeEventListener('pause', updatePaused);
+			AudioService.removeEventListener('play', updatePaused);
+		};
 	});
 
 	function handleBack() {
 		if (!episode) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
-		currentTime = newTime;
+		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
 	function handlePlayPause() {
 		if (!episode) return;
-		paused = !paused;
+		AudioService.togglePlayPause();
 	}
 
 	function handleForward() {
 		if (!episode) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
-		currentTime = newTime;
+		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
 	function handleStop() {
 		if (!episode) return;
+		AudioService.stop();
 		EpisodeService.clearPlayingEpisode();
-	}
-
-	function handlePlaylist() {
-		Log.info('Opening playlist/menu');
 	}
 </script>
 
-{#if episode}
-	<audio src={episode.url} bind:duration bind:currentTime bind:paused></audio>
+{#if episode && feed}
 	<div class="player">
 		<div class="player__time">
 			<div>
@@ -68,7 +106,7 @@
 				const newTime = Number(target.value);
 				Log.debug(`Attempting to set time to ${newTime} of ${duration}`);
 				if (episode) {
-					currentTime = newTime;
+					AudioService.seek(newTime);
 					EpisodeService.updatePlaybackPosition(episode.id, newTime);
 				}
 			}}

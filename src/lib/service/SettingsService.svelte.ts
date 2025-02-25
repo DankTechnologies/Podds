@@ -36,15 +36,22 @@ export class SettingsService {
 			await Promise.all(cacheKeys.map((key) => caches.delete(key)));
 		}
 
-		// Clear OPFS
+		// Clear IndexedDB
 		try {
-			const root = await navigator.storage.getDirectory();
-			// @ts-ignore
-			for await (const handle of root.values()) {
-				await root.removeEntry(handle.name, { recursive: true });
-			}
+			const databases = await window.indexedDB.databases();
+			await Promise.all(
+				databases.map(
+					({ name }) =>
+						new Promise((resolve, reject) => {
+							if (!name) return resolve(undefined);
+							const request = window.indexedDB.deleteDatabase(name);
+							request.onsuccess = () => resolve(undefined);
+							request.onerror = () => reject(request.error);
+						})
+				)
+			);
 		} catch (error) {
-			console.error('Failed to clear OPFS:', error);
+			console.error('Failed to clear IndexedDB:', error);
 		}
 	}
 }

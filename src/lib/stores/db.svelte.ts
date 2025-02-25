@@ -46,6 +46,7 @@ export const db = {
 let feeds = $state.raw<Feed[]>([]);
 let episodes = $state.raw<Episode[]>([]);
 let playingEpisode = $state.raw<Episode>();
+let playingEpisodeFeed = $state.raw<Feed>();
 let settings = $state.raw<Settings>();
 
 $effect.root(() => {
@@ -72,6 +73,10 @@ $effect.root(() => {
 	});
 
 	$effect(() => {
+		playingEpisodeFeed = db.feeds.findOne({ id: playingEpisode?.feedId });
+	});
+
+	$effect(() => {
 		settings = db.settings.findOne({ id: '1' });
 	});
 });
@@ -88,6 +93,10 @@ function getPlayingEpisode() {
 	return playingEpisode;
 }
 
+function getPlayingEpisodeFeed() {
+	return playingEpisodeFeed;
+}
+
 function getEpisodes() {
 	return episodes;
 }
@@ -96,4 +105,11 @@ function getSettings() {
 	return settings;
 }
 
-export { getFeeds, getFeedIconsById, getPlayingEpisode, getSettings, getEpisodes };
+export {
+	getFeeds,
+	getFeedIconsById,
+	getPlayingEpisode,
+	getPlayingEpisodeFeed,
+	getSettings,
+	getEpisodes
+};
