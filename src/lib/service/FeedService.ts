@@ -69,58 +69,56 @@ export class FeedService {
 
 			Log.info('Finished update of all feeds');
 		} catch (error) {
-			Log.error(`Error updating all feeds: ${error}`);
+			const errorMessage =
+				error instanceof Error ? `${error.message}\n${error.stack}` : String(error);
+			Log.error(`Error updating all feeds: ${errorMessage}`);
 		}
 	}
 
 	async updateFeedEpisodes(feedIds: string, since?: number): Promise<void> {
 		await this.initialize();
 
-		try {
-			const episodes = (
-				await this.api!.episodesByFeedIds(feedIds, { max: 1000, since }).then((res) => res.items)
-			).map(
-				(episode): Episode => ({
-					id: episode.id.toString(),
-					feedId: episode.feedId.toString(),
-					title: episode.title,
-					publishedAt: new Date(episode.datePublished * 1000),
-					content: episode.description,
-					url: episode.enclosureUrl,
-					durationMin: Math.floor(episode.duration / 60),
-					mime_type: episode.enclosureType,
-					size: episode.enclosureLength,
-					isDownloaded: 0,
-					isPlaying: 0,
-					playbackPosition: 0
-				})
-			);
+		const episodes = (
+			await this.api!.episodesByFeedIds(feedIds, { max: 1000, since }).then((res) => res.items)
+		).map(
+			(episode): Episode => ({
+				id: episode.id.toString(),
+				feedId: episode.feedId.toString(),
+				title: episode.title,
+				publishedAt: new Date(episode.datePublished * 1000),
+				content: episode.description,
+				url: episode.enclosureUrl,
+				durationMin: Math.floor(episode.duration / 60),
+				mime_type: episode.enclosureType,
+				size: episode.enclosureLength,
+				isDownloaded: 0,
+				isPlaying: 0,
+				playbackPosition: 0
+			})
+		);
 
-			Log.debug(`${episodes.length} episodes found`);
+		Log.debug(`${episodes.length} episodes found`);
 
-			if (episodes.length === 0) {
-				return;
-			}
+		if (episodes.length === 0) {
+			return;
+		}
 
-			if (since) {
-				db.episodes.batch(() => {
-					episodes.forEach((x) => {
-						const match = db.episodes.findOne({ id: x.id });
+		if (since) {
+			db.episodes.batch(() => {
+				episodes.forEach((x) => {
+					const match = db.episodes.findOne({ id: x.id });
 
-						if (match) {
-							Log.debug(`Updating ${x.title}`);
-							db.episodes.updateOne({ id: x.id }, { $set: { x } });
-						} else {
-							Log.debug(`Adding ${x.title}`);
-							db.episodes.insert(x);
-						}
-					});
+					if (match) {
+						Log.debug(`Updating ${x.title}`);
+						db.episodes.updateOne({ id: x.id }, { $set: { x } });
+					} else {
+						Log.debug(`Adding ${x.title}`);
+						db.episodes.insert(x);
+					}
 				});
-			} else {
-				db.episodes.insertMany(episodes);
-			}
-		} catch (error) {
-			Log.error(`Error updating feed: ${error}`);
+			});
+		} else {
+			db.episodes.insertMany(episodes);
 		}
 	}
 
