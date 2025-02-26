@@ -16,6 +16,21 @@ const ASSETS = [
 	...files // Everything in `static`
 ];
 
+const log = (level, message) => {
+	// Send to console AND to the main thread
+	console[level](message);
+
+	self.clients.matchAll().then((clients) => {
+		clients.forEach((client) => {
+			client.postMessage({
+				type: 'LOG',
+				level,
+				message
+			});
+		});
+	});
+};
+
 // ===================
 // == Caching logic ==
 // ===================
@@ -52,32 +67,32 @@ const handleRequest = async ({ request }) => {
 
 	// Serve the cached shell for navigation requests from our origin
 	if (request.mode === 'navigate' && isOwnOrigin) {
-		console.log('Navigation request, serving cached shell:', request.url);
+		log('info', 'Navigation request, serving cached shell: ' + request.url);
 		const cachedShell = await caches.match('/');
 		if (cachedShell) {
 			return cachedShell;
 		}
 
-		console.error('Cached shell is missing! Falling back to network:', request.url);
+		log('error', 'Cached shell is missing! Falling back to network: ' + request.url);
 		return fetch(request);
 	}
 
 	// Check if the request is already in any cache
-	const responseFromCache = await caches.match(request);
+	const responseFromCache = await caches.match(url.href);
 	if (responseFromCache) {
-		console.log('Serving from cache:', request.url);
+		log('info', 'Serving from cache: ' + request.url);
 		return responseFromCache;
 	}
 
 	// Static asset handling - only for our origin
 	if (isOwnOrigin && ASSETS.includes(url.pathname)) {
-		console.warn('Static asset not found in cache, fetching from network:', request.url);
+		log('warn', 'Static asset not found in cache, fetching from network: ' + request.url);
 		const networkResponse = await fetch(request);
 
 		try {
 			await putInCache(STATIC_CACHE, request, networkResponse.clone());
 		} catch (err) {
-			console.error('Failed to cache static asset:', request.url, err);
+			log('error', 'Failed to cache static asset: ' + request.url + ', ' + err);
 		}
 
 		return networkResponse;
@@ -85,15 +100,17 @@ const handleRequest = async ({ request }) => {
 
 	// MP3 caching logic
 	if (url.href.endsWith('cacheAudio=true')) {
-		console.log('Fetching MP3 resource:', request.url);
+		log('info', 'Fetching MP3 resource: ' + request.url);
 
 		// don't await the fetch, as that blocks playback until the full MP3 downloaded
 		// without await, playback is immediate AND the mp3 downloads to the cache
 		const networkResponse = fetch(request);
 
 		networkResponse.then((response) => {
-			putInCache(MP3_CACHE, request, response.clone()).catch((err) =>
-				console.error('Failed to cache MP3 resource:', request.url, err)
+			// use just the url as the cache key to align with cache-checking logic above
+			const cacheKey = new Request(url.href);
+			putInCache(MP3_CACHE, cacheKey, response.clone()).catch((err) =>
+				log('error', 'Failed to cache MP3 resource: ' + url.href + ', ' + err)
 			);
 		});
 
@@ -101,7 +118,7 @@ const handleRequest = async ({ request }) => {
 	}
 
 	// Default: Use network-only strategy for other requests
-	console.log('Default network fetch:', request.url);
+	log('info', 'Default network fetch: ' + request.url);
 	return fetch(request);
 };
 
@@ -110,17 +127,17 @@ const handleRequest = async ({ request }) => {
 // =====================
 
 sw.addEventListener('install', (event) => {
-	console.log('Service worker installing...');
+	log('info', 'Service worker installing...');
 	event.waitUntil(addResourcesToCache());
 });
 
 // This allows controlled updates via user interaction
 sw.addEventListener('message', (event) => {
-	console.log('Service worker received message:', event.data);
+	log('info', 'Service worker received message: ' + event.data);
 	if (event.data && event.data.type === 'SKIP_WAITING') {
-		console.log('Calling skipWaiting()');
+		log('info', 'Calling skipWaiting()');
 		sw.skipWaiting().then(() => {
-			console.log('skipWaiting() completed!');
+			log('info', 'skipWaiting() completed!');
 		});
 	}
 });
@@ -136,15 +153,15 @@ sw.addEventListener('fetch', (event) => {
 });
 
 sw.addEventListener('activate', (event) => {
-	console.log('Service worker activating...');
+	log('info', 'Service worker activating...');
 	event.waitUntil(
 		Promise.all([
 			deleteOldCaches(),
 			self.clients.claim().then(() => {
-				console.log('clients.claim() completed');
+				log('info', 'clients.claim() completed');
 			})
 		]).then(() => {
-			console.log('Activation complete');
+			log('info', 'Activation complete');
 		})
 	);
 });

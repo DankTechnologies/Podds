@@ -15,11 +15,17 @@
 	let downloadProgress = $state(new SvelteMap<string, number>());
 
 	function playEpisode(episode: Episode) {
-		// Start download if not already downloaded
-		downloadEpisode(episode);
+		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
+		dialog.close();
 
 		EpisodeService.setPlayingEpisode(episode.id);
-		AudioService.play(episode.url, episode.playbackPosition ?? 0);
+		AudioService.play(
+			episode.url,
+			episode.playbackPosition ?? 0,
+			(progress) => downloadProgress.set(episode.id!, progress),
+			() => handleDownloadComplete(episode.id!),
+			(err) => handleDownloadError(episode.id!, err)
+		);
 	}
 
 	function downloadEpisode(episode: Episode) {

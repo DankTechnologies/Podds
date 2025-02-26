@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { RotateCcw, RotateCw, Play, Pause, X } from 'lucide-svelte';
-	import { Log } from '$lib/service/LogService';
 	import { getPlayingEpisode, getPlayingEpisodeFeed } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService';
@@ -14,10 +13,19 @@
 	let currentTime = $state(0);
 	let duration = $state(0);
 	let paused = $state(true);
+	let showDetailedControls = $state(false);
+
+	$inspect(showDetailedControls);
 
 	onMount(() => {
 		if (episode) {
 			AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
+		}
+	});
+
+	$effect(() => {
+		if (episode) {
+			showDetailedControls = false;
 		}
 	});
 
@@ -59,26 +67,30 @@
 		};
 	});
 
-	function handleBack() {
+	function handleBack(e: Event) {
+		e.stopPropagation();
 		if (!episode) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
-	function handlePlayPause() {
+	function handlePlayPause(e: Event) {
+		e.stopPropagation();
 		if (!episode) return;
 		AudioService.togglePlayPause();
 	}
 
-	function handleForward() {
+	function handleForward(e: Event) {
+		e.stopPropagation();
 		if (!episode) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
 	}
 
-	function handleStop() {
+	function handleStop(e: Event) {
+		e.stopPropagation();
 		if (!episode) return;
 		AudioService.stop();
 		EpisodeService.clearPlayingEpisode();
@@ -86,39 +98,59 @@
 </script>
 
 {#if episode && feed}
-	<div class="player">
-		<div class="player__time">
-			<div>
-				{formatPlaybackPosition(currentTime)}
+	<div
+		class="player"
+		class:player--expanded={showDetailedControls}
+		onclick={() => (showDetailedControls = !showDetailedControls)}
+		onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
+		role="button"
+		tabindex="0"
+	>
+		{#if showDetailedControls}
+			<div class="player__episode-title">
+				{episode.title}
 			</div>
-			<div>
-				-{formatPlaybackPosition(duration - currentTime)}
+			<div class="player__time">
+				<div>
+					{formatPlaybackPosition(currentTime)}
+				</div>
+				<div>
+					-{formatPlaybackPosition(duration - currentTime)}
+				</div>
 			</div>
-		</div>
-		<input
-			class="player__playback"
-			type="range"
-			min="0"
-			bind:value={currentTime}
-			max={duration}
-			oninput={(event) => {
-				const target = event.target as HTMLInputElement;
-				const newTime = Number(target.value);
-				Log.debug(`Attempting to set time to ${newTime} of ${duration}`);
-				if (episode) {
-					AudioService.seek(newTime);
-					EpisodeService.updatePlaybackPosition(episode.id, newTime);
-				}
-			}}
-		/>
+			<input
+				class="player__playback"
+				type="range"
+				min="0"
+				bind:value={currentTime}
+				max={duration}
+				onchange={(event) => {
+					const target = event.target as HTMLInputElement;
+					const newTime = Number(target.value);
+
+					if (episode) {
+						AudioService.seek(newTime);
+						EpisodeService.updatePlaybackPosition(episode.id, newTime);
+					}
+				}}
+			/>
+		{:else}
+			<input
+				class="player__playback"
+				type="range"
+				min="0"
+				bind:value={currentTime}
+				max={duration}
+				style="--value: {currentTime}; --max: {duration}"
+				disabled
+			/>
+		{/if}
 		<div class="player__controls">
 			<div class="player__artwork">
-				{#if feed?.iconData}
-					<img src={`data:${feed.iconData}`} alt="" />
-				{/if}
+				<img src={`data:${feed.iconData}`} alt="" />
 			</div>
 
-			<button class="player__button" onclick={handleBack}>
+			<button class="player__button" onclick={(e) => handleBack(e)}>
 				<div class="stack-cell">
 					<div>
 						<RotateCcw size={ICON_SIZE} />
@@ -127,7 +159,7 @@
 				</div>
 			</button>
 
-			<button class="player__button play-pause" onclick={handlePlayPause}>
+			<button class="player__button play-pause" onclick={(e) => handlePlayPause(e)}>
 				<div class="stack-cell">
 					<div class="play-pause__circle"></div>
 					<div class="play-pause__icon">
@@ -140,7 +172,7 @@
 				</div>
 			</button>
 
-			<button class="player__button" onclick={handleForward}>
+			<button class="player__button" onclick={(e) => handleForward(e)}>
 				<div class="stack-cell">
 					<div>
 						<RotateCw size={ICON_SIZE} />
@@ -149,7 +181,7 @@
 				</div>
 			</button>
 
-			<button class="player__button" onclick={handleStop}>
+			<button class="player__button" onclick={(e) => handleStop(e)}>
 				<X size={ICON_SIZE} />
 			</button>
 		</div>
@@ -159,17 +191,19 @@
 <style>
 	.player {
 		display: flex;
+		container-type: inline-size;
 		flex-direction: column;
 		position: fixed;
 		bottom: 4rem;
 		left: 0;
 		right: 0;
 		z-index: 50;
-		opacity: 0.99;
-		backdrop-filter: blur(1rem) saturate(50%);
-		background: rgba(var(--neutral-rgb), 0.7);
-		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		background: var(--bg);
+	}
+
+	.player__episode-title {
+		text-align: center;
+		font-weight: bold;
 	}
 
 	.player__time {
@@ -183,13 +217,53 @@
 		display: flex;
 		flex: 1;
 		appearance: none;
-		background: var(--primary);
+		-webkit-appearance: none;
 		margin-top: 0.5rem;
+		height: 0.25rem;
+		border: none;
+		--progress: calc((var(--value) / var(--max)) * 100%);
 	}
 
+	/* Track styles */
+	.player__playback::-webkit-slider-runnable-track {
+		height: 0.25rem;
+		background: linear-gradient(
+			to right,
+			var(--primary) var(--progress),
+			var(--bg-less) var(--progress)
+		);
+		border: none;
+	}
+
+	.player__playback::-moz-range-track {
+		height: 0.25rem;
+		background: linear-gradient(
+			to right,
+			var(--primary) var(--progress),
+			var(--bg) var(--progress)
+		);
+		border: none;
+	}
+
+	/* Hide thumb in collapsed state */
 	.player__playback::-webkit-slider-thumb {
 		-webkit-appearance: none;
 		appearance: none;
+		width: 0;
+		height: 0;
+	}
+
+	.player__playback::-moz-range-thumb {
+		width: 0;
+		height: 0;
+		border: none;
+	}
+
+	.player--expanded .player__playback {
+		background: var(--primary);
+	}
+
+	.player--expanded .player__playback::-webkit-slider-thumb {
 		width: 1.25rem;
 		height: 1.5rem;
 		background-color: var(--primary-more);
@@ -201,7 +275,7 @@
 		border-top-right-radius: 0.25rem;
 	}
 
-	.player__playback::-moz-range-thumb {
+	.player--expanded .player__playback::-moz-range-thumb {
 		width: 1.25rem;
 		height: 1.25rem;
 		background-color: var(--primary-more);

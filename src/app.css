@@ -13,7 +13,10 @@
 	--text-xl: clamp(1.25rem, 3vw, 1.5rem);
 	--text-2xl: clamp(1.5rem, 4vw, 2rem);
 	--text-3xl: clamp(2rem, 5vw, 2.5rem);
+	--text-4xl: clamp(2.5rem, 6vw, 3rem);
+	--text-5xl: clamp(3rem, 7vw, 3.5rem);
 
+	/* Colors */
 	--primary: oklch(60% 0.18 300);
 	--accent: oklch(80.6% 0.1683 76.94);
 	--neutral: oklch(95% 0.01 270);
@@ -150,6 +153,7 @@ button,
 img,
 svg {
 	user-select: none;
+	outline: none;
 	-webkit-tap-highlight-color: transparent;
 }
 
