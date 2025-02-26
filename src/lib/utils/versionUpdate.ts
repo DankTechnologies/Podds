@@ -14,7 +14,7 @@ export function onUpdateReady(callback: () => void): void {
 			Log.debug('Service worker is ready');
 
 			registration.addEventListener('updatefound', () => {
-				Log.info('Update found for service worker');
+				Log.debug('Update found for service worker');
 				const newWorker = registration.installing;
 
 				if (!newWorker) {
@@ -25,7 +25,7 @@ export function onUpdateReady(callback: () => void): void {
 				newWorker.onstatechange = function () {
 					Log.debug(`Service worker state changed to ${this.state}`);
 					if (this.state === 'installed' && navigator.serviceWorker.controller) {
-						Log.info('New service worker ready to take over');
+						Log.debug('New service worker ready to take over');
 						callback();
 					}
 				};
@@ -45,7 +45,7 @@ export function applyUpdate(): void {
 		return;
 	}
 
-	Log.info('Initiating service worker update');
+	Log.debug('Initiating service worker update');
 	navigator.serviceWorker.getRegistration().then((registration) => {
 		if (!registration) {
 			Log.warn('No service worker registration found');

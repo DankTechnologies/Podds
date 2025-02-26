@@ -2,7 +2,20 @@ import { db } from '$lib/stores/db.svelte';
 import type { LogEntry } from '$lib/types/db';
 
 export class Log {
+	private static levels = {
+		debug: 0,
+		info: 1,
+		warn: 2,
+		error: 3
+	} as const;
+
+	private static minLevel: keyof typeof Log.levels = 'info';
+
 	private static async write(level: LogEntry['level'], message: string) {
+		if (Log.levels[level] < Log.levels[this.minLevel]) {
+			return;
+		}
+
 		const entry: LogEntry = {
 			id: crypto.randomUUID(),
 			timestamp: Date.now(),
@@ -39,5 +52,9 @@ export class Log {
 				}
 			});
 		}
+	}
+
+	static setMinLevel(level: keyof typeof Log.levels) {
+		this.minLevel = level;
 	}
 }

@@ -67,7 +67,7 @@ const handleRequest = async ({ request }) => {
 
 	// Serve the cached shell for navigation requests from our origin
 	if (request.mode === 'navigate' && isOwnOrigin) {
-		log('info', 'Navigation request, serving cached shell: ' + request.url);
+		log('debug', 'Navigation request, serving cached shell: ' + request.url);
 		const cachedShell = await caches.match('/');
 		if (cachedShell) {
 			return cachedShell;
@@ -80,7 +80,7 @@ const handleRequest = async ({ request }) => {
 	// Check if the request is already in any cache
 	const responseFromCache = await caches.match(url.href);
 	if (responseFromCache) {
-		log('info', 'Serving from cache: ' + request.url);
+		log('debug', 'Serving from cache: ' + request.url);
 		return responseFromCache;
 	}
 
@@ -100,7 +100,7 @@ const handleRequest = async ({ request }) => {
 
 	// MP3 caching logic
 	if (url.href.endsWith('cacheAudio=true')) {
-		log('info', 'Fetching MP3 resource: ' + request.url);
+		log('debug', 'Fetching MP3 resource: ' + request.url);
 
 		// don't await the fetch, as that blocks playback until the full MP3 downloaded
 		// without await, playback is immediate AND the mp3 downloads to the cache
@@ -118,7 +118,7 @@ const handleRequest = async ({ request }) => {
 	}
 
 	// Default: Use network-only strategy for other requests
-	log('info', 'Default network fetch: ' + request.url);
+	log('debug', 'Default network fetch: ' + request.url);
 	return fetch(request);
 };
 
@@ -127,17 +127,17 @@ const handleRequest = async ({ request }) => {
 // =====================
 
 sw.addEventListener('install', (event) => {
-	log('info', 'Service worker installing...');
+	log('debug', 'Service worker installing...');
 	event.waitUntil(addResourcesToCache());
 });
 
 // This allows controlled updates via user interaction
 sw.addEventListener('message', (event) => {
-	log('info', 'Service worker received message: ' + event.data);
+	log('debug', 'Service worker received message: ' + event.data);
 	if (event.data && event.data.type === 'SKIP_WAITING') {
-		log('info', 'Calling skipWaiting()');
+		log('debug', 'Calling skipWaiting()');
 		sw.skipWaiting().then(() => {
-			log('info', 'skipWaiting() completed!');
+			log('debug', 'skipWaiting() completed!');
 		});
 	}
 });
@@ -153,15 +153,15 @@ sw.addEventListener('fetch', (event) => {
 });
 
 sw.addEventListener('activate', (event) => {
-	log('info', 'Service worker activating...');
+	log('debug', 'Service worker activating...');
 	event.waitUntil(
 		Promise.all([
 			deleteOldCaches(),
 			self.clients.claim().then(() => {
-				log('info', 'clients.claim() completed');
+				log('debug', 'clients.claim() completed');
 			})
 		]).then(() => {
-			log('info', 'Activation complete');
+			log('debug', 'Activation complete');
 		})
 	);
 });

@@ -97,7 +97,7 @@ export class FeedService {
 			})
 		);
 
-		Log.debug(`${episodes.length} episodes found`);
+		Log.info(`${episodes.length} episodes found`);
 
 		if (episodes.length === 0) {
 			return;
@@ -109,10 +109,10 @@ export class FeedService {
 					const match = db.episodes.findOne({ id: x.id });
 
 					if (match) {
-						Log.debug(`Updating ${x.title}`);
+						Log.info(`Updating ${x.title}`);
 						db.episodes.updateOne({ id: x.id }, { $set: { x } });
 					} else {
-						Log.debug(`Adding ${x.title}`);
+						Log.info(`Adding ${x.title}`);
 						db.episodes.insert(x);
 					}
 				});
