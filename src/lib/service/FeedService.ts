@@ -10,7 +10,6 @@ const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
-const ONE_HOUR_IN_SECONDS = 60 * 60;
 
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
@@ -58,8 +57,9 @@ export class FeedService {
 				return;
 			}
 
-			// backtrack a bit to avoid missing episodes
-			const since = timestampLastSync - ONE_HOUR_IN_SECONDS;
+			// 'since' filters on datePublished rather than dateCrawled
+			// so we need to subtract a day to ensure we get all episodes
+			const since = timestampLastSync - ONE_DAY_IN_SECONDS;
 
 			Log.info('Starting update of all feeds');
 
@@ -97,7 +97,7 @@ export class FeedService {
 			})
 		);
 
-		Log.info(`${episodes.length} episodes found`);
+		Log.info(`${episodes.length} episodes found since ${since}`);
 
 		if (episodes.length === 0) {
 			return;
@@ -108,10 +108,7 @@ export class FeedService {
 				episodes.forEach((x) => {
 					const match = db.episodes.findOne({ id: x.id });
 
-					if (match) {
-						Log.info(`Updating ${x.title}`);
-						db.episodes.updateOne({ id: x.id }, { $set: { x } });
-					} else {
+					if (!match) {
 						Log.info(`Adding ${x.title}`);
 						db.episodes.insert(x);
 					}
