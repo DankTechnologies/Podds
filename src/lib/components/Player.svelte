@@ -14,8 +14,7 @@
 	let duration = $state(0);
 	let paused = $state(true);
 	let showDetailedControls = $state(false);
-
-	$inspect(showDetailedControls);
+	let previousEpisodeId = $state('');
 
 	onMount(() => {
 		if (episode) {
@@ -24,7 +23,8 @@
 	});
 
 	$effect(() => {
-		if (episode) {
+		if (episode && episode.id !== previousEpisodeId) {
+			previousEpisodeId = episode.id;
 			showDetailedControls = false;
 		}
 	});
@@ -100,16 +100,15 @@
 {#if episode && feed}
 	<div
 		class="player"
-		class:player--expanded={showDetailedControls}
+		class:player-expanded={showDetailedControls}
 		onclick={() => (showDetailedControls = !showDetailedControls)}
 		onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
 		role="button"
 		tabindex="0"
 	>
 		{#if showDetailedControls}
-			<div class="player__episode-title">
-				{episode.title}
-			</div>
+			<div class="player__episode-title">{episode.title}</div>
+			<div class="player__episode-feed-title">{feed.title}</div>
 			<div class="player__time">
 				<div>
 					{formatPlaybackPosition(currentTime)}
@@ -119,12 +118,13 @@
 				</div>
 			</div>
 			<input
-				class="player__playback"
+				class="player__playback-expanded"
 				type="range"
 				min="0"
 				bind:value={currentTime}
 				max={duration}
 				onchange={(event) => {
+					event.stopPropagation();
 					const target = event.target as HTMLInputElement;
 					const newTime = Number(target.value);
 
@@ -198,28 +198,39 @@
 		left: 0;
 		right: 0;
 		z-index: 50;
-		background: var(--bg);
+		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
+	}
+
+	.player.player-expanded {
+		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
+		border-radius: 1rem;
 	}
 
 	.player__episode-title {
 		text-align: center;
 		font-weight: bold;
+		padding: 1rem;
+		font-size: var(--text-xl);
+	}
+
+	.player__episode-feed-title {
+		text-align: center;
+		font-weight: bold;
+		/* font-size: var(--text-small); */
+		padding: 1rem;
 	}
 
 	.player__time {
 		display: flex;
 		justify-content: space-between;
 		font-size: var(--text-small);
-		padding: 0.25rem 0.5rem 0;
+		padding: 0 1rem;
 	}
 
 	.player__playback {
 		display: flex;
 		flex: 1;
 		appearance: none;
-		-webkit-appearance: none;
-		margin-top: 0.5rem;
-		height: 0.25rem;
 		border: none;
 		--progress: calc((var(--value) / var(--max)) * 100%);
 	}
@@ -259,11 +270,28 @@
 		border: none;
 	}
 
-	.player--expanded .player__playback {
-		background: var(--primary);
+	.player__playback-expanded {
+		display: flex;
+		flex: 1;
+		appearance: none;
+		border: none;
+		margin: 1rem;
 	}
 
-	.player--expanded .player__playback::-webkit-slider-thumb {
+	.player__playback-expanded::-webkit-slider-runnable-track {
+		height: 1rem;
+		background: var(--primary);
+		border: none;
+	}
+
+	.player__playback-expanded::-moz-range-track {
+		height: 1rem;
+		background: var(--primary);
+		border: none;
+	}
+
+	.player__playback-expanded::-webkit-slider-thumb {
+		appearance: none;
 		width: 1.25rem;
 		height: 1.5rem;
 		background-color: var(--primary-more);
@@ -275,7 +303,7 @@
 		border-top-right-radius: 0.25rem;
 	}
 
-	.player--expanded .player__playback::-moz-range-thumb {
+	.player__playback-expanded::-moz-range-thumb {
 		width: 1.25rem;
 		height: 1.25rem;
 		background-color: var(--primary-more);
@@ -286,13 +314,13 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 1rem 0;
+		padding: 1rem;
 		height: 3.25rem;
 	}
 
 	.player__artwork {
-		width: 5.25rem;
-		height: 5.25rem;
+		width: 3.25rem;
+		height: 3.25rem;
 	}
 
 	.player__artwork img {
@@ -300,6 +328,7 @@
 		height: 100%;
 		object-fit: cover;
 		transition: opacity 0.3s ease;
+		border-radius: 0.5rem;
 	}
 
 	.player__button {
