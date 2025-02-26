@@ -5,6 +5,9 @@
 	import { EpisodeService } from '$lib/service/EpisodeService';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { onMount } from 'svelte';
+	import { fade, slide } from 'svelte/transition';
+	import { circIn, circOut } from 'svelte/easing';
+	import { goto } from '$app/navigation';
 
 	const ICON_SIZE = '2rem';
 
@@ -95,6 +98,28 @@
 		AudioService.stop();
 		EpisodeService.clearPlayingEpisode();
 	}
+
+	function handleFeedClick(e: Event) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!feed) return;
+		goto(`/podcast/${feed.id}`);
+	}
+
+	function slideIn(node: Element) {
+		return slide(node, {
+			duration: 200,
+			easing: circIn,
+			axis: 'y'
+		});
+	}
+
+	function fadeOut(node: Element) {
+		return fade(node, {
+			duration: 200,
+			easing: circOut
+		});
+	}
 </script>
 
 {#if episode && feed}
@@ -107,9 +132,15 @@
 		tabindex="0"
 	>
 		{#if showDetailedControls}
-			<div class="player__episode-title">{episode.title}</div>
-			<div class="player__episode-feed-title">{feed.title}</div>
-			<div class="player__time">
+			<div class="player__episode-title" in:slideIn out:fadeOut>
+				{episode.title}
+			</div>
+			<div class="player__episode-feed-title" in:slideIn out:fadeOut>
+				<a href="/" onclick={handleFeedClick}>
+					{feed.title}
+				</a>
+			</div>
+			<div class="player__time" in:slideIn out:fadeOut>
 				<div>
 					{formatPlaybackPosition(currentTime)}
 				</div>
@@ -119,6 +150,8 @@
 			</div>
 			<input
 				class="player__playback-expanded"
+				in:slideIn
+				out:fadeOut
 				type="range"
 				min="0"
 				bind:value={currentTime}
@@ -137,6 +170,8 @@
 		{:else}
 			<input
 				class="player__playback"
+				in:slideIn
+				out:fadeOut
 				type="range"
 				min="0"
 				bind:value={currentTime}
