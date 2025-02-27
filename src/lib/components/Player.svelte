@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { RotateCcw, RotateCw, Play, Pause, X } from 'lucide-svelte';
+	import { RotateCcw, RotateCw, Play, Pause, X, Loader2 } from 'lucide-svelte';
 	import { getPlayingEpisode, getPlayingEpisodeFeed } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService';
@@ -72,7 +72,7 @@
 
 	function handleBack(e: Event) {
 		e.stopPropagation();
-		if (!episode) return;
+		if (!episode || !episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
@@ -80,13 +80,13 @@
 
 	function handlePlayPause(e: Event) {
 		e.stopPropagation();
-		if (!episode) return;
+		if (!episode || !episode.isDownloaded) return;
 		AudioService.togglePlayPause();
 	}
 
 	function handleForward(e: Event) {
 		e.stopPropagation();
-		if (!episode) return;
+		if (!episode || !episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
@@ -198,7 +198,9 @@
 				<div class="stack-cell">
 					<div class="play-pause__circle"></div>
 					<div class="play-pause__icon">
-						{#if paused}
+						{#if !episode.isDownloaded}
+							<Loader2 class="play-pause__icon--loading" size={ICON_SIZE} />
+						{:else if paused}
 							<Play class="play-pause__icon--play" size={ICON_SIZE} />
 						{:else}
 							<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
@@ -412,5 +414,20 @@
 	.play-pause__icon :global(.play-pause__icon--pause) {
 		margin-top: 0.25rem;
 		stroke-width: 2.5;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--loading) {
+		margin-top: 0.25rem;
+		stroke-width: 2.5;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>

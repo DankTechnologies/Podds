@@ -19,12 +19,15 @@
 		dialog.close();
 
 		EpisodeService.setPlayingEpisode(episode.id);
-		AudioService.play(
+
+		downloadAudio(
 			episode.url,
-			episode.playbackPosition ?? 0,
-			(progress) => downloadProgress.set(episode.id!, progress),
-			() => handleDownloadComplete(episode.id!),
-			(err) => handleDownloadError(episode.id!, err)
+			() => {
+				handleDownloadComplete(episode.id!);
+				AudioService.play(episode.url, episode.playbackPosition ?? 0);
+			},
+			(err) => handleDownloadError(episode.id!, err),
+			(progress) => downloadProgress.set(episode.id!, progress)
 		);
 	}
 
