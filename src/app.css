@@ -19,7 +19,7 @@
 	/* Colors */
 	--primary: oklch(60% 0.18 300);
 	--accent: oklch(80.6% 0.1683 76.94);
-	--neutral: oklch(95% 0.01 270);
+	--neutral: oklch(91% 0.01 270);
 	--neutral-inverse: oklch(27% 0.01 270);
 	--error: oklch(65% 0.18 25);
 	--success: oklch(75% 0.15 140);

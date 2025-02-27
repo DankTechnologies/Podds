@@ -67,7 +67,11 @@
 
 <div class="episode-list" role="list">
 	{#each episodes as episode}
-		<article class="episode-card">
+		<article
+			class="episode-card"
+			class:episode-card--playing={episode.isPlaying && feedIconsById}
+			class:episode-card--playing-no-image={episode.isPlaying && !feedIconsById}
+		>
 			<button
 				class="episode-card__header"
 				type="button"
@@ -145,6 +149,24 @@
 	.episode-list {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.episode-card--playing {
+		background: radial-gradient(
+			circle at top right,
+			var(--bg-less) 0%,
+			var(--bg) 70%,
+			var(--primary) 100%
+		);
+	}
+
+	.episode-card--playing-no-image {
+		background: radial-gradient(
+			ellipse at top left,
+			var(--bg-less) 0%,
+			var(--bg) 60%,
+			var(--primary) 100%
+		);
 	}
 
 	.episode-card__header {
