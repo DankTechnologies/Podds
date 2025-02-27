@@ -158,7 +158,7 @@
 		background: radial-gradient(
 			circle at top right,
 			var(--bg-less) 0%,
-			var(--bg) 70%,
+			var(--bg-less) 70%,
 			var(--primary) 100%
 		);
 	}
@@ -167,7 +167,7 @@
 		background: radial-gradient(
 			ellipse at top left,
 			var(--bg-less) 0%,
-			var(--bg) 60%,
+			var(--bg-less) 60%,
 			var(--primary) 100%
 		);
 	}
