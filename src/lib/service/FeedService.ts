@@ -88,10 +88,7 @@ export class FeedService {
 				publishedAt: new Date(episode.datePublished * 1000),
 				content: episode.description,
 				url: episode.enclosureUrl,
-				durationMin: Math.floor(episode.duration / 60),
-				isDownloaded: 0,
-				isPlaying: 0,
-				playbackPosition: 0
+				durationMin: Math.floor(episode.duration / 60)
 			})
 		);
 

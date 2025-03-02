@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { RotateCcw, RotateCw, Play, Pause, X, Loader2 } from 'lucide-svelte';
-	import { getPlayingEpisode, getPlayingEpisodeFeed } from '$lib/stores/db.svelte';
 	import { formatPlaybackPosition } from '$lib/utils/time';
-	import { EpisodeService } from '$lib/service/EpisodeService';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { onMount } from 'svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { circIn, circOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
+	import type { ActiveEpisode } from '$lib/types/db';
 
 	const ICON_SIZE = '2rem';
 
-	let episode = $derived(getPlayingEpisode());
-	let feed = $derived(getPlayingEpisodeFeed());
+	let { episode }: { episode: ActiveEpisode } = $props();
+
 	let currentTime = $state(0);
 	let duration = $state(0);
 	let paused = $state(true);
@@ -20,13 +20,11 @@
 	let previousEpisodeId = $state('');
 
 	onMount(() => {
-		if (episode) {
-			AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
-		}
+		AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
 	});
 
 	$effect(() => {
-		if (episode && episode.id !== previousEpisodeId) {
+		if (episode.id !== previousEpisodeId) {
 			previousEpisodeId = episode.id;
 			showDetailedControls = false;
 		}
@@ -72,7 +70,7 @@
 
 	function handleBack(e: Event) {
 		e.stopPropagation();
-		if (!episode || !episode.isDownloaded) return;
+		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
@@ -80,13 +78,13 @@
 
 	function handlePlayPause(e: Event) {
 		e.stopPropagation();
-		if (!episode || !episode.isDownloaded) return;
+		if (!episode.isDownloaded) return;
 		AudioService.togglePlayPause();
 	}
 
 	function handleForward(e: Event) {
 		e.stopPropagation();
-		if (!episode || !episode.isDownloaded) return;
+		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime);
@@ -94,16 +92,14 @@
 
 	function handleStop(e: Event) {
 		e.stopPropagation();
-		if (!episode) return;
 		AudioService.stop();
-		EpisodeService.clearPlayingEpisode(episode.id);
+		EpisodeService.clearPlayingEpisodes();
 	}
 
 	function handleFeedClick(e: Event) {
 		e.preventDefault();
 		e.stopPropagation();
-		if (!feed) return;
-		goto(`/podcast/${feed.id}`);
+		goto(`/podcast/${episode.feedId}`);
 	}
 
 	function slideIn(node: Element) {
@@ -120,110 +116,108 @@
 			easing: circOut
 		});
 	}
+
+	function handleSeek(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const newTime = Number(target.value);
+
+		AudioService.seek(newTime);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime);
+	}
 </script>
 
-{#if episode && feed}
-	<div
-		class="player"
-		class:player-expanded={showDetailedControls}
-		onclick={() => (showDetailedControls = !showDetailedControls)}
-		onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
-		role="button"
-		tabindex="0"
-	>
-		{#if showDetailedControls}
-			<div class="player__episode-title" in:slideIn out:fadeOut>
-				{episode.title}
-			</div>
-			<div class="player__episode-feed-title" in:slideIn out:fadeOut>
-				<a href="/" onclick={handleFeedClick}>
-					{feed.title}
-				</a>
-			</div>
-			<div class="player__time" in:slideIn out:fadeOut>
-				<div>
-					{formatPlaybackPosition(currentTime)}
-				</div>
-				<div>
-					-{formatPlaybackPosition(duration - currentTime)}
-				</div>
-			</div>
-			<input
-				class="player__playback-expanded"
-				in:slideIn
-				out:fadeOut
-				type="range"
-				min="0"
-				bind:value={currentTime}
-				max={duration}
-				onchange={(event) => {
-					event.stopPropagation();
-					const target = event.target as HTMLInputElement;
-					const newTime = Number(target.value);
-
-					if (episode) {
-						AudioService.seek(newTime);
-						EpisodeService.updatePlaybackPosition(episode.id, newTime);
-					}
-				}}
-			/>
-		{:else}
-			<input
-				class="player__playback"
-				in:slideIn
-				out:fadeOut
-				type="range"
-				min="0"
-				bind:value={currentTime}
-				max={duration}
-				style="--value: {currentTime}; --max: {duration}"
-				disabled
-			/>
-		{/if}
-		<div class="player__controls">
-			<div class="player__artwork">
-				<img src={`data:${feed.iconData}`} alt="" />
-			</div>
-
-			<button class="player__button" onclick={(e) => handleBack(e)}>
-				<div class="stack-cell">
-					<div>
-						<RotateCcw size={ICON_SIZE} />
-					</div>
-					<div class="time-text">10</div>
-				</div>
-			</button>
-
-			<button class="player__button play-pause" onclick={(e) => handlePlayPause(e)}>
-				<div class="stack-cell">
-					<div class="play-pause__circle"></div>
-					<div class="play-pause__icon">
-						{#if !episode.isDownloaded}
-							<Loader2 class="play-pause__icon--loading" size={ICON_SIZE} />
-						{:else if paused}
-							<Play class="play-pause__icon--play" size={ICON_SIZE} />
-						{:else}
-							<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
-						{/if}
-					</div>
-				</div>
-			</button>
-
-			<button class="player__button" onclick={(e) => handleForward(e)}>
-				<div class="stack-cell">
-					<div>
-						<RotateCw size={ICON_SIZE} />
-					</div>
-					<div class="time-text">30</div>
-				</div>
-			</button>
-
-			<button class="player__button" onclick={(e) => handleStop(e)}>
-				<X size={ICON_SIZE} />
-			</button>
+<div
+	class="player"
+	class:player-expanded={showDetailedControls}
+	onclick={() => (showDetailedControls = !showDetailedControls)}
+	onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
+	role="button"
+	tabindex="0"
+>
+	{#if showDetailedControls}
+		<div class="player__episode-title" in:slideIn out:fadeOut>
+			{episode.title}
 		</div>
+		<div class="player__episode-feed-title" in:slideIn out:fadeOut>
+			<a href="/" onclick={handleFeedClick}>
+				{episode.feedTitle}
+			</a>
+		</div>
+		<div class="player__time" in:slideIn out:fadeOut>
+			<div>
+				{formatPlaybackPosition(currentTime)}
+			</div>
+			<div>
+				-{formatPlaybackPosition(duration - currentTime)}
+			</div>
+		</div>
+		<input
+			class="player__playback-expanded"
+			in:slideIn
+			out:fadeOut
+			type="range"
+			min="0"
+			bind:value={currentTime}
+			max={duration}
+			onchange={handleSeek}
+			onclick={(e) => e.stopPropagation()}
+		/>
+	{:else}
+		<input
+			class="player__playback"
+			in:slideIn
+			out:fadeOut
+			type="range"
+			min="0"
+			bind:value={currentTime}
+			max={duration}
+			style="--value: {currentTime}; --max: {duration}"
+			disabled
+		/>
+	{/if}
+	<div class="player__controls">
+		<div class="player__artwork">
+			<img src={`data:${episode.feedIconData}`} alt="" />
+		</div>
+
+		<button class="player__button" onclick={(e) => handleBack(e)}>
+			<div class="stack-cell">
+				<div>
+					<RotateCcw size={ICON_SIZE} />
+				</div>
+				<div class="time-text">10</div>
+			</div>
+		</button>
+
+		<button class="player__button play-pause" onclick={(e) => handlePlayPause(e)}>
+			<div class="stack-cell">
+				<div class="play-pause__circle"></div>
+				<div class="play-pause__icon">
+					{#if !episode.isDownloaded}
+						<Loader2 class="play-pause__icon--loading" size={ICON_SIZE} />
+					{:else if paused}
+						<Play class="play-pause__icon--play" size={ICON_SIZE} />
+					{:else}
+						<Pause class="play-pause__icon--pause" size={ICON_SIZE} />
+					{/if}
+				</div>
+			</div>
+		</button>
+
+		<button class="player__button" onclick={(e) => handleForward(e)}>
+			<div class="stack-cell">
+				<div>
+					<RotateCw size={ICON_SIZE} />
+				</div>
+				<div class="time-text">30</div>
+			</div>
+		</button>
+
+		<button class="player__button" onclick={(e) => handleStop(e)}>
+			<X size={ICON_SIZE} />
+		</button>
 	</div>
-{/if}
+</div>
 
 <style>
 	.player {

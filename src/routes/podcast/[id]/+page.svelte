@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { getEpisodes, getFeeds } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 
 	const feedId = page.params.id;
@@ -16,6 +16,8 @@
 			.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
 			.slice(0, limit)
 	);
+	let activeEpisodes = $derived(getActiveEpisodes().filter((episode) => episode.feedId === feedId));
+
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 
 	onMount(() => {
@@ -65,7 +67,7 @@
 	<!-- Episodes List -->
 	<section class="podcast-section">
 		{#if episodes}
-			<EpisodeList {episodes} />
+			<EpisodeList {episodes} {activeEpisodes} />
 		{/if}
 	</section>
 {/if}

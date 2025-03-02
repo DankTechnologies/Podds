@@ -1,4 +1,4 @@
-import type { Episode, Feed, LogEntry, Settings } from '$lib/types/db';
+import type { ActiveEpisode, Episode, Feed, LogEntry, Settings } from '$lib/types/db';
 import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
 import { SvelteMap } from 'svelte/reactivity';
@@ -29,6 +29,11 @@ export const db = {
 		reactivity: reactivityConfig,
 		persistence: createIndexedDBAdapter('episodes.json')
 	}),
+	activeEpisodes: new Collection<ActiveEpisode>({
+		name: 'activeEpisodes',
+		reactivity: reactivityConfig,
+		persistence: createIndexedDBAdapter('activeEpisodes.json')
+	}),
 	logs: new Collection<LogEntry>({
 		name: 'logs',
 		reactivity: reactivityConfig,
@@ -45,8 +50,7 @@ export const db = {
 
 let feeds = $state.raw<Feed[]>([]);
 let episodes = $state.raw<Episode[]>([]);
-let playingEpisode = $state.raw<Episode>();
-let playingEpisodeFeed = $state.raw<Feed>();
+let activeEpisodes = $state.raw<ActiveEpisode[]>([]);
 let settings = $state.raw<Settings>();
 
 $effect.root(() => {
@@ -69,11 +73,12 @@ $effect.root(() => {
 	});
 
 	$effect(() => {
-		playingEpisode = db.episodes.findOne({ isPlaying: 1 });
-	});
+		const activeEpisodesCursor = db.activeEpisodes.find();
+		activeEpisodes = activeEpisodesCursor.fetch();
 
-	$effect(() => {
-		playingEpisodeFeed = db.feeds.findOne({ id: playingEpisode?.feedId });
+		return () => {
+			activeEpisodesCursor.cleanup();
+		};
 	});
 
 	$effect(() => {
@@ -89,27 +94,16 @@ function getFeedIconsById() {
 	return new SvelteMap(getFeeds().map((feed) => [feed.id, feed.iconData]));
 }
 
-function getPlayingEpisode() {
-	return playingEpisode;
-}
-
-function getPlayingEpisodeFeed() {
-	return playingEpisodeFeed;
-}
-
 function getEpisodes() {
 	return episodes;
+}
+
+function getActiveEpisodes() {
+	return activeEpisodes;
 }
 
 function getSettings() {
 	return settings;
 }
 
-export {
-	getFeeds,
-	getFeedIconsById,
-	getPlayingEpisode,
-	getPlayingEpisodeFeed,
-	getSettings,
-	getEpisodes
-};
+export { getFeeds, getFeedIconsById, getSettings, getEpisodes, getActiveEpisodes };

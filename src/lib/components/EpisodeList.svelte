@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { EpisodeService } from '$lib/service/EpisodeService';
-	import type { Episode } from '$lib/types/db';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
+	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
@@ -9,7 +9,11 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	let { episodes, feedIconsById }: { episodes: Episode[]; feedIconsById?: Map<string, string> } =
+	let {
+		episodes,
+		activeEpisodes,
+		feedIconsById
+	}: { episodes: Episode[]; activeEpisodes: ActiveEpisode[]; feedIconsById?: Map<string, string> } =
 		$props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
@@ -18,13 +22,16 @@
 		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
 		dialog.close();
 
-		EpisodeService.setPlayingEpisode(episode.id);
+		EpisodeService.setPlayingEpisode(episode);
 
 		downloadAudio(
 			episode.url,
 			() => {
-				handleDownloadComplete(episode.id!);
-				AudioService.play(episode.url, episode.playbackPosition ?? 0);
+				handleDownloadComplete(episode);
+				AudioService.play(
+					episode.url,
+					activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
+				);
 			},
 			(err) => handleDownloadError(episode.id!, err),
 			(progress) => downloadProgress.set(episode.id!, progress)
@@ -37,15 +44,15 @@
 
 		downloadAudio(
 			episode.url,
-			() => handleDownloadComplete(episode.id!),
+			() => handleDownloadComplete(episode),
 			(err) => handleDownloadError(episode.id!, err),
 			(progress) => downloadProgress.set(episode.id!, progress)
 		);
 	}
 
-	function handleDownloadComplete(episodeId: string) {
-		EpisodeService.markDownloaded(episodeId);
-		downloadProgress.delete(episodeId);
+	function handleDownloadComplete(episode: Episode) {
+		EpisodeService.markDownloaded(episode);
+		downloadProgress.delete(episode.id);
 	}
 
 	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
@@ -72,8 +79,9 @@
 	{#each episodes as episode}
 		<article
 			class="episode-card"
-			class:episode-card--playing={episode.isPlaying && feedIconsById}
-			class:episode-card--playing-no-image={episode.isPlaying && !feedIconsById}
+			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
+			class:episode-card--playing-no-image={activeEpisodes.find((x) => x.id === episode.id)
+				?.isPlaying && !feedIconsById}
 		>
 			<button
 				class="episode-card__header"
@@ -98,7 +106,7 @@
 						<div>
 							{formatEpisodeDuration(episode.durationMin)}
 						</div>
-						{#if episode.isDownloaded}
+						{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
 							<div>
 								<Check size="14" />
 							</div>

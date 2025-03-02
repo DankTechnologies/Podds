@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { onMount } from 'svelte';
-	import { getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
 
 	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
@@ -14,6 +14,8 @@
 			.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
 			.slice(0, limit)
 	);
+
+	let activeEpisodes = $derived(getActiveEpisodes());
 
 	async function loadMoreEpisodes() {
 		limit += ITEMS_PER_PAGE;
@@ -38,6 +40,6 @@
 </script>
 
 {#if episodes}
-	<EpisodeList {episodes} {feedIconsById} />
+	<EpisodeList {episodes} {activeEpisodes} {feedIconsById} />
 {/if}
 <div bind:this={observerTarget}></div>

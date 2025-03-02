@@ -4,12 +4,13 @@
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { FeedService } from '$lib/service/FeedService';
-	import { db } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
-	import { Loader2 } from 'lucide-svelte';
 	let feedService = new FeedService();
 
 	let isDbReady = $state(false);
+
+	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
 
 	Promise.all([
 		db.feeds.isReady(),
@@ -32,7 +33,9 @@
 {:else}
 	<main>
 		{@render children()}
-		<Player />
+		{#if activeEpisode}
+			<Player episode={activeEpisode} />
+		{/if}
 		<BottomNavBar />
 	</main>
 {/if}
