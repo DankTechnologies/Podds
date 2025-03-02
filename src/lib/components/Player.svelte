@@ -96,7 +96,7 @@
 		e.stopPropagation();
 		if (!episode) return;
 		AudioService.stop();
-		EpisodeService.clearPlayingEpisode();
+		EpisodeService.clearPlayingEpisode(episode.id);
 	}
 
 	function handleFeedClick(e: Event) {

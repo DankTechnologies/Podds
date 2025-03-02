@@ -8,8 +8,8 @@ export class EpisodeService {
 		});
 	}
 
-	static clearPlayingEpisode(): void {
-		db.episodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
+	static clearPlayingEpisode(episodeId: string): void {
+		db.episodes.updateOne({ id: episodeId }, { $set: { isPlaying: 0 } });
 	}
 
 	static updatePlaybackPosition(episodeId: string, pos: number): void {
