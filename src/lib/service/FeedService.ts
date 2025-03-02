@@ -89,8 +89,6 @@ export class FeedService {
 				content: episode.description,
 				url: episode.enclosureUrl,
 				durationMin: Math.floor(episode.duration / 60),
-				mime_type: episode.enclosureType,
-				size: episode.enclosureLength,
 				isDownloaded: 0,
 				isPlaying: 0,
 				playbackPosition: 0
