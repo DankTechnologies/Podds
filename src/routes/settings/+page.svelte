@@ -10,6 +10,7 @@
 	import { formatTimestamp } from '$lib/utils/time';
 	import PodcastIndexClient from '$lib/api/podcast-index';
 	import { FeedService } from '$lib/service/FeedService';
+	import { StorageService, StorageInfo } from '$lib/service/StorageService.svelte';
 	let feedService = new FeedService();
 
 	let settings: Settings = $state<Settings>({
@@ -70,6 +71,10 @@
 				isFirstVisit = false;
 			}
 		}
+	});
+
+	onMount(async () => {
+		await StorageService.calculateStorageUsage();
 	});
 
 	async function onSave() {
@@ -167,6 +172,19 @@
 			<label for="exportFeeds">Export Feeds</label>
 			<button type="button" onclick={onExportFeeds}>Export</button>
 		</div>
+		<div>
+			<label for="storageUsage">Storage Usage</label>
+			{#if StorageInfo.loading}
+				<div class="storage-stats">Loading storage information...</div>
+			{:else}
+				<div class="storage-stats">
+					<div>Service Worker Cache: {StorageService.formatBytes(StorageInfo.cacheSize)}</div>
+					<div>IndexedDB Usage: {StorageService.formatBytes(StorageInfo.dbSize)}</div>
+					<div>Storage Quota: {StorageService.formatBytes(StorageInfo.quota)}</div>
+					<div>Remaining Space: {StorageService.formatBytes(StorageInfo.remaining)}</div>
+				</div>
+			{/if}
+		</div>
 		<div class="actions">
 			<button type="button" onclick={onReset}>Reset Data</button>
 			<button type="button" onclick={onTest}>Test Connection</button>
@@ -259,5 +277,12 @@
 		font-family: monospace;
 		font-size: var(--text-xs);
 		word-break: break-all;
+	}
+
+	.storage-stats {
+		padding: 0.5rem;
+		background-color: var(--bg-less);
+		border-radius: 0.25rem;
+		margin-bottom: 1rem;
 	}
 </style>
