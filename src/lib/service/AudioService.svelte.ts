@@ -2,6 +2,8 @@ export class AudioService {
 	private static audio = new Audio();
 
 	static async loadPaused(url: string, currentTime: number = 0) {
+		if (this.audio.src) return;
+
 		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 		this.audio.src = corsHelperUrl;
 		this.audio.currentTime = currentTime;

@@ -24,15 +24,14 @@ export interface ActiveEpisode {
 	content: string;
 	url: string;
 	feedIconData: string;
-	// Playback tracking
+	// activity tracking
 	playbackPosition: number;
 	lastUpdatedAt: Date;
-	completed: 0 | 1;
+	isCompleted: 0 | 1;
 	isDownloaded: 0 | 1;
-	// Queue management
 	isPlaying: 0 | 1;
-	upNextPosition?: number; // null if not in up next queue
-	playedAt?: Date; // When it was last played, for history
+	// queue management
+	sortOrder?: number; // explicitly set when user reorders
 }
 
 export interface LogEntry {

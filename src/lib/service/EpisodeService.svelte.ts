@@ -14,6 +14,12 @@ export class EpisodeService {
 		}
 	}
 
+	static setPlayingActiveEpisode(episode: ActiveEpisode): void {
+		this.clearPlayingEpisodes();
+
+		db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1 } });
+	}
+
 	static addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): void {
 		const feed = feeds.find((x) => x.id === episode.feedId);
 
@@ -22,7 +28,7 @@ export class EpisodeService {
 			feedId: episode.feedId,
 			playbackPosition: 0,
 			lastUpdatedAt: new Date(),
-			completed: 0,
+			isCompleted: 0,
 			isDownloaded: isDownloaded ? 1 : 0,
 			isPlaying: isPlaying ? 1 : 0,
 			url: episode.url,
@@ -42,7 +48,10 @@ export class EpisodeService {
 	}
 
 	static updatePlaybackPosition(episodeId: string, pos: number): void {
-		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { playbackPosition: pos } });
+		db.activeEpisodes.updateOne(
+			{ id: episodeId },
+			{ $set: { playbackPosition: pos, lastUpdatedAt: new Date() } }
+		);
 	}
 
 	static markDownloaded(episode: Episode): void {
@@ -55,5 +64,17 @@ export class EpisodeService {
 
 	static clearDownloaded(episodeId: string): void {
 		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isDownloaded: 0 } });
+	}
+
+	static markCompleted(episodeId: string): void {
+		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isCompleted: 1 } });
+	}
+
+	static reorderUpNext(episodeIds: string[]): void {
+		db.activeEpisodes.batch(() => {
+			for (let i = 0; i < episodeIds.length; i++) {
+				db.activeEpisodes.updateOne({ id: episodeIds[i] }, { $set: { sortOrder: i } });
+			}
+		});
 	}
 }
