@@ -68,6 +68,18 @@
 		};
 	});
 
+	$effect(() => {
+		const handleEnded = () => {
+			EpisodeService.markCompleted(episode.id);
+		};
+
+		AudioService.addEventListener('ended', handleEnded);
+
+		return () => {
+			AudioService.removeEventListener('ended', handleEnded);
+		};
+	});
+
 	function handleBack(e: Event) {
 		e.stopPropagation();
 		if (!episode.isDownloaded) return;
