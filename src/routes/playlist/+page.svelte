@@ -1,21 +1,28 @@
 <script lang="ts">
-	import { reorder, useSortable } from '$lib/hooks/use-sortable.svelte';
-	import { AudioService } from '$lib/service/AudioService.svelte';
-	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
-	import { getActiveEpisodes } from '$lib/stores/db.svelte';
-	import type { ActiveEpisode } from '$lib/types/db';
-	import { Play } from 'lucide-svelte';
+	import EpisodeList from '$lib/components/EpisodeList.svelte';
+	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { cubicInOut, cubicOut } from 'svelte/easing';
+	import { fade } from 'svelte/transition';
 
-	let lastTenPlayedEpisodes = $derived(
+	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
 			.filter((episode) => episode.playbackPosition > 0 && !episode.isPlaying)
-			.sort((a, b) => a.lastUpdatedAt.getTime() - b.lastUpdatedAt.getTime())
+			.sort((a, b) => b.lastUpdatedAt.getTime() - a.lastUpdatedAt.getTime())
 			.slice(0, 10)
 	);
 
-	let playingEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
+	let listenedToEpisodes = $derived(
+		getEpisodes()
+			.filter((episode) => listenedToActiveEpisodes.find((x) => x.id === episode.id))
+			.sort((a, b) => {
+				const aIndex = listenedToActiveEpisodes.findIndex((x) => x.id === b.id);
+				const bIndex = listenedToActiveEpisodes.findIndex((x) => x.id === a.id);
+				return bIndex - aIndex;
+			})
+			.slice(0, 10)
+	);
 
-	let upNextEpisodes = $derived(
+	let upNextActiveEpisodes = $derived(
 		getActiveEpisodes()
 			.filter(
 				(episode) => episode.playbackPosition === 0 && !episode.isPlaying && episode.isDownloaded
@@ -23,67 +30,82 @@
 			.sort((a, b) => (a.sortOrder ?? 99999999) - (b.sortOrder ?? 99999999))
 	);
 
-	$inspect(upNextEpisodes.map((x) => `${x.sortOrder} - ${x.title}`));
+	let upNextEpisodes = $derived(
+		getEpisodes()
+			.filter((episode) => upNextActiveEpisodes.find((x) => x.id === episode.id))
+			.sort((a, b) => {
+				const aIndex = upNextActiveEpisodes.findIndex((x) => x.id === a.id);
+				const bIndex = upNextActiveEpisodes.findIndex((x) => x.id === b.id);
+				return aIndex - bIndex;
+			})
+	);
 
-	let sortable = $state<HTMLElement | null>(null);
-
-	useSortable(() => sortable, {
-		animation: 200,
-		onEnd(evt) {
-			const reorderedEpisodes = reorder(upNextEpisodes, evt);
-			EpisodeService.reorderUpNext(reorderedEpisodes.map((x) => x.id));
-		}
-	});
-
-	function playEpisode(episode: ActiveEpisode) {
-		EpisodeService.setPlayingActiveEpisode(episode);
-
-		AudioService.play(episode.url, episode.playbackPosition ?? 0);
-	}
+	let feedIconsById = $derived(getFeedIconsById());
+	let view = $state('upNext');
 </script>
 
-{#if lastTenPlayedEpisodes}
-	<h2>Last 10 Played</h2>
-	{#each lastTenPlayedEpisodes as episode}
-		<div>
-			<h3>{episode.title}</h3>
-			<p>{episode.feedTitle}</p>
-		</div>
-	{/each}
-{/if}
+<div class="playlist-view-controls">
+	<button
+		class="playlist-view-button"
+		class:active={view === 'listenedTo'}
+		onclick={() => (view = 'listenedTo')}
+	>
+		Recently Listened To
+	</button>
+	<button
+		class="playlist-view-button"
+		class:active={view === 'upNext'}
+		onclick={() => (view = 'upNext')}
+	>
+		Up Next
+	</button>
+</div>
 
-{#if playingEpisode}
-	<h2>Playing</h2>
-	<div>
-		<h3>{playingEpisode.title}</h3>
-		<p>{playingEpisode.feedTitle}</p>
+{#if view === 'listenedTo'}
+	<div class="section-listened-to" transition:fade={{ duration: 200, easing: cubicInOut }}>
+		{#if listenedToEpisodes}
+			<div class="section-content">
+				<EpisodeList
+					episodes={listenedToEpisodes}
+					activeEpisodes={listenedToActiveEpisodes}
+					{feedIconsById}
+				/>
+			</div>
+		{/if}
+	</div>
+{/if}
+{#if view === 'upNext'}
+	<div class="section-up-next" transition:fade={{ duration: 200, easing: cubicInOut }}>
+		{#if upNextEpisodes}
+			<div class="section-content">
+				<EpisodeList
+					episodes={upNextEpisodes}
+					activeEpisodes={upNextActiveEpisodes}
+					{feedIconsById}
+					enableSorting={true}
+				/>
+			</div>
+		{/if}
 	</div>
 {/if}
 
-{#if upNextEpisodes}
-	<h2>Up Next</h2>
-	<ul class="episode-list" bind:this={sortable}>
-		{#each upNextEpisodes as episode (episode.id)}
-			<li class="episode">
-				<img class="episode-details__image" src={`data:${episode.feedIconData}`} alt="" />
-				<h3>{episode.title}</h3>
-				<button class="episode-details__action-btn" onclick={() => playEpisode(episode)}>
-					<Play size="1.5rem" /> Play
-				</button>
-			</li>
-		{/each}
-	</ul>
-{/if}
-
 <style>
-	.episode-list {
-		margin: 0;
-		padding: 0;
-	}
-	.episode {
-		border: 1px solid var(--primary);
+	.playlist-view-controls {
+		display: flex;
 		padding: 1rem;
-		margin: 1rem;
-		list-style: none;
+		gap: 1rem;
+		background-color: var(--bg-less);
+	}
+
+	.playlist-view-button {
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		color: var(--primary-less);
+		border: none;
+	}
+
+	.playlist-view-button.active {
+		color: var(--primary-more);
+		background-color: var(--bg);
 	}
 </style>

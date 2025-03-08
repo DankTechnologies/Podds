@@ -34,8 +34,7 @@ export class EpisodeService {
 			url: episode.url,
 			title: episode.title,
 			content: episode.content,
-			feedTitle: feed?.title ?? '',
-			feedIconData: feed?.iconData ?? ''
+			feedTitle: feed?.title ?? ''
 		});
 	}
 
@@ -70,7 +69,7 @@ export class EpisodeService {
 		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isCompleted: 1 } });
 	}
 
-	static reorderUpNext(episodeIds: string[]): void {
+	static reorderEpisodes(episodeIds: string[]): void {
 		db.activeEpisodes.batch(() => {
 			for (let i = 0; i < episodeIds.length; i++) {
 				db.activeEpisodes.updateOne({ id: episodeIds[i] }, { $set: { sortOrder: i } });

@@ -23,7 +23,6 @@ export interface ActiveEpisode {
 	title: string;
 	content: string;
 	url: string;
-	feedIconData: string;
 	// activity tracking
 	playbackPosition: number;
 	lastUpdatedAt: Date;

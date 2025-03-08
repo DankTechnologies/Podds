@@ -5,43 +5,65 @@
 	import { Log } from '$lib/service/LogService';
 	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
-	import { pushState } from '$app/navigation';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { reorder, useSortable } from '$lib/hooks/use-sortable.svelte';
+	import { fade } from 'svelte/transition';
+	import { cubicInOut } from 'svelte/easing';
 
 	let {
 		episodes,
 		activeEpisodes,
-		feedIconsById
-	}: { episodes: Episode[]; activeEpisodes: ActiveEpisode[]; feedIconsById?: Map<string, string> } =
-		$props();
+		feedIconsById,
+		enableSorting = false
+	}: {
+		episodes: Episode[];
+		activeEpisodes: ActiveEpisode[];
+		feedIconsById?: Map<string, string>;
+		enableSorting?: boolean;
+	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
+	let focusedEpisodeId = $state<string | null>(null);
+	let listElement = $state<HTMLElement | null>(null);
+
+	if (enableSorting) {
+		useSortable(() => listElement, {
+			animation: 200,
+			onEnd(evt) {
+				const reorderedEpisodes = reorder(episodes, evt);
+				EpisodeService.reorderEpisodes(reorderedEpisodes.map((x) => x.id));
+			}
+		});
+	}
 
 	function playEpisode(episode: Episode) {
-		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
-		dialog.close();
-
+		toggleEpisodeFocus(episode);
 		EpisodeService.setPlayingEpisode(episode);
 
-		downloadAudio(
-			episode.url,
-			() => {
-				handleDownloadComplete(episode);
-				AudioService.play(
-					episode.url,
-					activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
-				);
-			},
-			(err) => handleDownloadError(episode.id!, err),
-			(progress) => downloadProgress.set(episode.id!, progress)
-		);
+		if (activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded) {
+			AudioService.play(
+				episode.url,
+				activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
+			);
+		} else {
+			downloadAudio(
+				episode.url,
+				() => {
+					handleDownloadComplete(episode);
+					AudioService.play(
+						episode.url,
+						activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
+					);
+				},
+				(err) => handleDownloadError(episode.id!, err),
+				(progress) => downloadProgress.set(episode.id!, progress)
+			);
+		}
 	}
 
 	function downloadEpisode(episode: Episode) {
-		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
-		dialog.close();
-
+		toggleEpisodeFocus(episode);
 		downloadAudio(
 			episode.url,
 			() => handleDownloadComplete(episode),
@@ -60,33 +82,26 @@
 		Log.error(`Download failed for episode ${episodeId}: ${err.message ?? err.toString()}`);
 	}
 
-	function showEpisodeDetails(episode: Episode) {
-		const dialog = document.getElementById(`details-${episode.id}`) as HTMLDialogElement;
-		dialog.showModal();
-		// Push state so back button will close dialog
-		pushState('', {});
-
-		// Handle back button
-		const handlePopState = () => {
-			dialog.close();
-			window.removeEventListener('popstate', handlePopState);
-		};
-		window.addEventListener('popstate', handlePopState);
+	function toggleEpisodeFocus(episode: Episode) {
+		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
 	}
 </script>
 
-<div class="episode-list" role="list">
-	{#each episodes as episode}
-		<article
+<ul class="episode-list" role="list" bind:this={listElement}>
+	{#each episodes as episode (episode.id)}
+		<li
 			class="episode-card"
 			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
 			class:episode-card--playing-no-image={activeEpisodes.find((x) => x.id === episode.id)
 				?.isPlaying && !feedIconsById}
+			class:episode-card--focused={focusedEpisodeId === episode.id}
+			transition:fade={{ duration: 200, easing: cubicInOut }}
 		>
 			<button
 				class="episode-card__header"
 				type="button"
-				onclick={() => showEpisodeDetails(episode)}
+				style:anchor-name={`--episode-${episode.id}`}
+				onclick={() => toggleEpisodeFocus(episode)}
 			>
 				{#if feedIconsById}
 					<img
@@ -120,41 +135,25 @@
 				</div>
 			</button>
 
-			<dialog id="details-{episode.id}" class="episode-details">
-				<div class="episode-details__content">
-					<header class="episode-details__header">
-						{#if feedIconsById}
-							<img
-								class="episode-details__image"
-								src={`data:${feedIconsById.get(episode.feedId)}`}
-								alt=""
-							/>
-						{/if}
-						<div class="episode-details__title">{episode.title}</div>
-						<time class="episode-details__time">
-							<div>{formatEpisodeDate(episode.publishedAt)}</div>
-							<div><Dot size="14" /></div>
-							<div>{formatEpisodeDuration(episode.durationMin)}</div>
-						</time>
-					</header>
-
-					<div class="episode-details__description">
-						{@html episode.content}
-					</div>
-
-					<footer class="episode-details__actions">
-						<button class="episode-details__action-btn" onclick={() => playEpisode(episode)}>
-							<Play size="1.5rem" /> Play
-						</button>
-						<button class="episode-details__action-btn" onclick={() => downloadEpisode(episode)}>
-							<Plus size="1.5rem" /> Up Next
-						</button>
-					</footer>
-				</div>
-			</dialog>
-		</article>
+			<div
+				class="episode-controls"
+				class:episode-controls--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
+				class:episode-controls--hidden={focusedEpisodeId !== episode.id}
+				style:position-anchor={`--episode-${episode.id}`}
+				style:position="fixed"
+			>
+				<button class="episode-controls__btn" onclick={() => playEpisode(episode)}>
+					<Play size="16" /> Play
+				</button>
+				{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+					<button class="episode-controls__btn" onclick={() => downloadEpisode(episode)}>
+						<Plus size="16" /> Later
+					</button>
+				{/if}
+			</div>
+		</li>
 	{/each}
-</div>
+</ul>
 
 <style>
 	.episode-list {
@@ -162,6 +161,9 @@
 		flex-direction: column;
 	}
 
+	.episode-card {
+		transition: background 150ms ease-out;
+	}
 	.episode-card--playing {
 		background: radial-gradient(
 			circle at top right,
@@ -178,6 +180,10 @@
 			var(--bg-less) 60%,
 			var(--primary) 100%
 		);
+	}
+
+	.episode-card--focused:not(.episode-card--playing):not(.episode-card--playing-no-image) {
+		background: var(--bg-less);
 	}
 
 	.episode-card__header {
@@ -198,6 +204,7 @@
 
 	.episode-card__image {
 		width: 5rem;
+		height: 5rem;
 		margin-right: 1rem;
 		aspect-ratio: 1;
 		object-fit: cover;
@@ -225,88 +232,68 @@
 		gap: 0.25rem;
 	}
 
-	.episode-details {
-		height: 100vh;
-		max-width: 100vw;
-		max-height: 100vh;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		border: none;
-		background: var(--bg);
-		color: var(--text);
-	}
-
-	.episode-details__content {
-		display: grid;
-		height: 100vh;
-		grid-template-rows: auto 1fr auto;
-		gap: 2rem;
-		box-sizing: border-box;
-		padding: 2rem;
-	}
-
-	.episode-details__header {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		gap: 2rem;
-	}
-
-	.episode-details__image {
-		max-width: 60vw;
-		aspect-ratio: 1;
-		object-fit: cover;
-		border-radius: 0.5rem;
-	}
-
-	.episode-details__title {
-		font-size: var(--text-2xl);
-		font-weight: 600;
-		margin: 0;
-	}
-
-	.episode-details__time {
-		font-size: var(--text-medium);
-		font-family: monospace;
-		color: var(--primary);
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.episode-details__description {
-		overflow-y: auto;
-	}
-
-	.episode-details__actions {
-		display: flex;
-		gap: 1rem;
-		justify-content: center;
-		padding: 1rem 0;
-	}
-
-	.episode-details__action-btn {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		background: var(--primary-less);
-		color: var(--neutral);
-		border: none;
-		padding: 1rem 2rem;
-		border-radius: 0.5rem;
-		font-weight: 500;
-		cursor: pointer;
-	}
-
-	.episode-details__action-btn:hover {
-		background: var(--primary);
-	}
-
 	.download-progress {
 		color: var(--primary);
 		font-size: var(--text-small);
 		min-width: 3ch;
+	}
+
+	.episode-controls {
+		position-area: end span-start;
+		margin-top: -1px;
+		border-top: 1px solid var(--bg-less);
+		border-left: 1px solid var(--primary-less);
+		border-bottom: 1px solid var(--primary-less);
+		background: var(--bg-less);
+		padding: 1rem 2rem 2rem 2rem;
+		gap: 2rem;
+		display: flex;
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity 250ms ease-in-out,
+			transform 250ms ease-in-out,
+			visibility 0s linear 0s,
+			background 150ms ease-in-out;
+		visibility: visible;
+		position: relative;
+	}
+
+	.episode-controls--hidden {
+		opacity: 0;
+		transform: translateY(-0.25rem);
+		visibility: hidden;
+		background: var(--bg);
+		transition:
+			opacity 200ms ease-in-out,
+			transform 200ms ease-in-out,
+			visibility 0s linear 200ms,
+			background 150ms ease-in-out;
+		pointer-events: none;
+	}
+
+	.episode-controls::before {
+		content: '';
+		position: absolute;
+		left: -1.5rem;
+		top: -1px;
+		width: 1.5rem;
+		height: 1.5rem;
+		background: var(--primary-less);
+		clip-path: polygon(100% 0, 0 0, 100% 100%); /* Right triangle in top corner */
+	}
+	.episode-controls__btn {
+		display: flex;
+		font-size: var(--text-small);
+		font-weight: 600;
+		align-items: center;
+		background: var(--primary-less);
+		gap: 0.5rem;
+		border: none;
+		padding: 0.5rem 1rem;
+		color: var(--neutral);
+		cursor: pointer;
+		border-radius: 0.25rem;
+		box-shadow: 2px 2px 4px 1px var(--primary);
 	}
 </style>

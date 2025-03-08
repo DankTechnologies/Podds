@@ -192,3 +192,17 @@ svg {
 		overscroll-behavior-y: none;
 	}
 }
+
+/* List Reset Styles */
+ul[role='list'],
+ol[role='list'] {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+ul[role='list'] > li,
+ol[role='list'] > li {
+	margin: 0;
+	padding: 0;
+}

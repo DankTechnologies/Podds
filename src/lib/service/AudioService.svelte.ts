@@ -38,7 +38,6 @@ export class AudioService {
 
 	static stop() {
 		this.audio.pause();
-		this.audio.currentTime = 0;
 	}
 
 	static getDuration() {

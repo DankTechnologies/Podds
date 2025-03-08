@@ -8,12 +8,17 @@
 	import { circIn, circOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import type { ActiveEpisode } from '$lib/types/db';
+	import type { SvelteMap } from 'svelte/reactivity';
 
 	const ICON_SIZE = '2rem';
 
-	let { episode }: { episode: ActiveEpisode } = $props();
+	let {
+		episode,
+		feedIconsById
+	}: { episode: ActiveEpisode; feedIconsById: SvelteMap<string, string> } = $props();
 
 	let currentTime = $state(0);
+	let lastUpdatedTime = $state(0);
 	let duration = $state(0);
 	let paused = $state(true);
 	let showDetailedControls = $state(false);
@@ -33,6 +38,17 @@
 	$effect(() => {
 		const updateTime = () => {
 			currentTime = AudioService.getCurrentTime();
+
+			let currentTimeRounded = Math.round(currentTime);
+
+			if (
+				currentTimeRounded > 0 &&
+				currentTimeRounded % 5 === 0 &&
+				currentTimeRounded !== lastUpdatedTime
+			) {
+				EpisodeService.updatePlaybackPosition(episode.id, currentTimeRounded);
+				lastUpdatedTime = currentTimeRounded;
+			}
 		};
 
 		AudioService.addEventListener('timeupdate', updateTime);
@@ -189,7 +205,7 @@
 	{/if}
 	<div class="player__controls">
 		<div class="player__artwork">
-			<img src={`data:${episode.feedIconData}`} alt="" />
+			<img src={`data:${feedIconsById.get(episode.feedId)}`} alt="" />
 		</div>
 
 		<button class="player__button" onclick={(e) => handleBack(e)}>
