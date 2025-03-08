@@ -22,6 +22,7 @@
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
 	let focusedEpisodeId = $state<string | null>(null);
+	let isReordering = $state(false);
 
 	function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
@@ -73,6 +74,7 @@
 	}
 
 	function handlePlayNext(episode: Episode) {
+		isReordering = true;
 		const episodeIds = episodes.map((e) => e.id);
 
 		const targetIndex = episodeIds.indexOf(episode.id);
@@ -81,6 +83,11 @@
 
 		toggleEpisodeFocus(episode);
 		EpisodeService.reorderEpisodes(episodeIds);
+
+		// Reset after a short delay to allow the reorder to complete
+		setTimeout(() => {
+			isReordering = false;
+		}, 50);
 	}
 </script>
 
@@ -135,6 +142,7 @@
 				class="episode-controls"
 				class:episode-controls--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
 				class:episode-controls--hidden={focusedEpisodeId !== episode.id}
+				class:episode-controls--no-transition={isReordering}
 				style:position-anchor={`--episode-${episode.id}`}
 				style:position="fixed"
 			>
@@ -287,5 +295,9 @@
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
+	}
+
+	.episode-controls--no-transition {
+		transition: none !important;
 	}
 </style>
