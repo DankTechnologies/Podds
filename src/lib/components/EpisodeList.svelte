@@ -3,7 +3,7 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Check, Play, Plus, Dot } from 'lucide-svelte';
+	import { Play, Dot, ArrowUp, Download } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -12,12 +12,12 @@
 		episodes,
 		activeEpisodes,
 		feedIconsById,
-		enableSorting = false
+		isPlaylist = false
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
 		feedIconsById?: Map<string, string>;
-		enableSorting?: boolean;
+		isPlaylist?: boolean;
 	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
@@ -71,10 +71,21 @@
 	function toggleEpisodeFocus(episode: Episode) {
 		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
 	}
+
+	function handlePlayNext(episode: Episode) {
+		const episodeIds = episodes.map((e) => e.id);
+
+		const targetIndex = episodeIds.indexOf(episode.id);
+		episodeIds.splice(targetIndex, 1);
+		episodeIds.splice(0, 0, episode.id);
+
+		toggleEpisodeFocus(episode);
+		EpisodeService.reorderEpisodes(episodeIds);
+	}
 </script>
 
 <ul class="episode-list" role="list">
-	{#each episodes as episode (episode.id)}
+	{#each episodes as episode, index (episode.id)}
 		<li
 			class="episode-card"
 			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
@@ -97,6 +108,15 @@
 				{/if}
 				<div class="episode-card__heading">
 					<time class="episode-card__time">
+						{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+							<div>
+								<Download size="14" />
+							</div>
+						{:else if downloadProgress.has(episode.id)}
+							<div class="download-progress">
+								{Math.round(downloadProgress.get(episode.id) ?? 0)}%
+							</div>
+						{/if}
 						<div>
 							{formatEpisodeDate(episode.publishedAt)}
 						</div>
@@ -106,15 +126,6 @@
 						<div>
 							{formatEpisodeDuration(episode.durationMin)}
 						</div>
-						{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
-							<div>
-								<Check size="14" />
-							</div>
-						{:else if downloadProgress.has(episode.id)}
-							<div class="download-progress">
-								{Math.round(downloadProgress.get(episode.id) ?? 0)}%
-							</div>
-						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
 				</div>
@@ -128,11 +139,16 @@
 				style:position="fixed"
 			>
 				<button class="episode-controls__btn" onclick={() => playEpisode(episode)}>
-					<Play size="16" /> Play
+					<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
 				</button>
 				{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
 					<button class="episode-controls__btn" onclick={() => downloadEpisode(episode)}>
-						<Plus size="16" /> Later
+						<Download size="16" /> Later
+					</button>
+				{/if}
+				{#if isPlaylist && index > 0}
+					<button class="episode-controls__btn" onclick={() => handlePlayNext(episode)}>
+						<ArrowUp size="16" /> Play Next
 					</button>
 				{/if}
 			</div>
@@ -205,7 +221,7 @@
 
 	.episode-card__title {
 		font-weight: 600;
-		font-size: large;
+		font-size: var(--text-medium);
 	}
 
 	.episode-card__time {
@@ -222,13 +238,14 @@
 		color: var(--primary);
 		font-size: var(--text-small);
 		min-width: 3ch;
+		padding-right: 0.5rem;
 	}
 
 	.episode-controls {
-		position-area: end span-start;
+		position-area: end span-end;
 		margin-top: -1px;
 		border-top: 1px solid var(--bg-less);
-		border-left: 1px solid var(--primary-less);
+		border-right: 1px solid var(--primary-less);
 		border-bottom: 1px solid var(--primary-less);
 		background: var(--bg-less);
 		padding: 1rem 2rem 2rem 2rem;
@@ -258,16 +275,6 @@
 		pointer-events: none;
 	}
 
-	.episode-controls::before {
-		content: '';
-		position: absolute;
-		left: -1.5rem;
-		top: -1px;
-		width: 1.5rem;
-		height: 1.5rem;
-		background: var(--primary-less);
-		clip-path: polygon(100% 0, 0 0, 100% 100%); /* Right triangle in top corner */
-	}
 	.episode-controls__btn {
 		display: flex;
 		font-size: var(--text-small);
@@ -280,6 +287,5 @@
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
-		box-shadow: 2px 2px 4px 1px var(--primary);
 	}
 </style>

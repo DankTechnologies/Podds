@@ -80,7 +80,7 @@
 					episodes={upNextEpisodes}
 					activeEpisodes={upNextActiveEpisodes}
 					{feedIconsById}
-					enableSorting={true}
+					isPlaylist={true}
 				/>
 			</div>
 		{/if}
