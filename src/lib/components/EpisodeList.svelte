@@ -3,13 +3,10 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Check, Play, Plus, Dot } from 'lucide-svelte';
+	import { Check, Play, Plus, Dot, GripVertical } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { reorder, useSortable } from '$lib/hooks/use-sortable.svelte';
-	import { fade } from 'svelte/transition';
-	import { cubicInOut } from 'svelte/easing';
 
 	let {
 		episodes,
@@ -26,16 +23,6 @@
 	let downloadProgress = $state(new SvelteMap<string, number>());
 	let focusedEpisodeId = $state<string | null>(null);
 	let listElement = $state<HTMLElement | null>(null);
-
-	if (enableSorting) {
-		useSortable(() => listElement, {
-			animation: 200,
-			onEnd(evt) {
-				const reorderedEpisodes = reorder(episodes, evt);
-				EpisodeService.reorderEpisodes(reorderedEpisodes.map((x) => x.id));
-			}
-		});
-	}
 
 	function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
@@ -95,7 +82,6 @@
 			class:episode-card--playing-no-image={activeEpisodes.find((x) => x.id === episode.id)
 				?.isPlaying && !feedIconsById}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
-			transition:fade={{ duration: 200, easing: cubicInOut }}
 		>
 			<button
 				class="episode-card__header"
@@ -164,6 +150,7 @@
 	.episode-card {
 		transition: background 150ms ease-out;
 	}
+
 	.episode-card--playing {
 		background: radial-gradient(
 			circle at top right,

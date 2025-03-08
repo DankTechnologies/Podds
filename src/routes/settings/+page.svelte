@@ -74,7 +74,7 @@
 	});
 
 	onMount(async () => {
-		await StorageService.calculateStorageUsage();
+		// await StorageService.calculateStorageUsage();
 	});
 
 	async function onSave() {
@@ -172,7 +172,7 @@
 			<label for="exportFeeds">Export Feeds</label>
 			<button type="button" onclick={onExportFeeds}>Export</button>
 		</div>
-		<div>
+		<!-- <div>
 			<label for="storageUsage">Storage Usage</label>
 			{#if StorageInfo.loading}
 				<div class="storage-stats">Loading storage information...</div>
@@ -184,7 +184,7 @@
 					<div>Remaining Space: {StorageService.formatBytes(StorageInfo.remaining)}</div>
 				</div>
 			{/if}
-		</div>
+		</div> -->
 		<div class="actions">
 			<button type="button" onclick={onReset}>Reset Data</button>
 			<button type="button" onclick={onTest}>Test Connection</button>
