@@ -28,6 +28,8 @@ export class EpisodeService {
 			feedId: episode.feedId,
 			playbackPosition: 0,
 			lastUpdatedAt: new Date(),
+			durationMin: episode.durationMin,
+			minutesLeft: episode.durationMin,
 			isCompleted: 0,
 			isDownloaded: isDownloaded ? 1 : 0,
 			isPlaying: isPlaying ? 1 : 0,
@@ -46,10 +48,12 @@ export class EpisodeService {
 		db.activeEpisodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
 	}
 
-	static updatePlaybackPosition(episodeId: string, pos: number): void {
+	static updatePlaybackPosition(episodeId: string, position: number, durationMin: number): void {
+		const minutesLeft = Math.ceil(durationMin - position / 60);
+
 		db.activeEpisodes.updateOne(
 			{ id: episodeId },
-			{ $set: { playbackPosition: pos, lastUpdatedAt: new Date() } }
+			{ $set: { playbackPosition: position, lastUpdatedAt: new Date(), minutesLeft } }
 		);
 	}
 

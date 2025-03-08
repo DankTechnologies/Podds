@@ -19,12 +19,14 @@ export interface ActiveEpisode {
 	id: string;
 	feedId: string;
 	// denormalized fields
+	durationMin: number;
 	feedTitle: string;
 	title: string;
 	content: string;
 	url: string;
 	// activity tracking
 	playbackPosition: number;
+	minutesLeft: number;
 	lastUpdatedAt: Date;
 	isCompleted: 0 | 1;
 	isDownloaded: 0 | 1;

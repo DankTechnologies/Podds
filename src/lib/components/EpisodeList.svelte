@@ -130,9 +130,15 @@
 						<div>
 							<Dot size="14" />
 						</div>
-						<div>
-							{formatEpisodeDuration(episode.durationMin)}
-						</div>
+						{#if activeEpisodes.find((x) => x.id === episode.id)?.minutesLeft}
+							<div>
+								{activeEpisodes.find((x) => x.id === episode.id)?.minutesLeft}
+							</div>
+						{:else}
+							<div>
+								{formatEpisodeDuration(episode.durationMin)}
+							</div>
+						{/if}
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
 				</div>

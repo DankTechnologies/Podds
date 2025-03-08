@@ -46,7 +46,7 @@
 				currentTimeRounded % 5 === 0 &&
 				currentTimeRounded !== lastUpdatedTime
 			) {
-				EpisodeService.updatePlaybackPosition(episode.id, currentTimeRounded);
+				EpisodeService.updatePlaybackPosition(episode.id, currentTimeRounded, episode.durationMin);
 				lastUpdatedTime = currentTimeRounded;
 			}
 		};
@@ -101,7 +101,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
 	}
 
 	function handlePlayPause(e: Event) {
@@ -115,7 +115,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
 	}
 
 	function handleStop(e: Event) {
@@ -150,7 +150,7 @@
 		const newTime = Number(target.value);
 
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
 	}
 </script>
 
