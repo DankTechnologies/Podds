@@ -1,8 +1,6 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
-	import { cubicInOut, cubicOut } from 'svelte/easing';
-	import { fade } from 'svelte/transition';
 
 	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
@@ -62,7 +60,7 @@
 </div>
 
 {#if view === 'listenedTo'}
-	<div class="section-listened-to" transition:fade={{ duration: 200, easing: cubicInOut }}>
+	<div class="section-listened-to">
 		{#if listenedToEpisodes}
 			<div class="section-content">
 				<EpisodeList
@@ -75,7 +73,7 @@
 	</div>
 {/if}
 {#if view === 'upNext'}
-	<div class="section-up-next" transition:fade={{ duration: 200, easing: cubicInOut }}>
+	<div class="section-up-next">
 		{#if upNextEpisodes}
 			<div class="section-content">
 				<EpisodeList

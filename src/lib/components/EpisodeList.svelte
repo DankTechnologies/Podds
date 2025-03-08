@@ -3,7 +3,7 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Check, Play, Plus, Dot, GripVertical } from 'lucide-svelte';
+	import { Check, Play, Plus, Dot } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -22,7 +22,6 @@
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
 	let focusedEpisodeId = $state<string | null>(null);
-	let listElement = $state<HTMLElement | null>(null);
 
 	function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
@@ -74,7 +73,7 @@
 	}
 </script>
 
-<ul class="episode-list" role="list" bind:this={listElement}>
+<ul class="episode-list" role="list">
 	{#each episodes as episode (episode.id)}
 		<li
 			class="episode-card"
@@ -213,10 +212,10 @@
 		font-size: var(--text-small);
 		font-family: monospace;
 		color: var(--primary);
-		min-height: 1.5rem;
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
+		padding-bottom: 0.1rem;
 	}
 
 	.download-progress {
