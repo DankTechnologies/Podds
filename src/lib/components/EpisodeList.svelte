@@ -89,6 +89,14 @@
 			isReordering = false;
 		}, 50);
 	}
+
+	function getEpisodeDurationDisplay(episode: Episode, activeEpisodes: ActiveEpisode[]): string {
+		const activeEpisode = activeEpisodes.find((x) => x.id === episode.id);
+
+		return !activeEpisode || activeEpisode.isCompleted || activeEpisode.playbackPosition === 0
+			? formatEpisodeDuration(episode.durationMin)
+			: `${formatEpisodeDuration(activeEpisode.minutesLeft)} left`;
+	}
 </script>
 
 <ul class="episode-list" role="list">
@@ -130,15 +138,9 @@
 						<div>
 							<Dot size="14" />
 						</div>
-						{#if activeEpisodes.find((x) => x.id === episode.id)?.minutesLeft}
-							<div>
-								{activeEpisodes.find((x) => x.id === episode.id)?.minutesLeft}
-							</div>
-						{:else}
-							<div>
-								{formatEpisodeDuration(episode.durationMin)}
-							</div>
-						{/if}
+						<div>
+							{getEpisodeDurationDisplay(episode, activeEpisodes)}
+						</div>
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
 				</div>

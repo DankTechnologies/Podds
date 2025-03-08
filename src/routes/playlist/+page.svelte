@@ -4,7 +4,7 @@
 
 	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
-			.filter((episode) => episode.playbackPosition > 0 && !episode.isPlaying)
+			.filter((episode) => episode.playbackPosition > 0)
 			.sort((a, b) => b.lastUpdatedAt.getTime() - a.lastUpdatedAt.getTime())
 			.slice(0, 10)
 	);

@@ -48,12 +48,14 @@ export class EpisodeService {
 		db.activeEpisodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
 	}
 
-	static updatePlaybackPosition(episodeId: string, position: number, durationMin: number): void {
-		const minutesLeft = Math.ceil(durationMin - position / 60);
+	static updatePlaybackPosition(episodeId: string, position: number, remainingTime: number): void {
+		const minutesLeft = Math.ceil(remainingTime / 60);
 
 		db.activeEpisodes.updateOne(
 			{ id: episodeId },
-			{ $set: { playbackPosition: position, lastUpdatedAt: new Date(), minutesLeft } }
+			{
+				$set: { playbackPosition: position, lastUpdatedAt: new Date(), minutesLeft, isCompleted: 0 }
+			}
 		);
 	}
 

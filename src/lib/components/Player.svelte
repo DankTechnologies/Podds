@@ -24,6 +24,8 @@
 	let showDetailedControls = $state(false);
 	let previousEpisodeId = $state('');
 
+	let remainingTime = $derived(duration - currentTime);
+
 	onMount(() => {
 		AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
 	});
@@ -46,7 +48,7 @@
 				currentTimeRounded % 5 === 0 &&
 				currentTimeRounded !== lastUpdatedTime
 			) {
-				EpisodeService.updatePlaybackPosition(episode.id, currentTimeRounded, episode.durationMin);
+				EpisodeService.updatePlaybackPosition(episode.id, currentTimeRounded, remainingTime);
 				lastUpdatedTime = currentTimeRounded;
 			}
 		};
@@ -101,7 +103,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime - 10));
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
 	}
 
 	function handlePlayPause(e: Event) {
@@ -115,7 +117,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(0, Math.min(duration, currentTime + 30));
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
 	}
 
 	function handleStop(e: Event) {
@@ -150,7 +152,7 @@
 		const newTime = Number(target.value);
 
 		AudioService.seek(newTime);
-		EpisodeService.updatePlaybackPosition(episode.id, newTime, episode.durationMin);
+		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
 	}
 </script>
 
@@ -176,7 +178,7 @@
 				{formatPlaybackPosition(currentTime)}
 			</div>
 			<div>
-				-{formatPlaybackPosition(duration - currentTime)}
+				-{formatPlaybackPosition(remainingTime)}
 			</div>
 		</div>
 		<input
