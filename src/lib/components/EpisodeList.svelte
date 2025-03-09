@@ -109,44 +109,46 @@
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 		>
 			<button
-				class="episode-card__header"
+				class="episode-card__wrapper"
 				type="button"
 				style:anchor-name={`--episode-${episode.id}`}
 				onclick={() => toggleEpisodeFocus(episode)}
 			>
-				{#if feedIconsById}
-					<img
-						class="episode-card__image"
-						src={`data:${feedIconsById.get(episode.feedId)}`}
-						alt=""
-					/>
-				{/if}
-				<div class="episode-card__heading">
-					<time class="episode-card__time">
-						{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
-							<div>
-								<Download size="14" />
-							</div>
-						{:else if downloadProgress.has(episode.id)}
-							<div class="download-progress">
-								{Math.round(downloadProgress.get(episode.id) ?? 0)}%
-							</div>
-						{/if}
-						<div>
-							{formatEpisodeDate(episode.publishedAt)}
-						</div>
-						<div>
-							<Dot size="14" />
-						</div>
-						<div>
-							{getEpisodeDurationDisplay(episode, activeEpisodes)}
-						</div>
-					</time>
-					<div class="episode-card__title">{episode.title}</div>
-					{#if focusedEpisodeId == episode.id}
-						<div class="episode-card__description">{@html episode.content}</div>
+				<div class="episode-card__content">
+					{#if feedIconsById}
+						<img
+							class="episode-card__image"
+							src={`data:${feedIconsById.get(episode.feedId)}`}
+							alt=""
+						/>
 					{/if}
+					<div class="episode-card__heading">
+						<time class="episode-card__time">
+							{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+								<div>
+									<Download size="14" />
+								</div>
+							{:else if downloadProgress.has(episode.id)}
+								<div class="download-progress">
+									{Math.round(downloadProgress.get(episode.id) ?? 0)}%
+								</div>
+							{/if}
+							<div>
+								{formatEpisodeDate(episode.publishedAt)}
+							</div>
+							<div>
+								<Dot size="14" />
+							</div>
+							<div>
+								{getEpisodeDurationDisplay(episode, activeEpisodes)}
+							</div>
+						</time>
+						<div class="episode-card__title">{episode.title}</div>
+					</div>
 				</div>
+				{#if focusedEpisodeId == episode.id}
+					<div class="episode-card__description">{@html episode.content}</div>
+				{/if}
 			</button>
 
 			<div
@@ -207,8 +209,7 @@
 		background: var(--bg-less);
 	}
 
-	.episode-card__header {
-		display: flex;
+	.episode-card__wrapper {
 		width: 100%;
 		background: none;
 		border: none;
@@ -218,8 +219,12 @@
 		border-bottom: 1px solid var(--primary-less);
 	}
 
+	.episode-card__content {
+		display: flex;
+	}
+
 	/* less padding needed when using image */
-	.episode-card__header:has(.episode-card__image) {
+	.episode-card__wrapper:has(.episode-card__image) {
 		padding: 1rem;
 	}
 
@@ -250,7 +255,7 @@
 		overflow: hidden;
 		border-left: 0.5rem solid var(--primary-less);
 		padding: 0 1rem;
-		margin-top: 0.5rem;
+		margin-top: 1rem;
 		text-overflow: ellipsis;
 		display: -webkit-box;
 		-webkit-line-clamp: 3;
