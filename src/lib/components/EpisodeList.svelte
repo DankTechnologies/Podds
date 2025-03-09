@@ -143,6 +143,9 @@
 						</div>
 					</time>
 					<div class="episode-card__title">{episode.title}</div>
+					{#if focusedEpisodeId == episode.id}
+						<div class="episode-card__description">{@html episode.content}</div>
+					{/if}
 				</div>
 			</button>
 
@@ -237,7 +240,26 @@
 
 	.episode-card__title {
 		font-weight: 600;
+		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
+	}
+
+	.episode-card__description {
+		font-size: var(--text-small);
+		line-height: var(--line-height-normal);
+		overflow: hidden;
+		border-left: 0.5rem solid var(--primary-less);
+		padding: 0 1rem;
+		margin-top: 0.5rem;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+
+		:global(p) {
+			margin: 0;
+		}
 	}
 
 	.episode-card__time {
