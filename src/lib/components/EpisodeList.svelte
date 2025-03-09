@@ -104,8 +104,6 @@
 		<li
 			class="episode-card"
 			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
-			class:episode-card--playing-no-image={activeEpisodes.find((x) => x.id === episode.id)
-				?.isPlaying && !feedIconsById}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 		>
 			<button
@@ -194,18 +192,9 @@
 
 	.episode-card--playing {
 		background: radial-gradient(
-			circle at top right,
+			ellipse at bottom left,
 			var(--bg-less) 0%,
 			var(--bg-less) 70%,
-			var(--primary) 100%
-		);
-	}
-
-	.episode-card--playing-no-image {
-		background: radial-gradient(
-			ellipse at top left,
-			var(--bg-less) 0%,
-			var(--bg-less) 60%,
 			var(--primary) 100%
 		);
 	}
@@ -297,7 +286,6 @@
 		overflow: hidden;
 		border-left: 0.5rem solid var(--primary-less);
 		padding: 0 1rem;
-		background: var(--bg-less);
 		text-overflow: ellipsis;
 		display: -webkit-box;
 		-webkit-line-clamp: 3;
