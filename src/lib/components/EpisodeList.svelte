@@ -303,7 +303,7 @@
 		-webkit-line-clamp: 3;
 		line-clamp: 3;
 		-webkit-box-orient: vertical;
-		word-break: break-all;
+		word-break: break-word;
 
 		:global(p) {
 			margin: 0;
