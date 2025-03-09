@@ -146,9 +146,6 @@
 						<div class="episode-card__title">{episode.title}</div>
 					</div>
 				</div>
-				{#if focusedEpisodeId == episode.id}
-					<div class="episode-card__description">{@html episode.content}</div>
-				{/if}
 			</button>
 
 			<div
@@ -159,19 +156,27 @@
 				style:position-anchor={`--episode-${episode.id}`}
 				style:position="fixed"
 			>
-				<button class="episode-controls__btn" onclick={() => playEpisode(episode)}>
-					<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
-				</button>
-				{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
-					<button class="episode-controls__btn" onclick={() => downloadEpisode(episode)}>
-						<Download size="16" /> Later
+				<div
+					class="episode-controls__description-wrapper"
+					class:episode-controls__description-wrapper--no-image={!feedIconsById}
+				>
+					<div class="episode-controls__description">{@html episode.content}</div>
+				</div>
+				<div class="episode-controls__buttons">
+					<button class="episode-controls__btn" onclick={() => playEpisode(episode)}>
+						<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
 					</button>
-				{/if}
-				{#if isPlaylist && index > 0}
-					<button class="episode-controls__btn" onclick={() => handlePlayNext(episode)}>
-						<ArrowUp size="16" /> Play Next
-					</button>
-				{/if}
+					{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+						<button class="episode-controls__btn" onclick={() => downloadEpisode(episode)}>
+							<Download size="16" /> Later
+						</button>
+					{/if}
+					{#if isPlaylist && index > 0}
+						<button class="episode-controls__btn" onclick={() => handlePlayNext(episode)}>
+							<ArrowUp size="16" /> Play Next
+						</button>
+					{/if}
+				</div>
 			</div>
 		</li>
 	{/each}
@@ -249,24 +254,6 @@
 		font-size: var(--text-medium);
 	}
 
-	.episode-card__description {
-		font-size: var(--text-small);
-		line-height: var(--line-height-normal);
-		overflow: hidden;
-		border-left: 0.5rem solid var(--primary-less);
-		padding: 0 1rem;
-		margin-top: 1rem;
-		text-overflow: ellipsis;
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
-		-webkit-box-orient: vertical;
-
-		:global(p) {
-			margin: 0;
-		}
-	}
-
 	.episode-card__time {
 		font-size: var(--text-small);
 		font-family: monospace;
@@ -285,24 +272,53 @@
 	}
 
 	.episode-controls {
-		position-area: end span-end;
+		position-area: end span-all;
 		margin-top: -1px;
-		border-top: 1px solid var(--bg-less);
-		border-right: 1px solid var(--primary-less);
-		border-bottom: 1px solid var(--primary-less);
 		background: var(--bg-less);
-		padding: 1rem 2rem 2rem 2rem;
-		gap: 2rem;
-		display: flex;
 		opacity: 1;
-		transform: translateY(0);
-		transition:
-			opacity 250ms ease-in-out,
-			transform 250ms ease-in-out,
-			visibility 0s linear 0s,
-			background 150ms ease-in-out;
 		visibility: visible;
 		position: relative;
+		background: transparent;
+	}
+
+	.episode-controls__description-wrapper {
+		padding: 0 1rem 2rem 1rem;
+		background: var(--bg-less);
+		border-bottom: 1px solid var(--primary-less);
+	}
+
+	.episode-controls__description-wrapper--no-image {
+		padding-left: 1.5rem;
+	}
+
+	.episode-controls__description {
+		font-size: var(--text-small);
+		line-height: var(--line-height-normal);
+		overflow: hidden;
+		border-left: 0.5rem solid var(--primary-less);
+		padding: 0 1rem;
+		background: var(--bg-less);
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+		word-break: break-all;
+
+		:global(p) {
+			margin: 0;
+		}
+	}
+
+	.episode-controls__buttons {
+		display: flex;
+		gap: 2rem;
+		margin-top: -1px;
+		background: var(--bg-less);
+		width: fit-content;
+		padding: 0 2rem 2rem 2rem;
+		border-right: 1px solid var(--primary-less);
+		border-bottom: 1px solid var(--primary-less);
 	}
 
 	.episode-controls--hidden {
@@ -310,11 +326,6 @@
 		transform: translateY(-0.25rem);
 		visibility: hidden;
 		background: var(--bg);
-		transition:
-			opacity 200ms ease-in-out,
-			transform 200ms ease-in-out,
-			visibility 0s linear 200ms,
-			background 150ms ease-in-out;
 		pointer-events: none;
 	}
 
