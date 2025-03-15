@@ -12,7 +12,7 @@ describe('PodcastIndexClient', () => {
 	});
 
 	it.only('should get episodes by podcast', async () => {
-		const result = await client.searchFeeds('Larry Meiller Show', { fulltext: true, max: 1 });
+		const result = await client.searchFeeds('Fresh Air', { fulltext: true, max: 1 });
 
 		const episodes = await client.episodesByFeedIds(result[0].id.toString(), {
 			fulltext: true,

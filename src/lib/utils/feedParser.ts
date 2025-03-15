@@ -1,3 +1,4 @@
+import { XMLParser } from 'fast-xml-parser';
 import type { Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 
@@ -25,54 +26,43 @@ export async function parseFeedUrl(
 }
 
 function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): Episode[] {
-	const parser = new DOMParser();
-	const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+	const parser = new XMLParser({
+		ignoreAttributes: false,
+		attributeNamePrefix: '@_'
+	});
+	const result = parser.parse(xmlString);
+	const items = result.rss.channel.item;
 
-	const episodes: Episode[] = [];
-	const items = xmlDoc.getElementsByTagName('item');
+	if (!items) return [];
 
-	for (const item of Array.from(items)) {
-		const title = item.getElementsByTagName('title')[0]?.textContent?.trim() || '';
-		const publishedAtStr = item.getElementsByTagName('pubDate')[0]?.textContent?.trim() || '';
-		const publishedAt = publishedAtStr ? new Date(publishedAtStr) : new Date();
+	// Ensure items is always an array
+	const itemsArray = Array.isArray(items) ? items : [items];
 
-		// Skip items published before the since timestamp
-		if (since && publishedAt.getTime() / 1000 < since) {
-			continue;
-		}
+	return itemsArray
+		.filter((item) => {
+			const publishedAt = new Date(item.pubDate);
+			return !since || publishedAt.getTime() / 1000 >= since;
+		})
+		.map((item) => {
+			const publishedAt = new Date(item.pubDate || new Date());
+			const enclosure = Array.isArray(item.enclosure)
+				? item.enclosure.find(
+						(e: { '@_type': string; '@_url': string }) =>
+							e['@_type'] === 'audio/mpeg' || e['@_url']?.toLowerCase().endsWith('.mp3')
+					)
+				: item.enclosure;
 
-		const content =
-			item.getElementsByTagName('description')[0]?.textContent?.trim() ||
-			item.getElementsByTagName('itunes:summary')[0]?.textContent?.trim() ||
-			'';
+			const durationStr = item['itunes:duration'] || '0';
+			const durationSeconds = parseInt(durationStr, 10) || 0;
 
-		// Find audio enclosure
-		const enclosures = item.getElementsByTagName('enclosure');
-		let url = '';
-		for (const enclosure of Array.from(enclosures)) {
-			const enclosureUrl = enclosure.getAttribute('url') || '';
-			const type = enclosure.getAttribute('type');
-			if (type === 'audio/mpeg' || enclosureUrl.toLowerCase().endsWith('.mp3')) {
-				url = enclosureUrl;
-				break;
-			}
-		}
-
-		// Parse duration from seconds format
-		const durationStr = item.getElementsByTagName('itunes:duration')[0]?.textContent?.trim() || '0';
-		const durationSeconds = parseInt(durationStr, 10) || 0;
-		const durationMin = Math.floor(durationSeconds / 60);
-
-		episodes.push({
-			id: Date.now().toString() + Math.floor(Math.random() * 10000).toString(),
-			feedId,
-			title,
-			publishedAt,
-			content,
-			url,
-			durationMin
+			return {
+				id: Date.now().toString() + Math.floor(Math.random() * 10000).toString(),
+				feedId,
+				title: item.title?.trim() || '',
+				publishedAt,
+				content: item.description?.trim() || item['itunes:summary']?.trim() || '',
+				url: enclosure?.['@_url'] || '',
+				durationMin: Math.floor(durationSeconds / 60)
+			};
 		});
-	}
-
-	return episodes;
 }

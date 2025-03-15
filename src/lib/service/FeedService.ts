@@ -74,7 +74,7 @@ export class FeedService {
 			await this.updateFeedEpisodes(feedIds.join(','), since);
 
 			for (const feed of feeds) {
-				Log.info(`Updating feed ${feed.title} directly`);
+				Log.debug(`Updating feed ${feed.title} directly`);
 				await this.updateFeedEpisodesDirect(feed, since);
 			}
 
