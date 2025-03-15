@@ -78,6 +78,8 @@ export class FeedService {
 	async updateFeedEpisodes(feedIds: string, since?: number): Promise<void> {
 		await this.initialize();
 
+		Log.debug(`Updating episodes for feed ${feedIds}`);
+
 		const episodes = (
 			await this.api!.episodesByFeedIds(feedIds, { max: 1000, since }).then((res) => res.items)
 		).map(
