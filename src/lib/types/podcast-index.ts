@@ -17,6 +17,7 @@ interface PIApiEpisodeBase {
 export interface PIApiFeed {
 	id: number;
 	title: string;
+	url: string;
 	language: string;
 	categories: Map<string, string>;
 	link: string;

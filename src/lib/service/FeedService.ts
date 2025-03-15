@@ -5,6 +5,7 @@ import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
+import { parseFeedUrl } from '$lib/utils/feedParser';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -15,12 +16,19 @@ export class FeedService {
 	private api: PodcastIndexClient | null = null;
 	private initialized = false;
 
+	constructor(apiKey?: string, apiSecret?: string) {
+		if (apiKey && apiSecret) {
+			this.api = new PodcastIndexClient(apiKey, apiSecret);
+			this.initialized = true;
+		}
+	}
+
 	private async initialize() {
 		if (this.initialized) return;
 
 		let settings = getSettings();
-		if (!settings || !settings.podcastIndexKey || !settings.podcastIndexSecret) {
-			throw new Error('Podcast Index settings not found');
+		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
+			throw new Error('Podcast Index credentials not found');
 		}
 
 		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
@@ -30,15 +38,15 @@ export class FeedService {
 	async updateAllFeeds() {
 		try {
 			let settings = getSettings();
+			let feeds = getFeeds();
+			const feedIds = feeds.map((feed) => feed.id);
 
 			if (!settings) {
 				Log.warn('Settings not found, skipping update');
 				return;
 			}
 
-			let feedIds = getFeeds().map((feed) => feed.id);
-
-			if (feedIds.length === 0) {
+			if (feeds.length === 0) {
 				Log.warn('No feeds found, skipping update');
 				return;
 			}
@@ -64,6 +72,11 @@ export class FeedService {
 			Log.info('Starting update of all feeds');
 
 			await this.updateFeedEpisodes(feedIds.join(','), since);
+
+			for (const feed of feeds) {
+				Log.info(`Updating feed ${feed.title} directly`);
+				await this.updateFeedEpisodesDirect(feed, since);
+			}
 
 			SettingsService.updateLastSyncAt();
 
@@ -116,11 +129,31 @@ export class FeedService {
 		}
 	}
 
+	private async updateFeedEpisodesDirect(feed: { id: string; url: string }, since?: number) {
+		try {
+			const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
+			const dbEpisodes = db.episodes.find({ feedId: feed.id }).fetch();
+
+			Log.info(`${parsedEpisodes.length} episodes found since ${since} (direct)`);
+
+			parsedEpisodes.forEach((episode) => {
+				const match = dbEpisodes.find((x) => x.title === episode.title);
+				if (!match) {
+					Log.info(`Adding ${episode.title} (direct)`);
+					db.episodes.insert(episode);
+				}
+			});
+		} catch (error) {
+			Log.error(`Error processing feed ${feed.id}: ${error}`);
+		}
+	}
+
 	// delete feed
 
 	addFeed(feed: PIApiFeed, iconData: string) {
 		db.feeds.insert({
 			id: feed.id.toString(),
+			url: feed.url,
 			title: feed.title,
 			iconData: iconData,
 			lastUpdatedAt: new Date()

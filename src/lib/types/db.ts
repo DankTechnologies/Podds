@@ -1,6 +1,7 @@
 export interface Feed {
 	id: string;
 	title: string;
+	url: string;
 	iconData: string;
 	lastUpdatedAt?: Date;
 }
