@@ -14,7 +14,7 @@ export class SettingsService {
 		if (!currentSettings) {
 			db.settings.insert(settings);
 		} else {
-			db.settings.updateOne({ id: '1' }, { $set: { settings } });
+			db.settings.updateOne({ id: '1' }, { $set: { ...settings } });
 		}
 	}
 

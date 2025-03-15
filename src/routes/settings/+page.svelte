@@ -17,7 +17,7 @@
 		id: '1',
 		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
 		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
-		syncIntervalMinutes: 10,
+		syncIntervalMinutes: 15,
 		logLevel: 'info'
 	});
 
@@ -55,7 +55,7 @@
 				const decoded = decodeShareLink(hash);
 				settings = {
 					id: '1',
-					syncIntervalMinutes: 10,
+					syncIntervalMinutes: 15,
 					logLevel: 'info',
 					...decoded
 				};
@@ -141,6 +141,10 @@
 			/>
 		</div>
 		<div>
+			<label for="syncInterval">Sync Interval (minutes)</label>
+			<input id="syncInterval" type="number" bind:value={settings.syncIntervalMinutes} required />
+		</div>
+		<div>
 			<label for="connectionStatus">Connection Status</label>
 			<div
 				id="connectionStatus"
@@ -189,7 +193,7 @@
 			<button type="button" onclick={onReset}>Reset Data</button>
 			<button type="button" onclick={onTest}>Test Connection</button>
 			<button type="button" disabled={!isValid} onclick={generateShareLink}>Share Config</button>
-			<button type="button" disabled={!isValid} onclick={onSave}>Save Changes</button>
+			<button type="button" onclick={onSave}>Save Changes</button>
 		</div>
 		{#if logs}
 			<div>
