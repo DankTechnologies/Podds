@@ -107,7 +107,7 @@ export class FeedService {
 			})
 		);
 
-		Log.info(`${episodes.length} episodes found since ${since}`);
+		Log.debug(`${episodes.length} episodes found since ${since}`);
 
 		if (episodes.length === 0) {
 			return;
@@ -134,7 +134,7 @@ export class FeedService {
 			const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
 			const dbEpisodes = db.episodes.find({ feedId: feed.id }).fetch();
 
-			Log.info(`${parsedEpisodes.length} episodes found since ${since} (direct)`);
+			Log.debug(`${parsedEpisodes.length} episodes found since ${since} (direct)`);
 
 			parsedEpisodes.forEach((episode) => {
 				const match = dbEpisodes.find((x) => x.title === episode.title);
