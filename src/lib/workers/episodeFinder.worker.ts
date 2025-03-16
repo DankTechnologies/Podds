@@ -27,11 +27,14 @@ self.onmessage = async (e: MessageEvent<FinderRequest>) => {
 
 		errors.push(...podcastClientResult.errors, ...directFeedResult.errors);
 
-		// episodes = podcast client episodes + missing direct episodes, using url to cross-check
+		// episodes = podcast client episodes + missing direct episodes
 		const episodes: Episode[] = [
 			...podcastClientResult.episodes,
 			...directFeedResult.episodes.filter(
-				(x) => !podcastClientResult.episodes.some((y) => x.url === y.url)
+				(x) =>
+					!podcastClientResult.episodes.some(
+						(y) => x.url === y.url || x.title === y.title || x.publishedAt === y.publishedAt
+					)
 			)
 		];
 

@@ -51,12 +51,27 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 				: item.enclosure;
 
 			const durationStr = item['itunes:duration'] || '0';
-			const durationSeconds = parseInt(durationStr, 10) || 0;
+			let durationSeconds = 0;
+
+			if (isNaN(durationStr)) {
+				// Handle HH:MM:SS or MM:SS format
+				const parts = durationStr.split(':').map((part: string) => parseInt(part, 10));
+				if (parts.length === 3) {
+					// HH:MM:SS
+					durationSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+				} else if (parts.length === 2) {
+					// MM:SS
+					durationSeconds = parts[0] * 60 + parts[1];
+				}
+			} else {
+				// Handle numeric format
+				durationSeconds = parseInt(durationStr, 10) || 0;
+			}
 
 			return {
-				id: Date.now().toString() + Math.floor(Math.random() * 10000).toString(),
+				id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
 				feedId,
-				title: item.title?.trim() || '',
+				title: (item.title?.toString() || '').trim(),
 				publishedAt,
 				content: item.description?.trim() || item['itunes:summary']?.trim() || '',
 				url: enclosure?.['@_url'] || '',

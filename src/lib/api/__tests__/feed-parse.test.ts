@@ -12,8 +12,18 @@ describe('FeedService RSS parsing', () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});
 
-	it.only('should parse Science Friday', async () => {
+	it('should parse Science Friday', async () => {
 		const url = 'https://feeds.feedburner.com/science-friday/';
+
+		const episodes = await parseFeedUrl('12345', url);
+
+		console.log(episodes);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	});
+
+	it.only('should parse Marketplace', async () => {
+		const url = 'https://www.marketplace.org/feed/podcast/marketplace/';
 
 		const episodes = await parseFeedUrl('12345', url);
 
