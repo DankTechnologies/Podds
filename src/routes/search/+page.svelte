@@ -67,7 +67,6 @@
 	}
 
 	function addFeed(feed: PIApiFeed) {
-		Log.info(`Adding feed: ${feed.title}`);
 		feedService.addFeed(feed, resizedImageById.get(feed.id) ?? '');
 	}
 </script>

@@ -1,28 +1,26 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { Episode } from '$lib/types/db';
-import { Log } from '$lib/service/LogService';
 
 export async function parseFeedUrl(
 	feedId: string,
 	url: string,
 	since?: number
 ): Promise<Episode[]> {
-	try {
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}`;
-		const response = await fetch(corsHelperUrl);
-		const contentType = response.headers.get('content-type');
+	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}`;
+	const response = await fetch(corsHelperUrl);
 
-		if (!contentType?.includes('xml')) {
-			throw new Error('Invalid feed format - expected XML');
-		}
-
-		const xmlString = await response.text();
-		return parseEpisodesFromXml(feedId, xmlString, since);
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		Log.error(`Error parsing feed URL ${url}: ${errorMessage}`);
-		throw error;
+	if (response.status >= 400) {
+		throw new Error(`Failed to fetch feed: HTTP ${response.status}`);
 	}
+
+	const contentType = response.headers.get('content-type');
+
+	if (!contentType?.includes('xml')) {
+		throw new Error(`Invalid feed format: ${contentType}`);
+	}
+
+	const xmlString = await response.text();
+	return parseEpisodesFromXml(feedId, xmlString, since);
 }
 
 function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): Episode[] {

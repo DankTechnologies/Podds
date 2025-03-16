@@ -1,11 +1,10 @@
 import PodcastIndexClient from '$lib/api/podcast-index';
 import { db, getFeeds, getSettings } from '$lib/stores/db.svelte';
-import type { Episode } from '$lib/types/db';
+import type { FinderRequest, FinderResponse } from '$lib/types/episodeFinder';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
-import { parseFeedUrl } from '$lib/utils/feedParser';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -23,143 +22,103 @@ export class FeedService {
 		}
 	}
 
-	private async initialize() {
-		if (this.initialized) return;
-
-		let settings = getSettings();
-		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
-			throw new Error('Podcast Index credentials not found');
-		}
-
-		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-		this.initialized = true;
-	}
-
 	async updateAllFeeds() {
-		try {
-			let settings = getSettings();
-			let feeds = getFeeds();
-			const feedIds = feeds.map((feed) => feed.id);
+		let settings = getSettings();
+		let feeds = getFeeds();
 
-			if (!settings) {
-				Log.warn('Settings not found, skipping update');
-				return;
-			}
-
-			if (feeds.length === 0) {
-				Log.warn('No feeds found, skipping update');
-				return;
-			}
-
-			const timestampNow = Math.floor(Date.now() / 1000);
-
-			const timestampLastSync = settings.lastSyncAt
-				? Math.floor(new Date(settings.lastSyncAt).getTime() / 1000)
-				: timestampNow - ONE_DAY_IN_SECONDS;
-
-			const lastSyncAtSeconds = timestampNow - timestampLastSync;
-			if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
-				const minutes = Math.floor(lastSyncAtSeconds / 60);
-				const seconds = lastSyncAtSeconds % 60;
-				Log.debug(`Last sync was ${minutes}m${seconds}s ago, skipping update`);
-				return;
-			}
-
-			// 'since' filters on datePublished rather than dateCrawled
-			// so we need to subtract a day to ensure we get all episodes
-			const since = timestampLastSync - ONE_DAY_IN_SECONDS;
-
-			Log.info('Starting update of all feeds');
-
-			await this.updateFeedEpisodes(feedIds.join(','), since);
-
-			for (const feed of feeds) {
-				Log.debug(`Updating feed ${feed.title} directly`);
-				await this.updateFeedEpisodesDirect(feed, since);
-			}
-
-			SettingsService.updateLastSyncAt();
-
-			Log.info('Finished update of all feeds');
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? `${error.message}\n${error.stack}` : String(error);
-			Log.error(`Error updating all feeds: ${errorMessage}`);
-		}
-	}
-
-	async updateFeedEpisodes(feedIds: string, since?: number): Promise<void> {
-		await this.initialize();
-
-		Log.debug(`Updating episodes for feed ${feedIds}`);
-
-		const episodes = (
-			await this.api!.episodesByFeedIds(feedIds, { max: 1000, since }).then((res) => res.items)
-		).map(
-			(episode): Episode => ({
-				id: episode.id.toString(),
-				feedId: episode.feedId.toString(),
-				title: episode.title,
-				publishedAt: new Date(episode.datePublished * 1000),
-				content: episode.description,
-				url: episode.enclosureUrl,
-				durationMin: Math.floor(episode.duration / 60)
-			})
-		);
-
-		Log.debug(`${episodes.length} episodes found since ${since}`);
-
-		if (episodes.length === 0) {
+		if (!settings) {
+			Log.warn('Settings not found, skipping update');
 			return;
 		}
 
-		if (since) {
-			db.episodes.batch(() => {
-				episodes.forEach((x) => {
-					const match = db.episodes.findOne({ id: x.id });
-
-					if (!match) {
-						Log.info(`Adding ${x.title}`);
-						db.episodes.insert(x);
-					}
-				});
-			});
-		} else {
-			db.episodes.insertMany(episodes);
+		if (feeds.length === 0) {
+			Log.warn('No feeds found, skipping update');
+			return;
 		}
-	}
 
-	private async updateFeedEpisodesDirect(feed: { id: string; url: string }, since?: number) {
-		try {
-			const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
-			const dbEpisodes = db.episodes.find({ feedId: feed.id }).fetch();
+		const timestampNow = Math.floor(Date.now() / 1000);
 
-			Log.debug(`${parsedEpisodes.length} episodes found since ${since} (direct)`);
+		const timestampLastSync = settings.lastSyncAt
+			? Math.floor(new Date(settings.lastSyncAt).getTime() / 1000)
+			: timestampNow - ONE_DAY_IN_SECONDS;
 
-			parsedEpisodes.forEach((episode) => {
-				const match = dbEpisodes.find((x) => x.title === episode.title);
+		const lastSyncAtSeconds = timestampNow - timestampLastSync;
+		if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
+			const minutes = Math.floor(lastSyncAtSeconds / 60);
+			const seconds = lastSyncAtSeconds % 60;
+			Log.debug(`Last sync was ${minutes}m${seconds}s ago, skipping update`);
+			return;
+		}
+
+		// 'since' filters on datePublished rather than dateCrawled
+		// so we need to subtract a day to ensure we get all episodes
+		const since = timestampLastSync - ONE_DAY_IN_SECONDS;
+
+		Log.info('Starting update of all feeds');
+
+		const finderRequest: FinderRequest = {
+			apiKey: settings.podcastIndexKey,
+			apiSecret: settings.podcastIndexSecret,
+			feeds,
+			since
+		};
+
+		const finderResponse = await this.runEpisodeFinder(finderRequest);
+
+		finderResponse.errors.forEach((x) => Log.error(x));
+
+		db.episodes.batch(() => {
+			finderResponse.episodes.forEach((x) => {
+				const match = db.episodes.findOne({ title: x.title });
+
 				if (!match) {
-					Log.info(`Adding ${episode.title} (direct)`);
-					db.episodes.insert(episode);
+					Log.info(`Adding ${x.title}`);
+					db.episodes.insert(x);
 				}
 			});
-		} catch (error) {
-			Log.error(`Error processing feed ${feed.id}: ${error}`);
-		}
+		});
+
+		SettingsService.updateLastSyncAt();
+
+		Log.info('Finished update of all feeds');
 	}
 
 	// delete feed
 
-	addFeed(feed: PIApiFeed, iconData: string) {
-		db.feeds.insert({
+	async addFeed(feed: PIApiFeed, iconData: string) {
+		Log.info(`Adding feed: ${feed.title}`);
+
+		let settings = getSettings();
+
+		if (!settings) {
+			Log.warn('Settings not found, skipping update');
+			return;
+		}
+
+		const newFeed = {
 			id: feed.id.toString(),
 			url: feed.url,
 			title: feed.title,
 			iconData: iconData,
 			lastUpdatedAt: new Date()
-		});
+		};
 
-		this.updateFeedEpisodes(feed.id.toString());
+		db.feeds.insert(newFeed);
+
+		const finderRequest: FinderRequest = {
+			apiKey: settings.podcastIndexKey,
+			apiSecret: settings.podcastIndexSecret,
+			feeds: [newFeed],
+			since: undefined
+		};
+
+		const finderResponse = await this.runEpisodeFinder(finderRequest);
+
+		finderResponse.errors.forEach((x) => Log.error(x));
+
+		db.episodes.insertMany(finderResponse.episodes);
+
+		Log.info(`Finished adding ${feed.title}`);
 	}
 
 	exportFeeds(): string {
@@ -181,8 +140,7 @@ export class FeedService {
 				const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
 				const iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
 
-				this.addFeed(response.feed, iconData);
-				Log.info(`Imported feed: ${response.feed.title}`);
+				await this.addFeed(response.feed, iconData);
 			} catch (error) {
 				Log.error(`Error importing feed ${id}: ${error}`);
 			}
@@ -199,5 +157,35 @@ export class FeedService {
 		setTimeout(sync, 1000);
 
 		setInterval(sync, CHECK_INTERVAL_MS);
+	}
+
+	private async initialize() {
+		if (this.initialized) return;
+
+		let settings = getSettings();
+		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
+			throw new Error('Podcast Index credentials not found');
+		}
+
+		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
+		this.initialized = true;
+	}
+
+	private async runEpisodeFinder(request: FinderRequest): Promise<FinderResponse> {
+		const worker = new Worker(new URL('../workers/episodeFinder.worker.ts', import.meta.url), {
+			type: 'module'
+		});
+
+		try {
+			const response = await new Promise<FinderResponse>((resolve, reject) => {
+				worker.onmessage = (event) => resolve(event.data);
+				worker.onerror = (error) => reject(error);
+				worker.postMessage(request);
+			});
+
+			return response;
+		} finally {
+			worker.terminate();
+		}
 	}
 }

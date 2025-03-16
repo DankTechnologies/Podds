@@ -130,12 +130,12 @@ export class PodcastIndexClient {
 
 // Use Node's crypto in Node environment, otherwise use browser's crypto
 async function sha1(data: string): Promise<string> {
-	if (typeof window === 'undefined') {
+	if (typeof crypto === 'undefined') {
 		// Node environment
 		const crypto = await import('crypto');
 		return crypto.createHash('sha1').update(data).digest('hex');
 	} else {
-		// Browser environment
+		// Browser or Web Worker environment
 		const msgUint8 = new TextEncoder().encode(data);
 		const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
 		const hashArray = Array.from(new Uint8Array(hashBuffer));
