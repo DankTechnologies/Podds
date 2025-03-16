@@ -10,8 +10,13 @@ export class AudioService {
 	}
 
 	static async play(url: string, currentTime: number = 0) {
+		this.audio.pause();
 		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 		this.audio.src = corsHelperUrl;
+
+		if (this.audio.readyState < 1) {
+			await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
+		}
 		this.audio.currentTime = currentTime;
 		this.audio.play();
 	}
