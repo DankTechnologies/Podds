@@ -22,8 +22,18 @@ describe('FeedService RSS parsing', () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});
 
-	it.only('should parse Marketplace', async () => {
+	it('should parse Marketplace', async () => {
 		const url = 'https://www.marketplace.org/feed/podcast/marketplace/';
+
+		const episodes = await parseFeedUrl('12345', url);
+
+		console.log(episodes);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	});
+
+	it.only('should parse DevTools.fm', async () => {
+		const url = 'https://anchor.fm/s/dd6922b4/podcast/rss';
 
 		const episodes = await parseFeedUrl('12345', url);
 

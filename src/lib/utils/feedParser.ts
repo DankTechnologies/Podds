@@ -6,7 +6,7 @@ export async function parseFeedUrl(
 	url: string,
 	since?: number
 ): Promise<Episode[]> {
-	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}`;
+	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 	const response = await fetch(corsHelperUrl);
 
 	if (response.status >= 400) {
@@ -69,7 +69,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			}
 
 			return {
-				id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+				id: `${Date.now()}-${Math.random().toString(36)}`,
 				feedId,
 				title: (item.title?.toString() || '').trim(),
 				publishedAt,
