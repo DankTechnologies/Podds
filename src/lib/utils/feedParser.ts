@@ -69,7 +69,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			}
 
 			return {
-				id: `${Date.now()}-${Math.random().toString(36)}`,
+				id: crypto.randomUUID(),
 				feedId,
 				title: (item.title?.toString() || '').trim(),
 				publishedAt,

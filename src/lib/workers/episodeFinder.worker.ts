@@ -91,21 +91,32 @@ async function fetchDirectFeedEpisodes(
 	feeds: Feed[],
 	since?: number
 ): Promise<{ episodes: Episode[]; errors: string[] }> {
-	const errors: string[] = [];
-	let episodes: Episode[] = [];
+	const results = await Promise.all(
+		feeds.map(async (feed) => {
+			try {
+				const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
+				return {
+					episodes: parsedEpisodes,
+					errors: [] as string[]
+				};
+			} catch (error) {
+				return {
+					episodes: [] as Episode[],
+					errors: [
+						`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${
+							error instanceof Error ? error.message : 'Unknown error'
+						}`
+					]
+				};
+			}
+		})
+	);
 
-	for (const feed of feeds) {
-		try {
-			const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
-			episodes = [...episodes, ...parsedEpisodes];
-		} catch (error) {
-			errors.push(
-				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${
-					error instanceof Error ? error.message : 'Unknown error'
-				}`
-			);
-		}
-	}
-
-	return { episodes, errors };
+	return results.reduce(
+		(acc, result) => ({
+			episodes: [...acc.episodes, ...result.episodes],
+			errors: [...acc.errors, ...result.errors]
+		}),
+		{ episodes: [], errors: [] }
+	);
 }
