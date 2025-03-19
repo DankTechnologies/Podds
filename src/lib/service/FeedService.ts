@@ -67,15 +67,13 @@ export class FeedService {
 
 		finderResponse.errors.forEach((x) => Log.error(x));
 
-		db.episodes.batch(() => {
-			finderResponse.episodes.forEach((x) => {
-				const match = db.episodes.findOne({ title: x.title });
+		finderResponse.episodes.forEach((x) => {
+			const match = db.episodes.findOne({ url: x.url });
 
-				if (!match) {
-					Log.info(`Adding ${x.title}`);
-					db.episodes.insert(x);
-				}
-			});
+			if (!match) {
+				Log.info(`Adding ${x.title}`);
+				db.episodes.insert(x);
+			}
 		});
 
 		SettingsService.updateLastSyncAt();
