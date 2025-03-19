@@ -14,12 +14,6 @@ export class EpisodeService {
 		}
 	}
 
-	static setPlayingActiveEpisode(episode: ActiveEpisode): void {
-		this.clearPlayingEpisodes();
-
-		db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1 } });
-	}
-
 	static addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): void {
 		const feed = feeds.find((x) => x.id === episode.feedId);
 
@@ -44,8 +38,21 @@ export class EpisodeService {
 		return db.activeEpisodes.findOne({ id: episodeId });
 	}
 
+	static findPlayingEpisode(): ActiveEpisode | undefined {
+		return db.activeEpisodes.findOne({ isPlaying: 1 });
+	}
+
 	static clearPlayingEpisodes(): void {
-		db.activeEpisodes.updateMany({ isPlaying: 1 }, { $set: { isPlaying: 0 } });
+		const playingEpisode = this.findPlayingEpisode();
+
+		if (playingEpisode) {
+			const isCompleted = playingEpisode.minutesLeft < 5 ? 1 : 0;
+
+			db.activeEpisodes.updateOne(
+				{ id: playingEpisode.id },
+				{ $set: { isPlaying: 0, isCompleted } }
+			);
+		}
 	}
 
 	static updatePlaybackPosition(episodeId: string, position: number, remainingTime: number): void {

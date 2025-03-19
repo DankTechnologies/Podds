@@ -3,7 +3,7 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Play, Dot, ArrowUp, Download } from 'lucide-svelte';
+	import { Play, Dot, ArrowUp, Download, Check } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -122,6 +122,11 @@
 					{/if}
 					<div class="episode-card__heading">
 						<time class="episode-card__time">
+							{#if activeEpisodes.find((x) => x.id === episode.id)?.isCompleted}
+								<div>
+									<Check size="14" />
+								</div>
+							{/if}
 							{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
 								<div>
 									<Download size="14" />
