@@ -71,11 +71,22 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			return {
 				id: crypto.randomUUID(),
 				feedId,
-				title: (item.title?.toString() || '').trim(),
+				title: decodeHtmlEntities((item.title?.toString() || '').trim()),
 				publishedAt,
 				content: item.description?.trim() || item['itunes:summary']?.trim() || '',
 				url: enclosure?.['@_url'] || '',
 				durationMin: Math.floor(durationSeconds / 60)
 			};
 		});
+}
+
+function decodeHtmlEntities(text: string): string {
+	return text
+		.replace(/&quot;/g, '"')
+		.replace(/&apos;/g, "'")
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/&amp;/g, '&')
+		.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
+		.replace(/&#x([0-9A-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
