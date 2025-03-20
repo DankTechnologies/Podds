@@ -3,12 +3,17 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-
+	import { Trash2 } from 'lucide-svelte';
+	import { FeedService } from '$lib/service/FeedService';
+	import type { Feed } from '$lib/types/db';
+	import { goto } from '$app/navigation';
 	const feedId = page.params.id;
 
 	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
+	let feedService = new FeedService();
+	let isDeleting = $state(false);
 
 	let episodes = $derived(
 		getEpisodes()
@@ -52,15 +57,33 @@
 		const match = title.match(/^(.*?)(?:[-:])(.*)/);
 		return match ? match[2].trim() : '';
 	}
+
+	function deleteFeed(feed: Feed) {
+		isDeleting = true;
+		setTimeout(() => {
+			feedService.deleteFeed(feed.id);
+			goto('/');
+		});
+	}
 </script>
 
-{#if episodes.length > 0}
+{#if isDeleting}
+	<div class="deleting-screen">
+		<div class="deleting-message">Deleting...</div>
+	</div>
+{:else if episodes.length > 0 && feed}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
-		<img class="podcast-header__image" src={`data:${feed?.iconData}`} alt={feed?.title} />
+		<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
 		<div class="podcast-header__content">
-			<h1 class="podcast-header__title">{getTitle(feed?.title)}</h1>
-			<span class="podcast-header__subtitle">{getSubtitle(feed?.title)}</span>
+			<h1 class="podcast-header__title">{getTitle(feed.title)}</h1>
+			<span class="podcast-header__subtitle">{getSubtitle(feed.title)}</span>
+			<div class="podcast-header__buttons">
+				<button class="podcast-header__button" onclick={() => deleteFeed(feed)}>
+					<Trash2 size="14" />
+					Delete
+				</button>
+			</div>
 		</div>
 	</header>
 
@@ -98,5 +121,36 @@
 		font-size: 1.75rem;
 		font-weight: 600;
 		margin: 0;
+	}
+
+	.podcast-header__buttons {
+		display: flex;
+	}
+
+	.podcast-header__button {
+		display: flex;
+		font-size: var(--text-small);
+		font-weight: 600;
+		align-items: center;
+		background: var(--primary-less);
+		gap: 0.5rem;
+		border: none;
+		padding: 0.5rem 1rem;
+		color: var(--neutral);
+		cursor: pointer;
+		border-radius: 0.25rem;
+	}
+
+	.deleting-screen {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 100vh;
+		background: var(--bg);
+	}
+
+	.deleting-message {
+		font-size: var(--text-3xl);
+		color: var(--primary);
 	}
 </style>

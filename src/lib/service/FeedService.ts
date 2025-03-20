@@ -81,8 +81,6 @@ export class FeedService {
 		Log.info('Finished update of all feeds');
 	}
 
-	// delete feed
-
 	async addFeed(feed: PIApiFeed, iconData: string) {
 		Log.info(`Adding feed: ${feed.title}`);
 
@@ -117,6 +115,14 @@ export class FeedService {
 		db.episodes.insertMany(finderResponse.episodes);
 
 		Log.info(`Finished adding ${feed.title}`);
+	}
+
+	deleteFeed(feedId: string) {
+		Log.info(`Starting deletion of feed ${feedId}`);
+		db.episodes.removeMany({ feedId: feedId });
+		db.activeEpisodes.removeMany({ feedId: feedId });
+		db.feeds.removeOne({ id: feedId });
+		Log.info(`Finished deletion of feed ${feedId}`);
 	}
 
 	exportFeeds(): string {
