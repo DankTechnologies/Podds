@@ -34,6 +34,12 @@
 		if (episode.id !== previousEpisodeId) {
 			previousEpisodeId = episode.id;
 			showDetailedControls = false;
+
+			AudioService.updateMediaSessionMetadata(
+				episode.title,
+				episode.feedTitle,
+				feedIconsById.get(episode.feedId)
+			);
 		}
 	});
 
@@ -55,9 +61,7 @@
 
 		AudioService.addEventListener('timeupdate', updateTime);
 
-		return () => {
-			AudioService.removeEventListener('timeupdate', updateTime);
-		};
+		return () => AudioService.removeEventListener('timeupdate', updateTime);
 	});
 
 	$effect(() => {
@@ -101,9 +105,7 @@
 
 		AudioService.addEventListener('ended', handleEnded);
 
-		return () => {
-			AudioService.removeEventListener('ended', handleEnded);
-		};
+		return () => AudioService.removeEventListener('ended', handleEnded);
 	});
 
 	function handleBack(e: Event) {
