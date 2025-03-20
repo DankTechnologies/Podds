@@ -93,6 +93,9 @@
 			if (upNextEpisode) {
 				EpisodeService.setPlayingEpisode(upNextEpisode);
 				AudioService.play(upNextEpisode.url, upNextEpisode.playbackPosition);
+			} else {
+				AudioService.stop();
+				EpisodeService.clearPlayingEpisodes();
 			}
 		};
 
