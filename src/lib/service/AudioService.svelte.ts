@@ -18,13 +18,17 @@ export class AudioService {
 		});
 	}
 
-	static updateMediaSessionMetadata(title: string, artist: string, artwork: string | undefined) {
+	static updateMediaSessionMetadata(
+		episodeTitle: string,
+		feedTitle: string,
+		artwork: string | undefined
+	) {
 		if (!('mediaSession' in navigator)) return;
 
 		navigator.mediaSession.metadata = new MediaMetadata({
-			title,
-			artist,
-			album: artist,
+			title: episodeTitle,
+			artist: feedTitle,
+			album: feedTitle,
 			artwork: artwork
 				? [
 						{
@@ -59,6 +63,13 @@ export class AudioService {
 		// Clear metadata and playback state
 		navigator.mediaSession.metadata = null;
 		navigator.mediaSession.playbackState = 'none';
+
+		// Clear all action handlers
+		navigator.mediaSession.setActionHandler('play', null);
+		navigator.mediaSession.setActionHandler('pause', null);
+		navigator.mediaSession.setActionHandler('seekbackward', null);
+		navigator.mediaSession.setActionHandler('seekforward', null);
+		navigator.mediaSession.setActionHandler('stop', null);
 	}
 
 	static async loadPaused(url: string, currentTime: number = 0) {
