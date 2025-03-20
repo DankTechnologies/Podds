@@ -189,6 +189,7 @@
 	.episode-list {
 		display: flex;
 		flex-direction: column;
+		padding-bottom: 10rem;
 	}
 
 	.episode-card {

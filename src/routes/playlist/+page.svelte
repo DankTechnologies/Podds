@@ -93,6 +93,8 @@
 		padding: 1rem;
 		gap: 1rem;
 		background-color: var(--bg-less);
+		position: sticky;
+		top: 0;
 	}
 
 	.playlist-view-button {
