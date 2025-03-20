@@ -89,6 +89,11 @@
 	$effect(() => {
 		const handleEnded = () => {
 			EpisodeService.markCompleted(episode.id);
+			const upNextEpisode = EpisodeService.findUpNextEpisode();
+			if (upNextEpisode) {
+				EpisodeService.setPlayingEpisode(upNextEpisode);
+				AudioService.play(upNextEpisode.url, upNextEpisode.playbackPosition);
+			}
 		};
 
 		AudioService.addEventListener('ended', handleEnded);

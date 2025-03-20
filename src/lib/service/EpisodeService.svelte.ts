@@ -3,14 +3,14 @@ import type { ActiveEpisode, Episode } from '$lib/types/db';
 
 let feeds = $derived(getFeeds());
 export class EpisodeService {
-	static setPlayingEpisode(episode: Episode): void {
+	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
 		this.clearPlayingEpisodes();
 
 		// set episode as playing, add if needed
 		if (this.findActiveEpisode(episode.id)) {
 			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1 } });
 		} else {
-			this.addActiveEpisode(episode, true, false);
+			this.addActiveEpisode(episode as Episode, true, false);
 		}
 	}
 
@@ -40,6 +40,15 @@ export class EpisodeService {
 
 	static findPlayingEpisode(): ActiveEpisode | undefined {
 		return db.activeEpisodes.findOne({ isPlaying: 1 });
+	}
+
+	static findUpNextEpisode(): ActiveEpisode | undefined {
+		return db.activeEpisodes.findOne(
+			{ isPlaying: 0, isDownloaded: 1, playbackPosition: 0 },
+			{
+				sort: { sortOrder: 1 }
+			}
+		);
 	}
 
 	static clearPlayingEpisodes(): void {
