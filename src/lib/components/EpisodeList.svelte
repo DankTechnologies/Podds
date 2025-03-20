@@ -166,16 +166,16 @@
 					<div class="episode-controls__description">{@html episode.content}</div>
 				</div>
 				<div class="episode-controls__buttons">
-					<button class="episode-controls__btn" onclick={() => playEpisode(episode)}>
+					<button class="episode-controls__button" onclick={() => playEpisode(episode)}>
 						<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
 					</button>
 					{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
-						<button class="episode-controls__btn" onclick={() => downloadEpisode(episode)}>
+						<button class="episode-controls__button" onclick={() => downloadEpisode(episode)}>
 							<Download size="16" /> Later
 						</button>
 					{/if}
 					{#if isPlaylist && index > 0}
-						<button class="episode-controls__btn" onclick={() => handlePlayNext(episode)}>
+						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
 							<ArrowUp size="16" /> Play Next
 						</button>
 					{/if}
@@ -322,7 +322,7 @@
 		pointer-events: none;
 	}
 
-	.episode-controls__btn {
+	.episode-controls__button {
 		display: flex;
 		font-size: var(--text-small);
 		font-weight: 600;
