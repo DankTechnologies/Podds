@@ -396,6 +396,15 @@
 		border: none;
 		background: none;
 		color: var(--primary-more);
+		border-radius: 5rem;
+		transition:
+			box-shadow 0.05s,
+			transform 0.05s;
+	}
+
+	.player__button:active {
+		box-shadow: 0 0 2rem var(--bg-less);
+		transform: scale(0.95);
 	}
 
 	.stack-cell {
