@@ -20,8 +20,8 @@
 </script>
 
 {#if feeds.length === 0}
-	<h1>modpod</h1>
-	<p>Welcome to modpod</p>
+	<h1>jibjab</h1>
+	<p>Welcome to jibjab</p>
 	<p>Go to <a href="/settings">settings</a> page to configure</p>
 {:else}
 	<div class="grid">

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fluxcast
+    container_name: jibjab
     ports:
       - '4416:4416'
     restart: unless-stopped

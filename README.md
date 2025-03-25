@@ -1,6 +1,6 @@
-# Fluxcast
+# jibjab
 
-**Fluxcast** is a podcast-focused web app for Miniflux RSS reader
+**jibjab** is a podcast-focused web app for Miniflux RSS reader
 
 ## Motivations
 

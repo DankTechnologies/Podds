@@ -6,8 +6,6 @@ export const SessionInfo = $state({
 });
 
 export class SettingsService {
-	private static SETTINGS_KEY = 'fluxcast_settings';
-
 	static saveSettings(settings: Settings): void {
 		let currentSettings = getSettings();
 
@@ -28,7 +26,6 @@ export class SettingsService {
 	}
 
 	static async clearAllLocalState(): Promise<void> {
-		localStorage.removeItem(this.SETTINGS_KEY);
 
 		// Clear Service Worker Caches
 		if ('caches' in window) {

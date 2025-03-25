@@ -7,7 +7,7 @@ import type {
 
 export class PodcastIndexClient {
 	private apiUrl = `https://api.podcastindex.org/api/1.0`;
-	private userAgent = 'FluxcastClient/1.0';
+	private userAgent = 'jibjab/1.0';
 	private version = '1.0';
 	private key: string;
 	private secret: string;
