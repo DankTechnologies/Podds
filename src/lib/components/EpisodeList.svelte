@@ -269,6 +269,7 @@
 	.episode-controls {
 		position-area: end span-all;
 		margin-top: -1px;
+		width: 100vw;
 		background: var(--bg-less);
 		opacity: 1;
 		visibility: visible;
