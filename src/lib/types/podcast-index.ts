@@ -27,6 +27,7 @@ export interface PIApiFeed {
 	image: string;
 	artwork: string;
 	lastUpdateTime: number;
+	dead: boolean;
 }
 
 interface PIApiPodcast extends PIApiFeed {

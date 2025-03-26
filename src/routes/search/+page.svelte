@@ -37,12 +37,13 @@
 			const response = await client.searchFeeds(query);
 
 			isLoading = false;
-			feedResults = response;
-			console.log('Search results loaded:', response.length);
+			feedResults = response.filter((feed) => !feed.dead);
+
+			console.log('Search results loaded:', feedResults.length);
 
 			// TODO: This is a hack to get the images to load after the results are loaded
 			setTimeout(() => {
-				response.forEach((feed) => {
+				feedResults.forEach((feed) => {
 					const imageUrl = feed.image || feed.artwork;
 
 					if (!imageUrl) {
