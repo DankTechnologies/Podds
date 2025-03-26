@@ -26,11 +26,9 @@ export class SettingsService {
 	}
 
 	static async clearAllLocalState(): Promise<void> {
-
-		// Clear Service Worker Caches
+		// Clear only mp3-cache
 		if ('caches' in window) {
-			const cacheKeys = await caches.keys();
-			await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+			await caches.delete('mp3-cache');
 		}
 
 		// Clear IndexedDB
