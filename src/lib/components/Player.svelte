@@ -49,6 +49,12 @@
 
 			let currentTimeRounded = Math.round(currentTime);
 
+			// Update media session every second instead of every timeupdate
+	        if (currentTimeRounded !== Math.floor(lastUpdatedTime)) {
+    	        AudioService.updateMediaSessionPosition(duration, currentTime);
+        	}
+
+			// Update playback position every 5 seconds
 			if (
 				currentTimeRounded > 0 &&
 				currentTimeRounded % 5 === 0 &&

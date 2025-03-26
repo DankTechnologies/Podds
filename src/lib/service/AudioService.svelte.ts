@@ -125,7 +125,6 @@ export class AudioService {
 	}
 
 	static getCurrentTime() {
-		this.updateMediaSessionPosition(this.audio.duration, this.audio.currentTime);
 		return this.audio.currentTime;
 	}
 
