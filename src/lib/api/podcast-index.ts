@@ -2,7 +2,8 @@ import type {
 	SearchResponse,
 	PodcastResponse,
 	EpisodesResponse,
-	PIApiFeed
+	PIApiFeed,
+	PIApiEpisodeBase
 } from '../types/podcast-index';
 
 export class PodcastIndexClient {
@@ -57,12 +58,29 @@ export class PodcastIndexClient {
 	): Promise<Array<PIApiFeed>> {
 		const response = (await this.fetchJSON('/search/byterm', {
 			q: query,
-			max: options.max ?? 25,
-			clean: Boolean(options.clean),
-			fulltext: Boolean(options.fulltext)
+			max: options.max,
+			similar: true
 		})) as SearchResponse;
 
-		return response.feeds;
+		// Filter out dead feeds and deduplicate by title
+		const uniqueFeeds = response.feeds
+			.filter((feed) => !feed.dead && feed.episodeCount > 0)
+			.sort((a, b) => (b.newestItemPubdate - a.newestItemPubdate))
+			.reduce((acc, feed) => {
+				const existingFeed = acc.find((f) => f.title === feed.title);
+				if (!existingFeed || (feed.lastUpdateTime ?? 0) > (existingFeed.lastUpdateTime ?? 0)) {
+					// If no existing feed with this title, or this feed has a newer update time
+					// Remove the old one if it exists and add the new one
+					if (existingFeed) {
+						const index = acc.indexOf(existingFeed);
+						acc.splice(index, 1);
+					}
+					acc.push(feed);
+				}
+				return acc;
+			}, [] as PIApiFeed[]);
+
+		return uniqueFeeds;
 	}
 
 	public async episodesByPerson(
@@ -71,12 +89,27 @@ export class PodcastIndexClient {
 			max?: number;
 			fulltext?: boolean;
 		} = {}
-	): Promise<EpisodesResponse> {
-		return this.fetchJSON('/search/byperson', {
+	): Promise<Array<PIApiEpisodeBase>> {
+		const response = (await this.fetchJSON('/search/byperson', {
 			q: query,
-			max: options.max ?? 25,
-			fulltext: Boolean(options.fulltext)
-		});
+			max: options.max,
+			similar: true
+		})) as EpisodesResponse;
+
+		return response.items
+		.reduce((acc, episode) => {
+			const existingEpisode = acc.find((e) => e.title === episode.title);
+			if (!existingEpisode || episode.feedId > existingEpisode.feedId) {
+				// If no existing episode with this title, or this episode has a higher feedId
+				// Remove the old one if it exists and add the new one
+				if (existingEpisode) {
+					const index = acc.indexOf(existingEpisode);
+					acc.splice(index, 1);
+				}
+				acc.push(episode);
+			}
+				return acc;
+			}, [] as PIApiEpisodeBase[]);
 	}
 
 	public async episodesByFeedIds(

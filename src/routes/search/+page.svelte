@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { PodcastIndexClient } from '$lib/api/podcast-index';
-	import type { PIApiFeed } from '$lib/types/podcast-index';
+	import type { PIApiEpisodeBase, PIApiFeed } from '$lib/types/podcast-index';
 	import { Search as SearchIcon, Check } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService';
-	import { Log } from '$lib/service/LogService';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
+	import { formatEpisodeDate } from '$lib/utils/time';
 
 	let query = $state('');
 	let feedResults = $state<PIApiFeed[]>([]);
+	let episodeResults = $state<PIApiEpisodeBase[]>([]);
 	let resizedImageById = $state<SvelteMap<number, string | null>>(new SvelteMap());
 	let isLoading = $state(false);
 	let client = $state<PodcastIndexClient | null>(null);
@@ -30,34 +32,47 @@
 		if (!query.trim() || !client) return;
 
 		feedResults = [];
+		episodeResults = [];
 		resizedImageById.clear();
 		isLoading = true;
 
 		try {
-			const response = await client.searchFeeds(query);
+			feedResults = await client.searchFeeds(query);
+			episodeResults = await client.episodesByPerson(query);
 
 			isLoading = false;
-			feedResults = response.filter((feed) => !feed.dead);
-
-			console.log('Search results loaded:', feedResults.length);
 
 			// TODO: This is a hack to get the images to load after the results are loaded
 			setTimeout(() => {
-				feedResults.forEach((feed) => {
-					const imageUrl = feed.image || feed.artwork;
+				type FeedImage = { image: string | undefined };
+				const uniqueFeeds = new Map<number, FeedImage>();
 
-					if (!imageUrl) {
-						resizedImageById.set(feed.id, null);
+				// Process feed results first (they have more complete data)
+				feedResults.forEach(feed => {
+					if (!uniqueFeeds.has(feed.id)) {
+						uniqueFeeds.set(feed.id, { image: feed.image || feed.artwork });
+					}
+				});
+
+				// Then process episode results only for feeds we haven't seen
+				episodeResults.forEach(episode => {
+					if (!uniqueFeeds.has(episode.feedId)) {
+						uniqueFeeds.set(episode.feedId, { image: episode.feedImage });
+					}
+				});
+
+				Array.from(uniqueFeeds.entries()).forEach(([id, feed]) => {
+					if (!feed.image) {
+						resizedImageById.set(id, null);
 						return;
 					}
-
-					const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
+					const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(feed.image)}`;
 					resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT)
 						.then((resizedImage) => {
-							resizedImageById.set(feed.id, resizedImage);
+							resizedImageById.set(id, resizedImage);
 						})
 						.catch((error) => {
-							resizedImageById.set(feed.id, null);
+							resizedImageById.set(id, null);
 						});
 				});
 			}, 0);
@@ -87,15 +102,11 @@
 
 	{#if isLoading}
 		<div class="message">Loading...</div>
-	{:else if feedResults.length > 0}
-		<div class="grid">
-			{#each feedResults as feed (feed.id)}
-				<div class="grid-item">
-					<button
-						onclick={() => addFeed(feed)}
-						aria-label={`Add ${feed.title} podcast`}
-						disabled={getFeeds()?.some((f) => f.id === feed.id.toString())}
-					>
+	{:else if feedResults.length > 0 || episodeResults.length > 0}
+	<h2>Feeds</h2>
+	<ul role="list">
+		{#each feedResults as feed (feed.id)}
+			<li>
 						<div class="image-container">
 							{#if !resizedImageById.has(feed.id)}
 								<div class="skeleton"></div>
@@ -112,11 +123,39 @@
 								</div>
 							{/if}
 						</div>
-						<div class="title">{feed.title}</div>
-					</button>
-				</div>
+						<div class="title">{parseTitle(feed.title)}</div>
+						<div class="subtitle">{parseSubtitle(feed.title)}</div>
+						<div class="subtitle">{feed.episodeCount} episodes</div>
+						<div class="subtitle">Last episode: {formatEpisodeDate(feed.newestItemPubdate * 1000)}</div>
+				</li>
 			{/each}
-		</div>
+		</ul>
+		<h2>Episodes</h2>
+		<ul role="list">
+			{#each episodeResults as episode (episode.id)}
+				<li>
+						<div class="image-container">
+							{#if !resizedImageById.has(episode.feedId)}
+								<div class="skeleton"></div>
+							{:else if resizedImageById.get(episode.feedId) !== null}
+								<img src={resizedImageById.get(episode.feedId)} alt={episode.title} class="fade-in" />
+							{:else}
+								<div class="fallback">
+									<span>{episode.title[0]?.toUpperCase() || '?'}</span>
+								</div>
+							{/if}
+							{#if getFeeds()?.some((f) => f.id === episode.feedId.toString())}
+								<div class="added-overlay">
+									<Check size="2rem" />
+								</div>
+							{/if}
+						</div>
+						<div class="title">{episode.feedTitle}</div>
+						<div class="title">{episode.title}</div>
+						<div class="subtitle">{formatEpisodeDate(episode.datePublished * 1000)}</div>
+				</li>
+			{/each}
+		</ul>
 	{:else if query}
 		<div class="message">No podcasts found</div>
 	{/if}
@@ -154,22 +193,7 @@
 		color: var(--neutral);
 	}
 
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-		gap: 2rem;
-		width: 100%;
-	}
-
-	.grid-item button {
-		border: 0;
-		padding: 0;
-		background: none;
-		text-align: left;
-	}
-
 	.title {
-		margin-top: 1rem;
 	}
 
 	.message {
@@ -179,8 +203,8 @@
 
 	.image-container {
 		position: relative;
-		width: 150px;
-		height: 150px;
+		width: 100px;
+		height: 100px;
 		background: var(--bg-less);
 	}
 

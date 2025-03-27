@@ -7,6 +7,7 @@
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
+	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	const feedId = page.params.id;
 
 	const ITEMS_PER_PAGE = 10;
@@ -46,18 +47,6 @@
 		limit += ITEMS_PER_PAGE;
 	}
 
-	function getTitle(title: string | undefined): string {
-		if (!title) return '';
-		const match = title.match(/^(.*?)(?:[-:])(.*)/);
-		return match ? match[1].trim() : title.trim();
-	}
-
-	function getSubtitle(title: string | undefined): string {
-		if (!title) return '';
-		const match = title.match(/^(.*?)(?:[-:])(.*)/);
-		return match ? match[2].trim() : '';
-	}
-
 	function deleteFeed(feed: Feed) {
 		isDeleting = true;
 		setTimeout(() => {
@@ -76,8 +65,8 @@
 	<header class="podcast-header">
 		<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
 		<div class="podcast-header__content">
-			<h1 class="podcast-header__title">{getTitle(feed.title)}</h1>
-			<span class="podcast-header__subtitle">{getSubtitle(feed.title)}</span>
+			<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
+			<span class="podcast-header__subtitle">{parseSubtitle(feed.title)}</span>
 			<div class="podcast-header__buttons">
 				<button class="podcast-header__button" onclick={() => deleteFeed(feed)}>
 					<Trash2 size="14" />

@@ -1,4 +1,4 @@
-interface PIApiEpisodeBase {
+export interface PIApiEpisodeBase {
 	id: number;
 	title: string;
 	link: string;
@@ -10,6 +10,7 @@ interface PIApiEpisodeBase {
 	image: string;
 	feedImage: string;
 	feedId: number;
+	feedTitle: string;
 	chaptersUrl: string | null;
 	duration: number;
 }
@@ -22,6 +23,8 @@ export interface PIApiFeed {
 	categories: Map<string, string>;
 	link: string;
 	description: string;
+	episodeCount: number;
+	newestItemPubdate: number;
 	author: string;
 	ownerName: string;
 	image: string;

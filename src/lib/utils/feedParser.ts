@@ -90,3 +90,15 @@ function decodeHtmlEntities(text: string): string {
 		.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
 		.replace(/&#x([0-9A-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
+
+export function parseTitle(title: string | undefined): string {
+	if (!title) return '';
+	const match = title.match(/^(.*?)(?:[-:])(.*)/);
+	return match ? match[1].trim() : title.trim();
+}
+
+export function parseSubtitle(title: string | undefined): string {
+	if (!title) return '';
+	const match = title.match(/^(.*?)(?:[-:])(.*)/);
+	return match ? match[2].trim() : '';
+}
