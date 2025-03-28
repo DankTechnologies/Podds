@@ -4,14 +4,28 @@ export class AudioService {
 	private static setupMediaSession() {
 		if (!('mediaSession' in navigator)) return;
 
-		navigator.mediaSession.setActionHandler('play', () => this.audio.play());
-		navigator.mediaSession.setActionHandler('pause', () => this.audio.pause());
-		navigator.mediaSession.setActionHandler('seekbackward', () => {
+		navigator.mediaSession.setActionHandler('play', () => {
+			this.audio.play();
+			navigator.mediaSession.playbackState = 'playing';
+		});
+		navigator.mediaSession.setActionHandler('pause', () => {
+			this.audio.pause();
+			navigator.mediaSession.playbackState = 'paused';
+		});
+		navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+			this.audio.currentTime = Math.max(0, this.audio.currentTime - (details.seekOffset ?? 0));
+		});
+		navigator.mediaSession.setActionHandler('seekforward', (details) => {
+			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + (details.seekOffset ?? 30));
+		});
+
+		navigator.mediaSession.setActionHandler('previoustrack', () => {
 			this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
 		});
-		navigator.mediaSession.setActionHandler('seekforward', () => {
+		navigator.mediaSession.setActionHandler('nexttrack', () => {
 			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 30);
 		});
+
 		navigator.mediaSession.setActionHandler('stop', () => {
 			this.audio.pause();
 			this.audio.currentTime = 0;
@@ -31,12 +45,12 @@ export class AudioService {
 			album: feedTitle,
 			artwork: artwork
 				? [
-						{
-							src: `data:${artwork}`,
-							sizes: '300x300',
-							type: 'image/png'
-						}
-					]
+					{
+						src: `data:${artwork}`,
+						sizes: '300x300',
+						type: 'image/png'
+					}
+				]
 				: undefined
 		});
 	}

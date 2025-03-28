@@ -38,10 +38,7 @@
 				episode.url,
 				() => {
 					handleDownloadComplete(episode);
-					AudioService.play(
-						episode.url,
-						activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
-					);
+					AudioService.play(episode.url, 0);
 				},
 				(err) => handleDownloadError(episode.id!, err),
 				(progress) => downloadProgress.set(episode.id!, progress)
