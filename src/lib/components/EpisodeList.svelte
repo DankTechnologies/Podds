@@ -34,6 +34,7 @@
 				activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
 			);
 		} else {
+			downloadProgress.set(episode.id, 0);
 			downloadAudio(
 				episode.url,
 				() => {
@@ -48,6 +49,7 @@
 
 	function downloadEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
+		downloadProgress.set(episode.id, 0);
 		downloadAudio(
 			episode.url,
 			() => handleDownloadComplete(episode),
