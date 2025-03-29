@@ -10,6 +10,7 @@
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
+	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Episode } from '$lib/types/db';
 
 	let query = $state('');
@@ -19,6 +20,7 @@
 	let isLoading = $state(false);
 	let client = $state<PodcastIndexClient | null>(null);
 	let feedService = new FeedService();
+	let view = $state<'feeds' | 'episodes'>('feeds');
 
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
@@ -29,6 +31,8 @@
 
 		client = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
 	});
+
+	let currentFeeds = $derived(getFeeds());
 
 	let activeEpisodes = $derived(getActiveEpisodes());
 
@@ -55,6 +59,8 @@
 		try {
 			feedResults = await client.searchFeeds(query);
 			episodeResults = await client.episodesByPerson(query);
+
+			view = feedResults.length > 0 ? 'feeds' : 'episodes';
 
 			isLoading = false;
 
@@ -110,49 +116,41 @@
 			<SearchIcon size="1.5rem" />
 		</button>
 	</div>
-
-	{#if isLoading}
-		<div class="message">Loading...</div>
-	{:else if feedResults.length > 0 || episodeResults.length > 0}
-		<h2>Feeds</h2>
-		<ul role="list">
-			{#each feedResults as feed (feed.id)}
-				<li>
-					<div class="image-container">
-						{#if !resizedImageById.has(feed.id.toString())}
-							<div class="skeleton"></div>
-						{:else if resizedImageById.get(feed.id.toString()) !== null}
-							<img
-								src={resizedImageById.get(feed.id.toString())}
-								alt={feed.title}
-								class="fade-in"
-							/>
-						{:else}
-							<div class="fallback">
-								<span>{feed.title[0]?.toUpperCase() || '?'}</span>
-							</div>
-						{/if}
-						{#if getFeeds()?.some((f) => f.id === feed.id.toString())}
-							<div class="added-overlay">
-								<Check size="2rem" />
-							</div>
-						{/if}
-					</div>
-					<div class="title">{parseTitle(feed.title)}</div>
-					<div class="subtitle">{parseSubtitle(feed.title)}</div>
-					<div class="subtitle">{feed.episodeCount} episodes</div>
-					<div class="subtitle">
-						Last episode: {formatEpisodeDate(feed.newestItemPubdate * 1000)}
-					</div>
-				</li>
-			{/each}
-		</ul>
-		<h2>Episodes</h2>
-		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} />
-	{:else if query}
-		<div class="message">No podcasts found</div>
-	{/if}
 </div>
+
+{#if isLoading}
+	<div class="message">Loading...</div>
+{:else if feedResults.length > 0 || episodeResults.length > 0}
+	<div class="search-view-controls">
+		{#if feedResults.length > 0}
+			<button
+				class="search-view-button"
+				class:active={view === 'feeds'}
+				onclick={() => (view = 'feeds')}
+			>
+				Feeds ({feedResults.length})
+			</button>
+		{/if}
+		{#if episodeResults.length > 0}
+			<button
+				class="search-view-button"
+				class:active={view === 'episodes'}
+				onclick={() => (view = 'episodes')}
+			>
+				Episodes ({episodeResults.length})
+			</button>
+		{/if}
+	</div>
+
+	{#if view === 'feeds' && feedResults.length > 0}
+		<FeedList feeds={feedResults} feedIconsById={resizedImageById} {currentFeeds} />
+	{/if}
+	{#if view === 'episodes' && episodeResults.length > 0}
+		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} />
+	{/if}
+{:else if query}
+	<div class="message">No podcasts found</div>
+{/if}
 
 <style>
 	.search-container {
@@ -191,57 +189,27 @@
 		padding: 2rem;
 	}
 
-	.image-container {
-		position: relative;
-		width: 100px;
-		height: 100px;
-		background: var(--bg-less);
-	}
-
-	.fade-in {
-		animation: fadeIn 0.3s ease-in;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.fallback {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 3rem;
-		color: var(--text-less);
-	}
-
-	.added-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.7);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--neutral);
-	}
-
 	button:disabled {
 		opacity: 0.7;
 		cursor: default;
+	}
+
+	.search-view-controls {
+		display: flex;
+		padding: 1rem;
+		gap: 1rem;
+		background-color: var(--bg-less);
+	}
+
+	.search-view-button {
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		color: var(--primary-less);
+		border: none;
+	}
+
+	.search-view-button.active {
+		color: var(--primary-more);
+		background-color: var(--bg);
 	}
 </style>
