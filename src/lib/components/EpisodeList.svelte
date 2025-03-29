@@ -101,7 +101,7 @@
 <ul class="episode-list" role="list">
 	{#each episodes as episode, index (episode.id)}
 		<li
-			class="episode-card"
+			class="episode-card fade-in"
 			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 		>
@@ -113,11 +113,19 @@
 			>
 				<div class="episode-card__content">
 					{#if feedIconsById}
-						<img
-							class="episode-card__image"
-							src={`data:${feedIconsById.get(episode.feedId)}`}
-							alt=""
-						/>
+						{#if feedIconsById.has(episode.feedId)}
+							<img
+								src={feedIconsById.get(episode.feedId)}
+								alt={episode.title}
+								class="episode-card__image"
+							/>
+						{:else}
+							<div class="episode-card__image">
+								<div class="fallback">
+									<span>{episode.title[0]?.toUpperCase() || '?'}</span>
+								</div>
+							</div>
+						{/if}
 					{/if}
 					<div class="episode-card__heading">
 						<time class="episode-card__time">
@@ -233,6 +241,17 @@
 		margin-right: 1rem;
 		aspect-ratio: 1;
 		object-fit: cover;
+		background: var(--bg-less);
+	}
+
+	.episode-card__image .fallback {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 3rem;
+		color: var(--text-less);
 	}
 
 	.episode-card__heading {
@@ -339,5 +358,18 @@
 
 	.episode-controls--no-transition {
 		transition: none !important;
+	}
+
+	.fade-in {
+		animation: fadeIn 0.2s ease-in;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 </style>

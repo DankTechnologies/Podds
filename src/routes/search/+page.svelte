@@ -6,14 +6,16 @@
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService';
-	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
+	import EpisodeList from '$lib/components/EpisodeList.svelte';
+	import type { Episode } from '$lib/types/db';
 
 	let query = $state('');
 	let feedResults = $state<PIApiFeed[]>([]);
 	let episodeResults = $state<PIApiEpisodeBase[]>([]);
-	let resizedImageById = $state<SvelteMap<number, string | null>>(new SvelteMap());
+	let resizedImageById = $state<SvelteMap<string, string>>(new SvelteMap());
 	let isLoading = $state(false);
 	let client = $state<PodcastIndexClient | null>(null);
 	let feedService = new FeedService();
@@ -27,6 +29,20 @@
 
 		client = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
 	});
+
+	let activeEpisodes = $derived(getActiveEpisodes());
+
+	let episodes: Episode[] = $derived(
+		episodeResults.map((episode) => ({
+			id: episode.id.toString(),
+			feedId: episode.feedId.toString(),
+			title: episode.title,
+			publishedAt: new Date(episode.datePublished * 1000),
+			content: episode.description,
+			url: episode.enclosureUrl,
+			durationMin: Math.floor(episode.duration / 60)
+		}))
+	);
 
 	async function handleSearch() {
 		if (!query.trim() || !client) return;
@@ -48,14 +64,14 @@
 				const uniqueFeeds = new Map<number, FeedImage>();
 
 				// Process feed results first (they have more complete data)
-				feedResults.forEach(feed => {
+				feedResults.forEach((feed) => {
 					if (!uniqueFeeds.has(feed.id)) {
 						uniqueFeeds.set(feed.id, { image: feed.image || feed.artwork });
 					}
 				});
 
 				// Then process episode results only for feeds we haven't seen
-				episodeResults.forEach(episode => {
+				episodeResults.forEach((episode) => {
 					if (!uniqueFeeds.has(episode.feedId)) {
 						uniqueFeeds.set(episode.feedId, { image: episode.feedImage });
 					}
@@ -63,17 +79,12 @@
 
 				Array.from(uniqueFeeds.entries()).forEach(([id, feed]) => {
 					if (!feed.image) {
-						resizedImageById.set(id, null);
 						return;
 					}
 					const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(feed.image)}`;
-					resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT)
-						.then((resizedImage) => {
-							resizedImageById.set(id, resizedImage);
-						})
-						.catch((error) => {
-							resizedImageById.set(id, null);
-						});
+					resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT).then((resizedImage) => {
+						resizedImageById.set(id.toString(), resizedImage);
+					});
 				});
 			}, 0);
 		} catch (error) {
@@ -83,7 +94,7 @@
 	}
 
 	function addFeed(feed: PIApiFeed) {
-		feedService.addFeed(feed, resizedImageById.get(feed.id) ?? '');
+		feedService.addFeed(feed, resizedImageById.get(feed.id.toString()) ?? '');
 	}
 </script>
 
@@ -103,59 +114,41 @@
 	{#if isLoading}
 		<div class="message">Loading...</div>
 	{:else if feedResults.length > 0 || episodeResults.length > 0}
-	<h2>Feeds</h2>
-	<ul role="list">
-		{#each feedResults as feed (feed.id)}
-			<li>
-						<div class="image-container">
-							{#if !resizedImageById.has(feed.id)}
-								<div class="skeleton"></div>
-							{:else if resizedImageById.get(feed.id) !== null}
-								<img src={resizedImageById.get(feed.id)} alt={feed.title} class="fade-in" />
-							{:else}
-								<div class="fallback">
-									<span>{feed.title[0]?.toUpperCase() || '?'}</span>
-								</div>
-							{/if}
-							{#if getFeeds()?.some((f) => f.id === feed.id.toString())}
-								<div class="added-overlay">
-									<Check size="2rem" />
-								</div>
-							{/if}
-						</div>
-						<div class="title">{parseTitle(feed.title)}</div>
-						<div class="subtitle">{parseSubtitle(feed.title)}</div>
-						<div class="subtitle">{feed.episodeCount} episodes</div>
-						<div class="subtitle">Last episode: {formatEpisodeDate(feed.newestItemPubdate * 1000)}</div>
+		<h2>Feeds</h2>
+		<ul role="list">
+			{#each feedResults as feed (feed.id)}
+				<li>
+					<div class="image-container">
+						{#if !resizedImageById.has(feed.id.toString())}
+							<div class="skeleton"></div>
+						{:else if resizedImageById.get(feed.id.toString()) !== null}
+							<img
+								src={resizedImageById.get(feed.id.toString())}
+								alt={feed.title}
+								class="fade-in"
+							/>
+						{:else}
+							<div class="fallback">
+								<span>{feed.title[0]?.toUpperCase() || '?'}</span>
+							</div>
+						{/if}
+						{#if getFeeds()?.some((f) => f.id === feed.id.toString())}
+							<div class="added-overlay">
+								<Check size="2rem" />
+							</div>
+						{/if}
+					</div>
+					<div class="title">{parseTitle(feed.title)}</div>
+					<div class="subtitle">{parseSubtitle(feed.title)}</div>
+					<div class="subtitle">{feed.episodeCount} episodes</div>
+					<div class="subtitle">
+						Last episode: {formatEpisodeDate(feed.newestItemPubdate * 1000)}
+					</div>
 				</li>
 			{/each}
 		</ul>
 		<h2>Episodes</h2>
-		<ul role="list">
-			{#each episodeResults as episode (episode.id)}
-				<li>
-						<div class="image-container">
-							{#if !resizedImageById.has(episode.feedId)}
-								<div class="skeleton"></div>
-							{:else if resizedImageById.get(episode.feedId) !== null}
-								<img src={resizedImageById.get(episode.feedId)} alt={episode.title} class="fade-in" />
-							{:else}
-								<div class="fallback">
-									<span>{episode.title[0]?.toUpperCase() || '?'}</span>
-								</div>
-							{/if}
-							{#if getFeeds()?.some((f) => f.id === episode.feedId.toString())}
-								<div class="added-overlay">
-									<Check size="2rem" />
-								</div>
-							{/if}
-						</div>
-						<div class="title">{episode.feedTitle}</div>
-						<div class="title">{episode.title}</div>
-						<div class="subtitle">{formatEpisodeDate(episode.datePublished * 1000)}</div>
-				</li>
-			{/each}
-		</ul>
+		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} />
 	{:else if query}
 		<div class="message">No podcasts found</div>
 	{/if}
@@ -191,9 +184,6 @@
 		background: var(--primary);
 		border: none;
 		color: var(--neutral);
-	}
-
-	.title {
 	}
 
 	.message {
