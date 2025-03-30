@@ -98,10 +98,6 @@
 			isLoading = false;
 		}
 	}
-
-	function addFeed(feed: PIApiFeed) {
-		feedService.addFeed(feed, resizedImageById.get(feed.id.toString()) ?? '');
-	}
 </script>
 
 <div class="search-container">
@@ -146,7 +142,7 @@
 		<FeedList feeds={feedResults} feedIconsById={resizedImageById} {currentFeeds} />
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
-		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} />
+		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} isSearch />
 	{/if}
 {:else if query}
 	<div class="message">No podcasts found</div>

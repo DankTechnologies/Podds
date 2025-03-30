@@ -81,6 +81,16 @@ export class FeedService {
 		Log.info('Finished update of all feeds');
 	}
 
+	async addFeedById(feedId: string, iconData: string) {
+		await this.initialize();
+
+		const feed = await this.api!.podcastById(Number(feedId));
+
+		if (feed) {
+			this.addFeed(feed.feed, iconData);
+		}
+	}
+
 	async addFeed(feed: PIApiFeed, iconData: string) {
 		Log.info(`Adding feed: ${feed.title}`);
 

@@ -3,29 +3,41 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Play, Dot, ArrowUp, Download, Check } from 'lucide-svelte';
+	import { Play, Dot, ArrowUp, Download, Check, Plus } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { FeedService } from '$lib/service/FeedService';
+	import { getFeeds } from '$lib/stores/db.svelte';
 
 	let {
 		episodes,
 		activeEpisodes,
 		feedIconsById,
-		isPlaylist = false
+		isPlaylist = false,
+		isSearch = false
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
 		feedIconsById?: Map<string, string>;
 		isPlaylist?: boolean;
+		isSearch?: boolean;
 	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
 	let focusedEpisodeId = $state<string | null>(null);
 	let isReordering = $state(false);
+	let feedService = new FeedService();
+
+	let feeds = $derived(getFeeds());
 
 	function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
+
+		if (!feeds.find((x) => x.id === episode.feedId)) {
+			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+		}
+
 		EpisodeService.setPlayingEpisode(episode);
 
 		if (activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded) {
@@ -49,6 +61,11 @@
 
 	function downloadEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
+
+		if (!feeds.find((x) => x.id === episode.feedId)) {
+			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+		}
+
 		downloadProgress.set(episode.id, 0);
 		downloadAudio(
 			episode.url,
@@ -56,6 +73,14 @@
 			(err) => handleDownloadError(episode.id!, err),
 			(progress) => downloadProgress.set(episode.id!, progress)
 		);
+	}
+
+	function addFeed(feedId: string) {
+		if (feeds.find((x) => x.id === feedId)) {
+			return;
+		}
+
+		feedService.addFeedById(feedId, feedIconsById?.get(feedId) ?? '');
 	}
 
 	function handleDownloadComplete(episode: Episode) {
@@ -184,6 +209,11 @@
 					{#if isPlaylist && index > 0}
 						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
 							<ArrowUp size="16" /> Play Next
+						</button>
+					{/if}
+					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
+						<button class="episode-controls__button" onclick={() => addFeed(episode.feedId)}>
+							<Plus size="16" /> Add Feed
 						</button>
 					{/if}
 				</div>
