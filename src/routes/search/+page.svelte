@@ -5,7 +5,13 @@
 	import { onMount } from 'svelte';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import {
+		getActiveEpisodes,
+		getEpisodes,
+		getFeedIconsById,
+		getFeeds,
+		getSettings
+	} from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Episode } from '$lib/types/db';
@@ -16,7 +22,10 @@
 	let resizedImageById = $state<SvelteMap<string, string>>(new SvelteMap());
 	let isLoading = $state(false);
 	let client = $state<PodcastIndexClient | null>(null);
-	let view = $state<'feeds' | 'episodes'>('feeds');
+	let view = $state<'feeds' | 'episodes' | 'library'>('feeds');
+	let libraryEpisodes = $state<Episode[]>([]);
+
+	let feedIconsById = $derived(getFeedIconsById());
 
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
@@ -49,6 +58,7 @@
 
 		feedResults = [];
 		episodeResults = [];
+		libraryEpisodes = [];
 		resizedImageById.clear();
 		isLoading = true;
 
@@ -56,7 +66,22 @@
 			feedResults = await client.searchFeeds(query);
 			episodeResults = await client.episodesByPerson(query);
 
-			view = feedResults.length > 0 ? 'feeds' : 'episodes';
+			// Search local episodes
+			const searchQuery = query.toLowerCase();
+			libraryEpisodes = getEpisodes().filter(
+				(episode) =>
+					episode.title.toLowerCase().includes(searchQuery) ||
+					episode.content.toLowerCase().includes(searchQuery)
+			);
+
+			// Set initial view based on results
+			if (feedResults.length > 0) {
+				view = 'feeds';
+			} else if (episodeResults.length > 0) {
+				view = 'episodes';
+			} else if (libraryEpisodes.length > 0) {
+				view = 'library';
+			}
 
 			isLoading = false;
 
@@ -112,7 +137,7 @@
 
 {#if isLoading}
 	<div class="message">Loading...</div>
-{:else if feedResults.length > 0 || episodeResults.length > 0}
+{:else if feedResults.length > 0 || episodeResults.length > 0 || libraryEpisodes.length > 0}
 	<div class="search-view-controls">
 		{#if feedResults.length > 0}
 			<button
@@ -132,6 +157,15 @@
 				Episodes ({episodeResults.length})
 			</button>
 		{/if}
+		{#if libraryEpisodes.length > 0}
+			<button
+				class="search-view-button"
+				class:active={view === 'library'}
+				onclick={() => (view = 'library')}
+			>
+				Library ({libraryEpisodes.length})
+			</button>
+		{/if}
 	</div>
 
 	{#if view === 'feeds' && feedResults.length > 0}
@@ -139,6 +173,9 @@
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
 		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} isSearch />
+	{/if}
+	{#if view === 'library' && libraryEpisodes.length > 0}
+		<EpisodeList episodes={libraryEpisodes} {activeEpisodes} {feedIconsById} />
 	{/if}
 {:else if query}
 	<div class="message">No podcasts found</div>
