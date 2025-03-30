@@ -81,10 +81,14 @@ export class FeedService {
 		Log.info('Finished update of all feeds');
 	}
 
-	async addFeedById(feedId: string, iconData: string) {
+	async addFeedById(feedId: string, iconData?: string) {
 		await this.initialize();
 
 		const feed = await this.api!.podcastById(Number(feedId));
+
+		if (!iconData) {
+			iconData = await this.resizeImage(feed.feed);
+		}
 
 		if (feed) {
 			this.addFeed(feed.feed, iconData);
@@ -149,10 +153,7 @@ export class FeedService {
 			try {
 				const response = await this.api!.podcastById(Number(id));
 
-				const imageUrl = response.feed.image || response.feed.artwork;
-
-				const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
-				const iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+				const iconData = await this.resizeImage(response.feed);
 
 				await this.addFeed(response.feed, iconData);
 			} catch (error) {
@@ -201,5 +202,11 @@ export class FeedService {
 		} finally {
 			worker.terminate();
 		}
+	}
+
+	private async resizeImage(feed: PIApiFeed): Promise<string> {
+		const imageUrl = feed.image || feed.artwork;
+		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
+		return await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
 	}
 }

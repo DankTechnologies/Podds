@@ -15,6 +15,7 @@
 	let observerTarget = $state<HTMLElement | null>(null);
 	let feedService = new FeedService();
 	let isDeleting = $state(false);
+	let isAdding = $state(false);
 
 	let episodes = $derived(
 		getEpisodes()
@@ -27,6 +28,13 @@
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 
 	onMount(() => {
+		if (!feed) {
+			isAdding = true;
+			feedService.addFeedById(feedId).then(() => {
+				isAdding = false;
+			});
+		}
+
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -57,8 +65,12 @@
 </script>
 
 {#if isDeleting}
-	<div class="deleting-screen">
-		<div class="deleting-message">Deleting...</div>
+	<div class="status-screen">
+		<div class="status-message">Deleting...</div>
+	</div>
+{:else if isAdding}
+	<div class="status-screen">
+		<div class="status-message">Loading...</div>
 	</div>
 {:else if episodes.length > 0 && feed}
 	<!-- Podcast Header -->
@@ -130,7 +142,7 @@
 		border-radius: 0.25rem;
 	}
 
-	.deleting-screen {
+	.status-screen {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -138,7 +150,7 @@
 		background: var(--bg);
 	}
 
-	.deleting-message {
+	.status-message {
 		font-size: var(--text-3xl);
 		color: var(--primary);
 	}
