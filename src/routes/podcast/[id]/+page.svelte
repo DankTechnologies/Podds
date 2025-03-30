@@ -3,12 +3,13 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, Search as SearchIcon } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	const feedId = page.params.id;
+	let searchQuery = $state('');
 
 	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
@@ -19,7 +20,16 @@
 
 	let episodes = $derived(
 		getEpisodes()
-			.filter((episode) => episode.feedId === feedId)
+			.filter((episode) => {
+				if (episode.feedId !== feedId) return false;
+				if (!searchQuery) return true;
+
+				const query = searchQuery.toLowerCase();
+				return (
+					episode.title.toLowerCase().includes(query) ||
+					episode.content.toLowerCase().includes(query)
+				);
+			})
 			.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
 			.slice(0, limit)
 	);
@@ -72,7 +82,7 @@
 	<div class="status-screen">
 		<div class="status-message">Loading...</div>
 	</div>
-{:else if episodes.length > 0 && feed}
+{:else if feed}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
@@ -88,10 +98,19 @@
 		</div>
 	</header>
 
+	<!-- Search Bar -->
+	<div class="search-container">
+		<div class="search-bar">
+			<input type="search" bind:value={searchQuery} placeholder="Search episodes..." />
+		</div>
+	</div>
+
 	<!-- Episodes List -->
 	<section class="podcast-section">
-		{#if episodes}
+		{#if episodes.length > 0}
 			<EpisodeList {episodes} {activeEpisodes} />
+		{:else if searchQuery}
+			<div class="message">No episodes found matching "{searchQuery}"</div>
 		{/if}
 	</section>
 {/if}
@@ -153,5 +172,29 @@
 	.status-message {
 		font-size: var(--text-3xl);
 		color: var(--primary);
+	}
+
+	.search-container {
+		padding: 1rem 2rem;
+		display: flex;
+	}
+
+	.search-bar {
+		display: flex;
+		width: 100%;
+	}
+
+	input {
+		width: 100%;
+		padding: 0.75rem;
+		border: 1px solid var(--primary-less);
+		background: var(--bg);
+		color: var(--text);
+	}
+
+	.message {
+		text-align: center;
+		padding: 2rem;
+		color: var(--text);
 	}
 </style>

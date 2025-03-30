@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { PodcastIndexClient } from '$lib/api/podcast-index';
 	import type { PIApiEpisodeBase, PIApiFeed } from '$lib/types/podcast-index';
-	import { Search as SearchIcon, Check } from 'lucide-svelte';
+	import { Search as SearchIcon } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { FeedService } from '$lib/service/FeedService';
 	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
-	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
-	import { formatEpisodeDate } from '$lib/utils/time';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Episode } from '$lib/types/db';
@@ -19,7 +16,6 @@
 	let resizedImageById = $state<SvelteMap<string, string>>(new SvelteMap());
 	let isLoading = $state(false);
 	let client = $state<PodcastIndexClient | null>(null);
-	let feedService = new FeedService();
 	let view = $state<'feeds' | 'episodes'>('feeds');
 
 	const ICON_MAX_WIDTH = 300;
