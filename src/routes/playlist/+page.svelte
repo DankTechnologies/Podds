@@ -11,10 +11,10 @@
 
 	let listenedToEpisodes = $derived(
 		getEpisodes()
-			.filter((episode) => listenedToActiveEpisodes.find((x) => x.id === episode.id))
+			.filter((episode) => listenedToActiveEpisodes.find((x) => x.url === episode.url))
 			.sort((a, b) => {
-				const aIndex = listenedToActiveEpisodes.findIndex((x) => x.id === b.id);
-				const bIndex = listenedToActiveEpisodes.findIndex((x) => x.id === a.id);
+				const aIndex = listenedToActiveEpisodes.findIndex((x) => x.url === b.url);
+				const bIndex = listenedToActiveEpisodes.findIndex((x) => x.url === a.url);
 				return bIndex - aIndex;
 			})
 			.slice(0, 10)
@@ -30,10 +30,10 @@
 
 	let upNextEpisodes = $derived(
 		getEpisodes()
-			.filter((episode) => upNextActiveEpisodes.find((x) => x.id === episode.id))
+			.filter((episode) => upNextActiveEpisodes.find((x) => x.url === episode.url))
 			.sort((a, b) => {
-				const aIndex = upNextActiveEpisodes.findIndex((x) => x.id === a.id);
-				const bIndex = upNextActiveEpisodes.findIndex((x) => x.id === b.id);
+				const aIndex = upNextActiveEpisodes.findIndex((x) => x.url === a.url);
+				const bIndex = upNextActiveEpisodes.findIndex((x) => x.url === b.url);
 				return aIndex - bIndex;
 			})
 	);

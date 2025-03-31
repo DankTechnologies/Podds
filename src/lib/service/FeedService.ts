@@ -57,8 +57,6 @@ export class FeedService {
 		Log.info('Starting update of all feeds');
 
 		const finderRequest: FinderRequest = {
-			apiKey: settings.podcastIndexKey,
-			apiSecret: settings.podcastIndexSecret,
 			feeds,
 			since
 		};
@@ -66,6 +64,8 @@ export class FeedService {
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
 
 		finderResponse.errors.forEach((x) => Log.error(x));
+
+		Log.debug(`Found ${finderResponse.episodes.length} episodes during sync`);
 
 		finderResponse.episodes.forEach((x) => {
 			const match = db.episodes.findOne({ url: x.url });
@@ -98,13 +98,6 @@ export class FeedService {
 	async addFeed(feed: PIApiFeed, iconData: string) {
 		Log.info(`Adding feed: ${feed.title}`);
 
-		let settings = getSettings();
-
-		if (!settings) {
-			Log.warn('Settings not found, skipping update');
-			return;
-		}
-
 		const newFeed = {
 			id: feed.id.toString(),
 			url: feed.url,
@@ -116,8 +109,6 @@ export class FeedService {
 		db.feeds.insert(newFeed);
 
 		const finderRequest: FinderRequest = {
-			apiKey: settings.podcastIndexKey,
-			apiSecret: settings.podcastIndexSecret,
 			feeds: [newFeed],
 			since: undefined
 		};

@@ -31,6 +31,10 @@
 
 	let feeds = $derived(getFeeds());
 
+	function getActiveEpisode(episode: Episode): ActiveEpisode | undefined {
+		return activeEpisodes.find((x) => x.url === episode.url);
+	}
+
 	function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
@@ -40,11 +44,9 @@
 
 		EpisodeService.setPlayingEpisode(episode);
 
-		if (activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded) {
-			AudioService.play(
-				episode.url,
-				activeEpisodes.find((x) => x.id === episode.id)?.playbackPosition ?? 0
-			);
+		const activeEpisode = getActiveEpisode(episode);
+		if (activeEpisode?.isDownloaded) {
+			AudioService.play(episode.url, activeEpisode.playbackPosition ?? 0);
 		} else {
 			downloadProgress.set(episode.id, 0);
 			downloadAudio(
@@ -115,7 +117,7 @@
 	}
 
 	function getEpisodeDurationDisplay(episode: Episode, activeEpisodes: ActiveEpisode[]): string {
-		const activeEpisode = activeEpisodes.find((x) => x.id === episode.id);
+		const activeEpisode = getActiveEpisode(episode);
 
 		return !activeEpisode || activeEpisode.isCompleted || activeEpisode.playbackPosition === 0
 			? formatEpisodeDuration(episode.durationMin)
@@ -127,7 +129,7 @@
 	{#each episodes as episode, index (episode.id)}
 		<li
 			class="episode-card fade-in"
-			class:episode-card--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
+			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 		>
 			<button
@@ -154,12 +156,12 @@
 					{/if}
 					<div class="episode-card__heading">
 						<time class="episode-card__time">
-							{#if activeEpisodes.find((x) => x.id === episode.id)?.isCompleted}
+							{#if getActiveEpisode(episode)?.isCompleted}
 								<div>
 									<Check size="14" />
 								</div>
 							{/if}
-							{#if activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+							{#if getActiveEpisode(episode)?.isDownloaded}
 								<div>
 									<Download size="14" />
 								</div>
@@ -185,7 +187,7 @@
 
 			<div
 				class="episode-controls"
-				class:episode-controls--playing={activeEpisodes.find((x) => x.id === episode.id)?.isPlaying}
+				class:episode-controls--playing={getActiveEpisode(episode)?.isPlaying}
 				class:episode-controls--hidden={focusedEpisodeId !== episode.id}
 				class:episode-controls--no-transition={isReordering}
 				style:position-anchor={`--episode-${episode.id}`}
@@ -201,7 +203,7 @@
 					<button class="episode-controls__button" onclick={() => playEpisode(episode)}>
 						<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
 					</button>
-					{#if !activeEpisodes.find((x) => x.id === episode.id)?.isDownloaded}
+					{#if !getActiveEpisode(episode)?.isDownloaded}
 						<button class="episode-controls__button" onclick={() => downloadEpisode(episode)}>
 							<Download size="16" /> Later
 						</button>
