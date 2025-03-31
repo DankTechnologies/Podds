@@ -18,10 +18,18 @@
 		db.episodes.isReady(),
 		db.settings.isReady(),
 		db.logs.isReady()
-	]).then(() => {
+	]).then(async () => {
 		isDbReady = true;
 		Log.initServiceWorkerLogging();
 		feedService.startPeriodicUpdates();
+
+		if (navigator.storage && navigator.storage.persist) {
+			const granted = await navigator.storage.persist();
+
+			if (!granted) {
+				Log.error('Storage persistence not granted');
+			}
+		}
 	});
 
 	let { children } = $props();
