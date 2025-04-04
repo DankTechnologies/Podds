@@ -20,12 +20,17 @@
 			.slice(0, 10)
 	);
 
+	// sort by isPlaying, then by sortOrder
 	let upNextActiveEpisodes = $derived(
 		getActiveEpisodes()
 			.filter(
 				(episode) => (episode.playbackPosition === 0 || episode.isPlaying) && episode.isDownloaded
 			)
-			.sort((a, b) => (a.sortOrder ?? 99999999) - (b.sortOrder ?? 99999999))
+			.sort((a, b) => {
+				if (a.isPlaying && !b.isPlaying) return -1;
+				if (!a.isPlaying && b.isPlaying) return 1;
+				return (a.sortOrder ?? 99999999) - (b.sortOrder ?? 99999999);
+			})
 	);
 
 	let upNextEpisodes = $derived(

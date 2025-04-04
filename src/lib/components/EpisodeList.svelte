@@ -46,7 +46,11 @@
 
 		const activeEpisode = getActiveEpisode(episode);
 		if (activeEpisode?.isDownloaded) {
-			AudioService.play(episode.url, activeEpisode.playbackPosition ?? 0);
+			const playbackPosition = activeEpisode.isCompleted
+				? 0
+				: (activeEpisode.playbackPosition ?? 0);
+
+			AudioService.play(episode.url, playbackPosition);
 		} else {
 			downloadProgress.set(episode.id, 0);
 			downloadAudio(
