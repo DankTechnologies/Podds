@@ -9,11 +9,14 @@ importers:
   .:
     dependencies:
       '@signaldb/core':
-        specifier: ^1.3.1
-        version: 1.3.1
+        specifier: ^1.5.2
+        version: 1.5.2
       '@signaldb/indexeddb':
         specifier: ^1.0.0
-        version: 1.0.0(@signaldb/core@1.3.1)
+        version: 1.0.0(@signaldb/core@1.5.2)
+      '@signaldb/svelte':
+        specifier: ^1.1.1
+        version: 1.1.1(@signaldb/core@1.5.2)(svelte@5.21.0)
       fast-xml-parser:
         specifier: ^5.0.9
         version: 5.0.9
@@ -451,13 +454,19 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@signaldb/core@1.3.1':
-    resolution: {integrity: sha512-6w1bnYS1LcnbQi9rAXo61fT2eYm1Anzbs4l+Ca2uTBJOerj5zGQSIysrc8bRfPInUvuebsS0kc9kwJcaZnFa8g==}
+  '@signaldb/core@1.5.2':
+    resolution: {integrity: sha512-Tw5Jh6Jpq6z7TRQmcT5EfQ0uFwb5K7n3YOn7qdYJoE3KQCozthGYbch92vUx5frWWQgiEVGBdAZtKsyK7PpMLw==}
 
   '@signaldb/indexeddb@1.0.0':
     resolution: {integrity: sha512-hqRt/ZeMBJXYqQNtalhT6R2fRlmT5niOXwIzaZ7mOV74YoyDOFyu7zk47GIGnFn3D84qQ3fhHBdFeyyf213uTg==}
     peerDependencies:
       '@signaldb/core': 1.x
+
+  '@signaldb/svelte@1.1.1':
+    resolution: {integrity: sha512-U4B2g6VPXrhCKjEYXMr9oMh6Vtrv4a2wdAZuek0HNdBrAgoxJM2TUlvY+bK1ePE6L/gadkvpndRuHXH4p4VFiQ==}
+    peerDependencies:
+      '@signaldb/core': 1.x
+      svelte: ^5.7.0
 
   '@sveltejs/adapter-static@3.0.8':
     resolution: {integrity: sha512-YaDrquRpZwfcXbnlDsSrBQNCChVOT9MGuSg+dMAyfsAa1SmiAhrA5jUYUiIMC59G92kIbY/AaQOWcBdq+lh+zg==}
@@ -1125,8 +1134,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nwsapi@2.2.18:
-    resolution: {integrity: sha512-p1TRH/edngVEHVbwqWnxUViEmq5znDvyB+Sik5cmuLpGOIfDf/39zLiq3swPF8Vakqn+gvNiOQAZu8djYlQILA==}
+  nwsapi@2.2.20:
+    resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -1343,11 +1352,11 @@ packages:
     resolution: {integrity: sha512-n1cw8k1k0x4pgA2+9XrOkFydTerNcJ1zWCO5Nn9scWHTD+5tp8dghT2x1uduQePZTZgd3Tupf+x9BxJjeJi77Q==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@6.1.84:
-    resolution: {integrity: sha512-NaQa1W76W2aCGjXybvnMYzGSM4x8fvG2AN/pla7qxcg0ZHbooOPhA8kctmOZUDfZyhDL27OGNbwAeig8P4p1vg==}
+  tldts-core@6.1.85:
+    resolution: {integrity: sha512-DTjUVvxckL1fIoPSb3KE7ISNtkWSawZdpfxGxwiIrZoO6EbHVDXXUIlIuWympPaeS+BLGyggozX/HTMsRAdsoA==}
 
-  tldts@6.1.84:
-    resolution: {integrity: sha512-aRGIbCIF3teodtUFAYSdQONVmDRy21REM3o6JnqWn5ZkQBJJ4gHxhw6OfwQ+WkSAi3ASamrS4N4nyazWx6uTYg==}
+  tldts@6.1.85:
+    resolution: {integrity: sha512-gBdZ1RjCSevRPFix/hpaUWeak2/RNUZB4/8frF1r5uYMHjFptkiT0JXIebWvgI/0ZHXvxaUDDJshiA0j6GdL3w==}
     hasBin: true
 
   to-regex-range@5.0.1:
@@ -1362,8 +1371,8 @@ packages:
     resolution: {integrity: sha512-FVDYdxtnj0G6Qm/DhNPSb8Ju59ULcup3tuJxkFb5K8Bv2pUXILbf0xZWU8PX8Ov19OXljbUyveOFwRMwkXzO+A==}
     engines: {node: '>=16'}
 
-  tr46@5.0.0:
-    resolution: {integrity: sha512-tk2G5R2KRwBd+ZN0zaEXpmzdKyOYksXwywulIX95MBODjSzMIuQnQ3m8JxgbhnL1LeVo7lqQKsYa1O3Htl7K5g==}
+  tr46@5.1.0:
+    resolution: {integrity: sha512-IUWnUK7ADYR5Sl1fZlO1INDUhVhatWl7BtJWsIhwJ0UAK7ilzzIa8uIqOO/aYVWHZPJkKbEL+362wrzoeRF7bw==}
     engines: {node: '>=18'}
 
   ts-api-utils@2.0.1:
@@ -1494,8 +1503,8 @@ packages:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
     engines: {node: '>=18'}
 
-  whatwg-url@14.1.1:
-    resolution: {integrity: sha512-mDGf9diDad/giZ/Sm9Xi2YcyzaFpbdLpJPr+E9fSkyQ7KpQD4SdFcugkRQYzhmfI4KeV4Qpnn2sKPdo+kmsgRQ==}
+  whatwg-url@14.2.0:
+    resolution: {integrity: sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw==}
     engines: {node: '>=18'}
 
   which@2.0.2:
@@ -1805,14 +1814,19 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.34.9':
     optional: true
 
-  '@signaldb/core@1.3.1':
+  '@signaldb/core@1.5.2':
     dependencies:
       fast-sort: 3.4.1
       mingo: 6.5.3
 
-  '@signaldb/indexeddb@1.0.0(@signaldb/core@1.3.1)':
+  '@signaldb/indexeddb@1.0.0(@signaldb/core@1.5.2)':
     dependencies:
-      '@signaldb/core': 1.3.1
+      '@signaldb/core': 1.5.2
+
+  '@signaldb/svelte@1.1.1(@signaldb/core@1.5.2)(svelte@5.21.0)':
+    dependencies:
+      '@signaldb/core': 1.5.2
+      svelte: 5.21.0
 
   '@sveltejs/adapter-static@3.0.8(@sveltejs/kit@2.17.3(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.21.0)(vite@6.2.0(@types/node@22.13.9)))(svelte@5.21.0)(vite@6.2.0(@types/node@22.13.9)))':
     dependencies:
@@ -2097,7 +2111,7 @@ snapshots:
   data-urls@5.0.0:
     dependencies:
       whatwg-mimetype: 4.0.0
-      whatwg-url: 14.1.1
+      whatwg-url: 14.2.0
     optional: true
 
   debug@4.4.0:
@@ -2476,7 +2490,7 @@ snapshots:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       is-potential-custom-element-name: 1.0.1
-      nwsapi: 2.2.18
+      nwsapi: 2.2.20
       parse5: 7.2.1
       rrweb-cssom: 0.8.0
       saxes: 6.0.0
@@ -2486,7 +2500,7 @@ snapshots:
       webidl-conversions: 7.0.0
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
-      whatwg-url: 14.1.1
+      whatwg-url: 14.2.0
       ws: 8.18.1
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
@@ -2575,7 +2589,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nwsapi@2.2.18:
+  nwsapi@2.2.20:
     optional: true
 
   optionator@0.9.4:
@@ -2789,12 +2803,12 @@ snapshots:
 
   tinyspy@3.0.2: {}
 
-  tldts-core@6.1.84:
+  tldts-core@6.1.85:
     optional: true
 
-  tldts@6.1.84:
+  tldts@6.1.85:
     dependencies:
-      tldts-core: 6.1.84
+      tldts-core: 6.1.85
     optional: true
 
   to-regex-range@5.0.1:
@@ -2805,10 +2819,10 @@ snapshots:
 
   tough-cookie@5.1.2:
     dependencies:
-      tldts: 6.1.84
+      tldts: 6.1.85
     optional: true
 
-  tr46@5.0.0:
+  tr46@5.1.0:
     dependencies:
       punycode: 2.3.1
     optional: true
@@ -2930,9 +2944,9 @@ snapshots:
   whatwg-mimetype@4.0.0:
     optional: true
 
-  whatwg-url@14.1.1:
+  whatwg-url@14.2.0:
     dependencies:
-      tr46: 5.0.0
+      tr46: 5.1.0
       webidl-conversions: 7.0.0
     optional: true
 
