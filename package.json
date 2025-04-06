@@ -35,7 +35,6 @@
 	"dependencies": {
 		"@signaldb/core": "^1.5.2",
 		"@signaldb/indexeddb": "^1.0.0",
-		"@signaldb/svelte": "^1.1.1",
 		"fast-xml-parser": "^5.0.9",
 		"lucide-svelte": "^0.475.0"
 	}
