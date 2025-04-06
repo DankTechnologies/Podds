@@ -33,7 +33,7 @@ export interface PIApiFeed {
 	dead: boolean;
 }
 
-interface PIApiPodcast extends PIApiFeed {
+export interface PIApiPodcast extends PIApiFeed {
 	episodeCount: number;
 	explicit: boolean;
 }

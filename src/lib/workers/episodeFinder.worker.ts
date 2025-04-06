@@ -7,6 +7,35 @@ self.onerror = (error) => {
 	console.error('Worker error:', error);
 };
 
+const BATCH_SIZE = 5; // Process 5 feeds at a time
+const FEED_TIMEOUT_MS = 15000; // 15 seconds per feed (slightly longer than parseFeedUrl's timeout)
+
+async function fetchFeedWithTimeout(feed: Feed, since?: number): Promise<{
+	episodes: Episode[];
+	errors: string[];
+}> {
+	const timeoutPromise = new Promise<never>((_, reject) =>
+		setTimeout(() => reject(new Error('Worker timeout')), FEED_TIMEOUT_MS)
+	);
+
+	try {
+		const resultPromise = parseFeedUrl(feed.id, feed.url, since).then(
+			(episodes) => ({ episodes, errors: [] as string[] })
+		);
+
+		const result = await Promise.race([resultPromise, timeoutPromise]);
+		return result;
+	} catch (error) {
+		return {
+			episodes: [],
+			errors: [
+				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? error.message : 'Unknown error'
+				}`
+			]
+		};
+	}
+}
+
 self.onmessage = async (e: MessageEvent<FinderRequest>) => {
 	try {
 		const { feeds, since } = e.data;
@@ -37,31 +66,29 @@ async function fetchFeedEpisodes(
 	feeds: Feed[],
 	since?: number
 ): Promise<{ episodes: Episode[]; errors: string[] }> {
-	const results = await Promise.all(
-		feeds.map(async (feed) => {
-			try {
-				const parsedEpisodes = await parseFeedUrl(feed.id, feed.url, since);
-				return {
-					episodes: parsedEpisodes,
-					errors: [] as string[]
-				};
-			} catch (error) {
-				return {
-					episodes: [] as Episode[],
-					errors: [
-						`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? error.message : 'Unknown error'
-						}`
-					]
-				};
-			}
-		})
-	);
+	let allEpisodes: Episode[] = [];
+	let allErrors: string[] = [];
 
-	return results.reduce(
-		(acc, result) => ({
-			episodes: [...acc.episodes, ...result.episodes],
-			errors: [...acc.errors, ...result.errors]
-		}),
-		{ episodes: [], errors: [] }
-	);
+	// Process feeds in batches
+	for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
+		const batch = feeds.slice(i, i + BATCH_SIZE);
+
+		const results = await Promise.all(
+			batch.map((feed) => fetchFeedWithTimeout(feed, since))
+		);
+
+		// Accumulate results from this batch
+		const batchResults = results.reduce(
+			(acc, result) => ({
+				episodes: [...acc.episodes, ...result.episodes],
+				errors: [...acc.errors, ...result.errors]
+			}),
+			{ episodes: [], errors: [] }
+		);
+
+		allEpisodes = [...allEpisodes, ...batchResults.episodes];
+		allErrors = [...allErrors, ...batchResults.errors];
+	}
+
+	return { episodes: allEpisodes, errors: allErrors };
 }

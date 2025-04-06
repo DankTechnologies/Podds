@@ -14,6 +14,7 @@ const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
 	private initialized = false;
+	private isUpdating = false;
 
 	constructor(apiKey?: string, apiSecret?: string) {
 		if (apiKey && apiSecret) {
@@ -122,6 +123,35 @@ export class FeedService {
 		Log.info(`Finished adding ${feed.title}`);
 	}
 
+	async addFeeds(feeds: { feed: PIApiFeed; iconData: string }[]): Promise<void> {
+		if (feeds.length === 0) return;
+
+		Log.info(`Adding ${feeds.length} feeds`);
+
+		const newFeeds = feeds.map(({ feed, iconData }) => ({
+			id: feed.id.toString(),
+			url: feed.url,
+			title: feed.title,
+			iconData: iconData,
+			lastUpdatedAt: new Date()
+		}));
+
+		db.feeds.insertMany(newFeeds);
+
+		const finderRequest: FinderRequest = {
+			feeds: newFeeds,
+			since: undefined
+		};
+
+		const finderResponse = await this.runEpisodeFinder(finderRequest);
+
+		finderResponse.errors.forEach((x) => Log.error(x));
+
+		db.episodes.insertMany(finderResponse.episodes);
+
+		Log.info(`Finished adding ${feeds.length} feeds`);
+	}
+
 	deleteFeed(feedId: string) {
 		Log.info(`Starting deletion of feed ${feedId}`);
 		db.episodes.removeMany({ feedId: feedId });
@@ -136,27 +166,68 @@ export class FeedService {
 	}
 
 	async importFeeds(feedIds: string): Promise<void> {
-		await this.initialize();
+		try {
+			this.isUpdating = true;
 
-		const ids = feedIds.split(',').map((id) => id.trim());
+			await this.initialize();
 
-		for (const id of ids) {
-			try {
-				const response = await this.api!.podcastById(Number(id));
+			const ids = feedIds.split(',').map((id) => id.trim());
+			const FEED_TIMEOUT_MS = 10000; // 10 seconds per feed
+			const validFeeds: { feed: PIApiFeed; iconData: string }[] = [];
+			let processedCount = 0;
 
-				const iconData = await this.resizeImage(response.feed);
+			Log.info(`Starting import of ${ids.length} feeds`);
 
-				await this.addFeed(response.feed, iconData);
-			} catch (error) {
-				Log.error(`Error importing feed ${id}: ${error}`);
+			for (const id of ids) {
+				try {
+					processedCount++;
+					Log.info(`Processing feed ${processedCount}/${ids.length}: ${id}`);
+
+					const processFeed = async () => {
+						const response = await this.api!.podcastById(Number(id));
+						const iconData = await this.resizeImage(response.feed);
+						return { feed: response.feed, iconData };
+					};
+
+					const timeoutPromise = new Promise((_, reject) =>
+						setTimeout(() => reject(new Error('Feed processing timeout')), FEED_TIMEOUT_MS)
+					);
+
+					const result = await Promise.race([processFeed(), timeoutPromise]);
+					validFeeds.push(result as { feed: PIApiFeed; iconData: string });
+
+					Log.info(`Successfully processed feed ${id}`);
+				} catch (error) {
+					Log.error(`Error processing feed ${id}: ${error instanceof Error ? error.message : String(error)}`);
+					continue; // Continue with next feed even if this one failed
+				}
 			}
+
+			if (validFeeds.length > 0) {
+				Log.info(`Successfully processed ${validFeeds.length}/${ids.length} feeds`);
+				await this.addFeeds(validFeeds);
+			} else {
+				Log.warn('No valid feeds were processed');
+			}
+		} finally {
+			this.isUpdating = false;
 		}
 	}
 
 	startPeriodicUpdates() {
 		Log.debug('Starting registering periodic updates');
 		const sync = async () => {
-			await this.updateAllFeeds();
+			if (this.isUpdating) {
+				Log.warn('Skipping updates due to active update');
+				return;
+			}
+
+			try {
+				this.isUpdating = true;
+				await this.updateAllFeeds();
+			} finally {
+				this.isUpdating = false;
+			}
 		};
 
 		// Delay first sync by 1 second
