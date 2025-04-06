@@ -9,6 +9,7 @@
 	import { goto } from '$app/navigation';
 	import type { ActiveEpisode } from '$lib/types/db';
 	import type { SvelteMap } from 'svelte/reactivity';
+	import { page } from '$app/state';
 
 	const ICON_SIZE = '2rem';
 
@@ -23,11 +24,19 @@
 	let paused = $state(true);
 	let showDetailedControls = $state(false);
 	let previousEpisodeId = $state('');
+	let previousPage = $state('');
 
 	let remainingTime = $derived(duration - currentTime);
 
 	onMount(() => {
 		AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
+	});
+
+	$effect(() => {
+		if (page.url.pathname !== previousPage) {
+			previousPage = page.url.pathname;
+			showDetailedControls = false;
+		}
 	});
 
 	$effect(() => {
@@ -50,9 +59,9 @@
 			let currentTimeRounded = Math.round(currentTime);
 
 			// Update media session every second instead of every timeupdate
-	        if (currentTimeRounded !== Math.floor(lastUpdatedTime)) {
-    	        AudioService.updateMediaSessionPosition(duration, currentTime);
-        	}
+			if (currentTimeRounded !== Math.floor(lastUpdatedTime)) {
+				AudioService.updateMediaSessionPosition(duration, currentTime);
+			}
 
 			// Update playback position every 5 seconds
 			if (
