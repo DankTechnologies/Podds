@@ -124,7 +124,7 @@
 		}, 50);
 	}
 
-	function getEpisodeDurationDisplay(episode: Episode, activeEpisodes: ActiveEpisode[]): string {
+	function getEpisodeDurationDisplay(episode: Episode): string {
 		const activeEpisode = getActiveEpisode(episode);
 
 		return !activeEpisode || activeEpisode.isCompleted || activeEpisode.playbackPosition === 0
@@ -185,7 +185,7 @@
 								<Dot size="14" />
 							</div>
 							<div>
-								{getEpisodeDurationDisplay(episode, activeEpisodes)}
+								{getEpisodeDurationDisplay(episode)}
 							</div>
 						</time>
 						<div class="episode-card__title">{episode.title}</div>
