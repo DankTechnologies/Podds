@@ -23,6 +23,39 @@ export class FeedService {
 		}
 	}
 
+	async updateFeed(feedId: string, since?: number) {
+		let feeds = getFeeds();
+
+		const feed = feeds.find((x) => x.id === feedId);
+
+		if (!feed) {
+			Log.warn('Feed not found, skipping update');
+			return;
+		}
+
+		Log.info(`Starting update of feed ${feed.title}`);
+
+		const finderRequest: FinderRequest = {
+			feeds: [feed],
+			since: since
+		};
+
+		const finderResponse = await this.runEpisodeFinder(finderRequest);
+
+		finderResponse.errors.forEach((x) => Log.error(x));
+
+		finderResponse.episodes.forEach((x) => {
+			const match = db.episodes.findOne({ url: x.url });
+
+			if (!match) {
+				Log.info(`Adding ${x.title}`);
+				db.episodes.insert(x);
+			}
+		});
+
+		Log.info(`Finished update of feed ${feed.title}`);
+	}
+
 	async updateAllFeeds() {
 		let settings = getSettings();
 		let feeds = getFeeds();

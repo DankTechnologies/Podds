@@ -3,11 +3,12 @@
 	import { page } from '$app/state';
 	import { db, getActiveEpisodes, getEpisodes } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Trash2 } from 'lucide-svelte';
+	import { RefreshCcw, Trash2 } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
+	import { Log } from '$lib/service/LogService';
 	const feedId = page.params.id;
 	let searchQuery = $state('');
 
@@ -17,7 +18,7 @@
 	let feedService = new FeedService();
 	let isDeleting = $state(false);
 	let isAdding = $state(false);
-
+	let isUpdating = $state(false);
 	// corner case for new feeds added by search missing episodes, due to reactivity bug
 	// only evaluates if episodes is empty
 	let episodesFallback = $derived(db.episodes.find({ feedId }).fetch());
@@ -76,6 +77,17 @@
 			goto('/');
 		});
 	}
+
+	async function updateFeed(feed: Feed) {
+		isUpdating = true;
+		try {
+			await feedService.updateFeed(feed.id, (episodes[0]?.publishedAt.getTime() ?? 0) / 1000);
+		} catch (error) {
+			Log.error(error instanceof Error ? error.message : String(error));
+		} finally {
+			isUpdating = false;
+		}
+	}
 </script>
 
 {#if isDeleting}
@@ -97,6 +109,14 @@
 				<button class="podcast-header__button" onclick={() => deleteFeed(feed)}>
 					<Trash2 size="14" />
 					Delete
+				</button>
+				<button
+					class="podcast-header__button"
+					disabled={isUpdating}
+					onclick={() => updateFeed(feed)}
+				>
+					<RefreshCcw size="14" />
+					Sync
 				</button>
 			</div>
 		</div>
@@ -151,6 +171,7 @@
 
 	.podcast-header__buttons {
 		display: flex;
+		gap: 0.5rem;
 	}
 
 	.podcast-header__button {
@@ -161,10 +182,15 @@
 		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
-		padding: 0.5rem 1rem;
+		padding: 0.5rem;
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
+		transition: opacity 0.2s ease;
+	}
+
+	.podcast-header__button:disabled {
+		opacity: 0.5;
 	}
 
 	.status-screen {
