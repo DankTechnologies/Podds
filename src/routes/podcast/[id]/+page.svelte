@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { db, getActiveEpisodes, getEpisodes } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 	import { RefreshCcw, Trash2 } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
@@ -19,9 +19,6 @@
 	let isDeleting = $state(false);
 	let isAdding = $state(false);
 	let isUpdating = $state(false);
-	// corner case for new feeds added by search missing episodes, due to reactivity bug
-	// only evaluates if episodes is empty
-	let episodesFallback = $derived(db.episodes.find({ feedId }).fetch());
 
 	let episodes = $derived(
 		getEpisodes()
@@ -40,8 +37,7 @@
 	);
 	let activeEpisodes = $derived(getActiveEpisodes().filter((episode) => episode.feedId === feedId));
 
-	let feed = $derived(db.feeds.findOne({ id: feedId }));
-
+	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 	onMount(() => {
 		if (!feed) {
 			isAdding = true;
@@ -136,7 +132,7 @@
 		{:else if searchQuery}
 			<div class="message">No episodes found matching "{searchQuery}"</div>
 		{:else}
-			<EpisodeList episodes={episodesFallback} {activeEpisodes} />
+			<div class="message">No episodes found</div>
 		{/if}
 	</section>
 {/if}
