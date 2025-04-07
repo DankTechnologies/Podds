@@ -1,5 +1,6 @@
 import { db } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Episode } from '$lib/types/db';
+import { Log } from '$lib/service/LogService';
 
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
@@ -31,6 +32,11 @@ export class EpisodeService {
 			content: episode.content,
 			feedTitle: feed?.title ?? ''
 		});
+	}
+
+	static removeActiveEpisode(id: string, url: string): void {
+		db.activeEpisodes.removeOne({ id });
+		this.deletedCachedEpisodes([url]);
 	}
 
 	static findActiveEpisode(episodeId: string): ActiveEpisode | undefined {
@@ -96,5 +102,25 @@ export class EpisodeService {
 				db.activeEpisodes.updateOne({ id: episodeIds[i] }, { $set: { sortOrder: i } });
 			}
 		});
+	}
+
+	private static async deletedCachedEpisodes(urls: string[]): Promise<void> {
+		const worker = new Worker(new URL('../workers/episodeCleaner.worker.ts', import.meta.url), {
+			type: 'module'
+		});
+
+		try {
+			const response = await new Promise<{ deletedUrls: string[]; errors: string[] }>((resolve, reject) => {
+				worker.onmessage = (event) => resolve(event.data);
+				worker.onerror = (error) => reject(error);
+				worker.postMessage({ urls });
+			});
+
+			response.errors.forEach((x) => Log.error(x));
+		} catch (error) {
+			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		} finally {
+			worker.terminate();
+		}
 	}
 }

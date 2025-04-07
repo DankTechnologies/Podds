@@ -1,5 +1,5 @@
 import type { Episode, Feed } from '$lib/types/db';
-import type { FinderRequest, FinderResponse } from '$lib/types/episodeFinder';
+import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
 // Add error handling for the worker itself
@@ -36,7 +36,7 @@ async function fetchFeedWithTimeout(feed: Feed, since?: number): Promise<{
 	}
 }
 
-self.onmessage = async (e: MessageEvent<FinderRequest>) => {
+self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
 		const { feeds, since } = e.data;
 
@@ -47,7 +47,7 @@ self.onmessage = async (e: MessageEvent<FinderRequest>) => {
 
 		const result = await fetchFeedEpisodes(feeds, since);
 
-		const response: FinderResponse = {
+		const response: EpisodeFinderResponse = {
 			episodes: result.episodes,
 			errors: result.errors
 		};

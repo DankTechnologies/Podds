@@ -1,6 +1,6 @@
 import PodcastIndexClient from '$lib/api/podcast-index';
 import { db, getFeeds, getSettings } from '$lib/stores/db.svelte';
-import type { FinderRequest, FinderResponse } from '$lib/types/episodeFinder';
+import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
 import { Log } from './LogService';
@@ -35,7 +35,7 @@ export class FeedService {
 
 		Log.info(`Starting update of feed ${feed.title}`);
 
-		const finderRequest: FinderRequest = {
+		const finderRequest: EpisodeFinderRequest = {
 			feeds: [feed],
 			since: since
 		};
@@ -90,7 +90,7 @@ export class FeedService {
 
 		Log.info('Starting update of all feeds');
 
-		const finderRequest: FinderRequest = {
+		const finderRequest: EpisodeFinderRequest = {
 			feeds,
 			since
 		};
@@ -142,7 +142,7 @@ export class FeedService {
 
 		db.feeds.insert(newFeed);
 
-		const finderRequest: FinderRequest = {
+		const finderRequest: EpisodeFinderRequest = {
 			feeds: [newFeed],
 			since: undefined
 		};
@@ -171,7 +171,7 @@ export class FeedService {
 
 		db.feeds.insertMany(newFeeds);
 
-		const finderRequest: FinderRequest = {
+		const finderRequest: EpisodeFinderRequest = {
 			feeds: newFeeds,
 			since: undefined
 		};
@@ -281,13 +281,13 @@ export class FeedService {
 		this.initialized = true;
 	}
 
-	private async runEpisodeFinder(request: FinderRequest): Promise<FinderResponse> {
+	private async runEpisodeFinder(request: EpisodeFinderRequest): Promise<EpisodeFinderResponse> {
 		const worker = new Worker(new URL('../workers/episodeFinder.worker.ts', import.meta.url), {
 			type: 'module'
 		});
 
 		try {
-			const response = await new Promise<FinderResponse>((resolve, reject) => {
+			const response = await new Promise<EpisodeFinderResponse>((resolve, reject) => {
 				worker.onmessage = (event) => resolve(event.data);
 				worker.onerror = (error) => reject(error);
 				worker.postMessage(request);

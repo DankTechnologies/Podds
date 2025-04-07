@@ -1,11 +1,11 @@
 import type { Episode, Feed } from './db';
 
-export interface FinderRequest {
+export interface EpisodeFinderRequest {
 	feeds: Feed[];
 	since?: number;
 }
 
-export interface FinderResponse {
+export interface EpisodeFinderResponse {
 	episodes: Episode[];
 	errors: string[];
 }

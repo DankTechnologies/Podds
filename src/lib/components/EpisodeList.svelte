@@ -81,8 +81,14 @@
 		);
 	}
 
-	function deleteEpisode(episode: Episode) {
-		// EpisodeService.deleteEpisode(episode.id);
+	function removeEpisode(episode: Episode) {
+		toggleEpisodeFocus(episode);
+
+		if (getActiveEpisode(episode)?.isPlaying) {
+			EpisodeService.clearPlayingEpisodes();
+		}
+
+		EpisodeService.removeActiveEpisode(episode.id, episode.url);
 	}
 
 	function addFeed(feedId: string) {
@@ -208,9 +214,11 @@
 					<div class="episode-controls__description">{@html episode.content}</div>
 				</div>
 				<div class="episode-controls__buttons">
-					<button class="episode-controls__button" onclick={() => playEpisode(episode)}>
-						<Play size="16" /> Play {isPlaylist ? 'Now' : ''}
-					</button>
+					{#if !getActiveEpisode(episode)?.isPlaying}
+						<button class="episode-controls__button" onclick={() => playEpisode(episode)}>
+							<Play size="16" /> Play
+						</button>
+					{/if}
 					{#if !getActiveEpisode(episode)?.isDownloaded}
 						<button class="episode-controls__button" onclick={() => downloadEpisode(episode)}>
 							<Download size="16" /> Later
@@ -218,11 +226,11 @@
 					{/if}
 					{#if isPlaylist && index > 0}
 						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
-							<ArrowUp size="16" /> Play Next
+							<ArrowUp size="16" /> Next
 						</button>
 					{/if}
-					{#if isPlaylist && index > 0}
-						<button class="episode-controls__button" onclick={() => deleteEpisode(episode)}>
+					{#if getActiveEpisode(episode)?.isDownloaded}
+						<button class="episode-controls__button" onclick={() => removeEpisode(episode)}>
 							<Trash2 size="16" /> Remove
 						</button>
 					{/if}
