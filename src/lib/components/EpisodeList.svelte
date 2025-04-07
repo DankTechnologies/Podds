@@ -3,7 +3,7 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Play, Dot, ArrowUp, Download, Check, Plus } from 'lucide-svelte';
+	import { Play, Dot, ArrowUp, Download, Check, Plus, Trash2 } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -79,6 +79,10 @@
 			(err) => handleDownloadError(episode.id!, err),
 			(progress) => downloadProgress.set(episode.id!, progress)
 		);
+	}
+
+	function deleteEpisode(episode: Episode) {
+		// EpisodeService.deleteEpisode(episode.id);
 	}
 
 	function addFeed(feedId: string) {
@@ -215,6 +219,11 @@
 					{#if isPlaylist && index > 0}
 						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
 							<ArrowUp size="16" /> Play Next
+						</button>
+					{/if}
+					{#if isPlaylist && index > 0}
+						<button class="episode-controls__button" onclick={() => deleteEpisode(episode)}>
+							<Trash2 size="16" /> Remove
 						</button>
 					{/if}
 					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
