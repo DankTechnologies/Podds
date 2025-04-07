@@ -4,14 +4,14 @@
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { FeedService } from '$lib/service/FeedService';
-	import { db, getActiveEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { db, getFeedIconsById } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
 	let feedService = new FeedService();
 
 	let isDbReady = $state(false);
 
 	let feedIconsById = $derived(getFeedIconsById());
-	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
+	let activeEpisode = $derived(db.activeEpisodes.findOne({ isPlaying: 1 }));
 
 	Promise.all([
 		db.feeds.isReady(),

@@ -1,7 +1,6 @@
-import { db, getFeeds } from '$lib/stores/db.svelte';
+import { db } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Episode } from '$lib/types/db';
 
-let feeds = $derived(getFeeds());
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
 		this.clearPlayingEpisodes();
@@ -15,7 +14,7 @@ export class EpisodeService {
 	}
 
 	static addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): void {
-		const feed = feeds.find((x) => x.id === episode.feedId);
+		const feed = db.feeds.findOne({ id: episode.feedId });
 
 		db.activeEpisodes.insert({
 			id: episode.id,

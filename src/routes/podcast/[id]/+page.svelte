@@ -1,9 +1,9 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Trash2, Search as SearchIcon } from 'lucide-svelte';
+	import { Trash2 } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
@@ -18,10 +18,11 @@
 	let isDeleting = $state(false);
 	let isAdding = $state(false);
 
+	let feedEpisodes = $derived(db.episodes.find({ feedId }).fetch());
+
 	let episodes = $derived(
-		getEpisodes()
+		feedEpisodes
 			.filter((episode) => {
-				if (episode.feedId !== feedId) return false;
 				if (!searchQuery) return true;
 
 				const query = searchQuery.toLowerCase();
@@ -35,7 +36,7 @@
 	);
 	let activeEpisodes = $derived(getActiveEpisodes().filter((episode) => episode.feedId === feedId));
 
-	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
+	let feed = $derived(db.feeds.findOne({ id: feedId }));
 
 	onMount(() => {
 		if (!feed) {
