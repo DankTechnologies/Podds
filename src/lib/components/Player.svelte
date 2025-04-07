@@ -379,14 +379,11 @@
 	.player__playback-expanded::-webkit-slider-thumb {
 		appearance: none;
 		width: 1.25rem;
-		height: 1.5rem;
+		height: 2rem;
 		background-color: var(--primary-more);
-		border-top: 2px solid var(--primary-less);
-		border-left: 2px solid var(--primary-less);
-		border-right: 2px solid var(--primary-less);
+		border: 2px solid var(--primary-less);
 		margin-top: -0.5rem;
-		border-top-left-radius: 0.25rem;
-		border-top-right-radius: 0.25rem;
+		border-radius: 0.25rem;
 	}
 
 	.player__playback-expanded::-moz-range-thumb {
