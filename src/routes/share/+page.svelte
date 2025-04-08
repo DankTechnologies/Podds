@@ -10,6 +10,8 @@
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
+	import { List, History, BadgePlus, Podcast, Calendar } from 'lucide-svelte';
+	import { formatEpisodeDate } from '$lib/utils/time';
 
 	let isLoading = $state(true);
 	let config = $state<ShareConfig | null>(null);
@@ -24,6 +26,12 @@
 
 	let targetEpisode = $derived(episodes.find((e) => e.id === config?.episodeGuid));
 	let isFeedAdded = $derived(feeds.find((f) => f.id === config?.feedId));
+
+	let oldestEpisode = $derived(
+		[...episodes].sort(
+			(a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime()
+		)[0]
+	);
 
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
@@ -105,10 +113,24 @@
 			{/if}
 			<div class="podcast-header__content">
 				<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
-				<span class="podcast-header__subtitle">{parseSubtitle(feed.title)}</span>
+				<div class="podcast-header__meta">
+					<div class="meta-with-icon">
+						<List size="1rem" />
+						{episodes.length} episodes
+					</div>
+				</div>
+				<div class="podcast-header__meta">
+					<div class="meta-with-icon">
+						<History size="1rem" />
+						{formatEpisodeDate(oldestEpisode.publishedAt)}
+					</div>
+				</div>
 				<div class="podcast-header__buttons">
 					{#if !isFeedAdded}
-						<button class="podcast-header__button" onclick={addFeed}>Add Podcast</button>
+						<button class="podcast-header__button" onclick={addFeed}>
+							<Podcast size="24" />
+							Subscribe
+						</button>
 					{/if}
 				</div>
 			</div>
@@ -153,12 +175,11 @@
 		display: flex;
 		gap: 1.5rem;
 		padding: 1rem;
-		margin-bottom: 2rem;
 	}
 
 	.podcast-header__image {
-		width: 150px;
-		height: 150px;
+		width: 200px;
+		height: 200px;
 		border-radius: 0.5rem;
 		object-fit: cover;
 	}
@@ -176,23 +197,40 @@
 		margin: 0;
 	}
 
+	.podcast-header__meta {
+		font-size: var(--text-medium);
+		font-family: monospace;
+		color: var(--primary);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.meta-with-icon {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.podcast-header__buttons {
 		display: flex;
-		gap: 0.5rem;
+		gap: 2rem;
+		margin-top: 0.5rem;
+		width: fit-content;
 	}
 
 	.podcast-header__button {
 		display: flex;
-		font-size: var(--text-small);
-		font-weight: 600;
 		align-items: center;
+		font-size: var(--text-large);
+		font-weight: 600;
 		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
-		padding: 0.5rem;
+		padding: 0.5rem 1rem;
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
-		transition: opacity 0.2s ease;
+		stroke-width: 2.5;
 	}
 </style>
