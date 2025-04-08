@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
-	import { Home, ListMusic, ScrollText, Search, Settings } from 'lucide-svelte';
+	import { CassetteTape, Hotel, ListMusic, Radar, Settings } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 
@@ -26,14 +26,14 @@
 		{
 			href: '/',
 			label: 'Podcasts',
-			icon: Home,
+			icon: Hotel,
 			hasUpdate: () => false,
 			disabled: () => !hasFeeds
 		},
 		{
 			href: '/new-episodes',
 			label: 'Episodes',
-			icon: ScrollText,
+			icon: CassetteTape,
 			hasUpdate: () => false,
 			disabled: () => !hasFeeds
 		},
@@ -47,7 +47,7 @@
 		{
 			href: '/search',
 			label: 'Search',
-			icon: Search,
+			icon: Radar,
 			hasUpdate: () => false,
 			disabled: () => !hasSettings,
 			hidden: () => false
@@ -57,7 +57,7 @@
 			label: 'Settings',
 			icon: Settings,
 			hasUpdate: () => SessionInfo.hasUpdate,
-			disabled: () => false
+			disabled: () => !hasFeeds
 		}
 	];
 </script>
@@ -72,12 +72,8 @@
 		aria-label={label}
 		{disabled}
 	>
-		<Icon
-			style={isActive(href) ? 'filter: drop-shadow(0 0 0.5rem var(--accent));' : ''}
-			size={ICON_SIZE}
-			strokeWidth={isActive(href) ? 2.25 : 1.5}
-		/>
-		<div class="nav-item__label">{label}</div>
+		<Icon size={ICON_SIZE} strokeWidth={isActive(href) ? 2.25 : 1.5} />
+		<div class="nav-item__label" class:active={isActive(href)}>{label}</div>
 	</button>
 {/snippet}
 
@@ -107,7 +103,6 @@
 		align-items: center;
 		text-decoration: none;
 		color: var(--primary-less);
-		/* transition: color 0.2s ease; */
 		border: 0;
 		padding: 0.5rem;
 		background: none;
@@ -118,8 +113,16 @@
 		font-size: var(--text-small);
 	}
 
+	.nav-item__label.active {
+		font-weight: 600;
+		font-size: var(--text-smaller);
+		letter-spacing: 0.1rem;
+		transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+	}
+
 	.nav-item.active {
 		color: var(--primary-more);
+		transform: rotate(2deg);
 	}
 
 	.nav-item:disabled {

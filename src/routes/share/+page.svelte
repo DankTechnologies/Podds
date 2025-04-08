@@ -9,6 +9,7 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
+	import { goto } from '$app/navigation';
 
 	let isLoading = $state(true);
 	let config = $state<ShareConfig | null>(null);
@@ -85,6 +86,7 @@
 	async function addFeed() {
 		if (!feed || !iconData || isFeedAdded) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
+		goto(`/podcast/${feed.id}`);
 	}
 </script>
 

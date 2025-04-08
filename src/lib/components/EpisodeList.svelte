@@ -113,6 +113,8 @@
 	}
 
 	function toggleEpisodeFocus(episode: Episode) {
+		if (isShare) return;
+
 		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
 	}
 
@@ -217,6 +219,9 @@
 							</div>
 						</time>
 						<div class="episode-card__title">{episode.title}</div>
+						{#if isShare}
+							<div class="episode-card__description">{@html episode.content}</div>
+						{/if}
 					</div>
 				</div>
 			</button>
@@ -347,6 +352,26 @@
 		font-size: var(--text-medium);
 	}
 
+	.episode-card__description {
+		color: var(--text-less);
+		font-size: var(--text-smaller);
+		line-height: var(--line-height-slack);
+		overflow: hidden;
+		border-left: 0.5rem solid var(--primary-less);
+		padding: 0 1rem;
+		margin: 0.5rem 0;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 6;
+		line-clamp: 6;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
+
+		:global(p) {
+			margin: 0;
+		}
+	}
+
 	.episode-card__time {
 		font-size: var(--text-small);
 		font-family: monospace;
@@ -393,8 +418,8 @@
 		padding: 0 1rem;
 		text-overflow: ellipsis;
 		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
+		-webkit-line-clamp: 6;
+		line-clamp: 6;
 		-webkit-box-orient: vertical;
 		word-break: break-word;
 

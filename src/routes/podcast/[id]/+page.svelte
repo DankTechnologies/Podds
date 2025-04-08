@@ -125,14 +125,14 @@
 					<Trash2 size="14" />
 					Delete
 				</button>
-				<button
+				<!-- <button
 					class="podcast-header__button"
 					disabled={isUpdating}
 					onclick={() => updateFeed(feed)}
 				>
 					<RefreshCcw size="14" />
 					Sync
-				</button>
+				</button> -->
 				<button class="podcast-header__button" onclick={() => shareFeed(feed)}>
 					<Share2 size="14" />
 					Share
