@@ -1,0 +1,196 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { decodeShareLink, type ShareConfig } from '$lib/utils/shareLink';
+	import { PodcastIndexClient } from '$lib/api/podcast-index';
+	import { resizeBase64Image } from '$lib/utils/resizeImage';
+	import { FeedService } from '$lib/service/FeedService';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
+	import EpisodeList from '$lib/components/EpisodeList.svelte';
+	import type { Episode, Feed } from '$lib/types/db';
+	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
+
+	let isLoading = $state(true);
+	let config = $state<ShareConfig | null>(null);
+	let error = $state<string | null>(null);
+	let feed = $state.raw<Feed | null>(null);
+	let episodes = $state<Episode[]>([]);
+	let iconData = $state<string | null>(null);
+	let feedService = new FeedService();
+
+	let feeds = $derived(getFeeds());
+	let activeEpisodes = $derived(getActiveEpisodes());
+
+	let targetEpisode = $derived(episodes.find((e) => e.id === config?.episodeGuid));
+	let isFeedAdded = $derived(feeds.find((f) => f.id === config?.feedId));
+
+	const ICON_MAX_WIDTH = 300;
+	const ICON_MAX_HEIGHT = 300;
+
+	onMount(async () => {
+		try {
+			const hash = window.location.hash.slice(1);
+			if (!hash) {
+				throw new Error('No share data found');
+			}
+
+			config = decodeShareLink(hash);
+
+			// Update settings with shared config
+			SettingsService.saveSettings({
+				id: '1',
+				podcastIndexKey: config.podcastIndexKey,
+				podcastIndexSecret: config.podcastIndexSecret,
+				syncIntervalMinutes: 15,
+				logLevel: 'info'
+			});
+
+			// Initialize API client
+			const api = new PodcastIndexClient(config.podcastIndexKey, config.podcastIndexSecret);
+
+			// Get feed details
+			const feedResponse = await api.podcastById(Number(config.feedId));
+			if (!feedResponse) {
+				throw new Error('Feed not found');
+			}
+
+			// Resize and store icon
+			const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
+			const corsHelperUrl = `${config.corsHelperUrl}?url=${encodeURIComponent(imageUrl)}`;
+			iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+
+			feed = {
+				id: feedResponse.feed.id.toString(),
+				url: feedResponse.feed.url,
+				title: feedResponse.feed.title,
+				iconData: iconData || '',
+				lastUpdatedAt: new Date()
+			};
+
+			// Get episodes
+			const finderRequest = {
+				feeds: [feed],
+				since: undefined
+			};
+
+			const finderResponse = await feedService.runEpisodeFinder(finderRequest);
+			episodes = finderResponse.episodes;
+			isLoading = false;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to load shared content';
+			isLoading = false;
+		}
+	});
+
+	async function addFeed() {
+		if (!feed || !iconData || isFeedAdded) return;
+		feedService.addFeedAndEpisodes(feed, episodes);
+	}
+</script>
+
+<div class="share-container">
+	{#if isLoading}
+		<div class="loading">
+			<div class="spinner"></div>
+			<div>Loading...</div>
+		</div>
+	{:else if error}
+		<div class="error">{error}</div>
+	{:else if feed}
+		<header class="podcast-header">
+			{#if iconData}
+				<img class="podcast-header__image" src={`data:${iconData}`} alt={feed.title} />
+			{/if}
+			<div class="podcast-header__content">
+				<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
+				<span class="podcast-header__subtitle">{parseSubtitle(feed.title)}</span>
+				<div class="podcast-header__buttons">
+					{#if !isFeedAdded}
+						<button class="podcast-header__button" onclick={addFeed}>Add Podcast</button>
+					{/if}
+				</div>
+			</div>
+		</header>
+
+		<EpisodeList {episodes} {activeEpisodes} isShare={true} />
+	{/if}
+</div>
+
+<style>
+	.loading {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 50vh;
+		gap: 1rem;
+	}
+
+	.spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid var(--primary-less);
+		border-top-color: var(--primary);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.error {
+		color: var(--error);
+		text-align: center;
+		padding: 2rem;
+	}
+
+	.podcast-header {
+		display: flex;
+		gap: 1.5rem;
+		padding: 1rem;
+		margin-bottom: 2rem;
+	}
+
+	.podcast-header__image {
+		width: 150px;
+		height: 150px;
+		border-radius: 0.5rem;
+		object-fit: cover;
+	}
+
+	.podcast-header__content {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding-top: 1rem;
+	}
+
+	.podcast-header__title {
+		font-size: 1.75rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.podcast-header__buttons {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.podcast-header__button {
+		display: flex;
+		font-size: var(--text-small);
+		font-weight: 600;
+		align-items: center;
+		background: var(--primary-less);
+		gap: 0.5rem;
+		border: none;
+		padding: 0.5rem;
+		color: var(--neutral);
+		cursor: pointer;
+		border-radius: 0.25rem;
+		transition: opacity 0.2s ease;
+	}
+</style>

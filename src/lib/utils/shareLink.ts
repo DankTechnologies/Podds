@@ -1,11 +1,14 @@
-interface ShareConfig {
+export interface ShareConfig {
 	podcastIndexKey: string;
 	podcastIndexSecret: string;
+	corsHelperUrl: string;
+	feedId: string;
+	episodeGuid?: string;
 }
 
 export function encodeShareLink(config: ShareConfig): string {
 	const encoded = btoa(JSON.stringify(config));
-	return `${window.location.origin}/settings#${encoded}`;
+	return `${window.location.origin}/share#${encoded}`;
 }
 
 export function decodeShareLink(hash: string): ShareConfig {

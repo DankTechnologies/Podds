@@ -3,25 +3,28 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Play, Dot, ArrowUp, Download, Check, Plus, Trash2 } from 'lucide-svelte';
+	import { Play, Dot, ArrowUp, Download, Check, Plus, Trash2, Share2 } from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService';
-	import { getFeeds } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { encodeShareLink } from '$lib/utils/shareLink';
 
 	let {
 		episodes,
 		activeEpisodes,
 		feedIconsById,
 		isPlaylist = false,
-		isSearch = false
+		isSearch = false,
+		isShare = false
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
 		feedIconsById?: Map<string, string>;
 		isPlaylist?: boolean;
 		isSearch?: boolean;
+		isShare?: boolean;
 	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
@@ -137,6 +140,25 @@
 			? formatEpisodeDuration(episode.durationMin)
 			: `${formatEpisodeDuration(activeEpisode.minutesLeft)} left`;
 	}
+
+	function shareEpisode(episode: Episode) {
+		const settings = getSettings();
+		if (!settings) {
+			Log.error('Settings not found, skipping share link');
+			return;
+		}
+
+		const url = encodeShareLink({
+			podcastIndexKey: settings.podcastIndexKey,
+			podcastIndexSecret: settings.podcastIndexSecret,
+			corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
+			feedId: episode.feedId,
+			episodeGuid: episode.id
+		});
+
+		navigator.clipboard.writeText(url);
+		alert('Share link copied to clipboard!');
+	}
 </script>
 
 <ul class="episode-list" role="list">
@@ -237,6 +259,11 @@
 					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
 						<button class="episode-controls__button" onclick={() => addFeed(episode.feedId)}>
 							<Plus size="16" /> Add Feed
+						</button>
+					{/if}
+					{#if !isShare}
+						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
+							<Share2 size="16" /> Share
 						</button>
 					{/if}
 				</div>

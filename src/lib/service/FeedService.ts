@@ -1,5 +1,6 @@
 import PodcastIndexClient from '$lib/api/podcast-index';
 import { db, getFeeds, getSettings } from '$lib/stores/db.svelte';
+import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
@@ -127,6 +128,15 @@ export class FeedService {
 		if (feed) {
 			this.addFeed(feed.feed, iconData);
 		}
+	}
+
+	addFeedAndEpisodes(feed: Feed, episodes: Episode[]) {
+		Log.info(`Adding feed: ${feed.title}`);
+
+		db.feeds.insert(feed);
+		db.episodes.insertMany(episodes);
+
+		Log.info(`Finished adding ${feed.title}`);
 	}
 
 	async addFeed(feed: PIApiFeed, iconData: string) {
@@ -269,19 +279,7 @@ export class FeedService {
 		setInterval(sync, CHECK_INTERVAL_MS);
 	}
 
-	private async initialize() {
-		if (this.initialized) return;
-
-		let settings = getSettings();
-		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
-			throw new Error('Podcast Index credentials not found');
-		}
-
-		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-		this.initialized = true;
-	}
-
-	private async runEpisodeFinder(request: EpisodeFinderRequest): Promise<EpisodeFinderResponse> {
+	async runEpisodeFinder(request: EpisodeFinderRequest): Promise<EpisodeFinderResponse> {
 		const worker = new Worker(new URL('../workers/episodeFinder.worker.ts', import.meta.url), {
 			type: 'module'
 		});
@@ -297,6 +295,18 @@ export class FeedService {
 		} finally {
 			worker.terminate();
 		}
+	}
+
+	private async initialize() {
+		if (this.initialized) return;
+
+		let settings = getSettings();
+		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
+			throw new Error('Podcast Index credentials not found');
+		}
+
+		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
+		this.initialized = true;
 	}
 
 	private async resizeImage(feed: PIApiFeed): Promise<string> {

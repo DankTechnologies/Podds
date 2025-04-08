@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
-	import { decodeShareLink, encodeShareLink } from '$lib/utils/shareLink';
+	import { decodeShareLink } from '$lib/utils/shareLink';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { Log } from '$lib/service/LogService';
 	import { db, getSettings } from '$lib/stores/db.svelte';
@@ -10,7 +9,6 @@
 	import { formatTimestamp } from '$lib/utils/time';
 	import PodcastIndexClient from '$lib/api/podcast-index';
 	import { FeedService } from '$lib/service/FeedService';
-	import { StorageService, StorageInfo } from '$lib/service/StorageService.svelte';
 	let feedService = new FeedService();
 
 	let settings: Settings = $state<Settings>({
@@ -27,12 +25,6 @@
 
 	let isFirstVisit = $state<boolean>(true);
 	let apiStatus = $state<'untested' | 'success' | 'error'>('untested');
-	let isValid = $derived(
-		settings.podcastIndexKey &&
-			settings.podcastIndexSecret &&
-			settings.syncIntervalMinutes > 0 &&
-			apiStatus === 'success'
-	);
 
 	// Raw state holders for query results
 	let logs = $state.raw<LogEntry[]>([]);
@@ -79,7 +71,6 @@
 
 	async function onSave() {
 		SettingsService.saveSettings(settings);
-		if (isFirstVisit) goto('/search');
 	}
 
 	async function onTest() {
@@ -95,15 +86,6 @@
 		const feedIds = feedService.exportFeeds();
 		navigator.clipboard.writeText(feedIds);
 		alert('Feed IDs copied to clipboard!');
-	}
-
-	function generateShareLink() {
-		const url = encodeShareLink({
-			podcastIndexKey: settings.podcastIndexKey,
-			podcastIndexSecret: settings.podcastIndexSecret
-		});
-		navigator.clipboard.writeText(url);
-		alert('Shareable link copied to clipboard!');
 	}
 
 	async function onReset() {
@@ -192,7 +174,6 @@
 		<div class="actions">
 			<button type="button" onclick={onReset}>Reset Data</button>
 			<button type="button" onclick={onTest}>Test Connection</button>
-			<button type="button" disabled={!isValid} onclick={generateShareLink}>Share Config</button>
 			<button type="button" onclick={onSave}>Save Changes</button>
 		</div>
 		{#if logs}
@@ -281,12 +262,5 @@
 		font-family: monospace;
 		font-size: var(--text-xs);
 		word-break: break-all;
-	}
-
-	.storage-stats {
-		padding: 0.5rem;
-		background-color: var(--bg-less);
-		border-radius: 0.25rem;
-		margin-bottom: 1rem;
 	}
 </style>

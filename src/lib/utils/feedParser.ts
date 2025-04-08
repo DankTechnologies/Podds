@@ -45,9 +45,9 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			const publishedAt = new Date(item.pubDate || new Date());
 			const enclosure = Array.isArray(item.enclosure)
 				? item.enclosure.find(
-						(e: { '@_type': string; '@_url': string }) =>
-							e['@_type'] === 'audio/mpeg' || e['@_url']?.toLowerCase().endsWith('.mp3')
-					)
+					(e: { '@_type': string; '@_url': string }) =>
+						e['@_type'] === 'audio/mpeg' || e['@_url']?.toLowerCase().endsWith('.mp3')
+				)
 				: item.enclosure;
 
 			const durationStr = item['itunes:duration'] || '0';
@@ -69,7 +69,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			}
 
 			return {
-				id: crypto.randomUUID(),
+				id: item.guid?.['#text'] || crypto.randomUUID(),
 				feedId,
 				title: decodeHtmlEntities((item.title?.toString() || '').trim()),
 				publishedAt,

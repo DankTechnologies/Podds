@@ -11,7 +11,7 @@ describe('PodcastIndexClient', () => {
 		);
 	});
 
-	it.only('should get episodes by podcast', async () => {
+	it('should get episodes by podcast', async () => {
 		const result = await client.searchFeeds('Marketplace', { fulltext: true, max: 1 });
 
 		const episodes = await client.episodesByFeedIds(result[0].id.toString(), {
@@ -45,6 +45,14 @@ describe('PodcastIndexClient', () => {
 				since: 1741598381
 			}
 		);
+		console.log(result);
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	});
+
+	it.only('should get episode by guid', async () => {
+		const feedId = '5199634';
+		const episodeGuid = '31adae5a-6193-11ef-9da0-c3f909ee5a87';
+		const result = await client.episodeByGuid(feedId, episodeGuid);
 		console.log(result);
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});

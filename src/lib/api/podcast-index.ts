@@ -22,6 +22,10 @@ export class PodcastIndexClient {
 		return this.fetchJSON('/podcasts/byfeedid', { id });
 	}
 
+	public async episodeByGuid(feedId: string, guid: string): Promise<PIApiEpisodeBase> {
+		return this.fetchJSON('/episodes/byguid', { guid, feedid: feedId });
+	}
+
 	public async trending(
 		options: {
 			max?: number;
@@ -97,17 +101,17 @@ export class PodcastIndexClient {
 		})) as EpisodesResponse;
 
 		return response.items
-		.reduce((acc, episode) => {
-			const existingEpisode = acc.find((e) => e.title === episode.title);
-			if (!existingEpisode || episode.feedId > existingEpisode.feedId) {
-				// If no existing episode with this title, or this episode has a higher feedId
-				// Remove the old one if it exists and add the new one
-				if (existingEpisode) {
-					const index = acc.indexOf(existingEpisode);
-					acc.splice(index, 1);
+			.reduce((acc, episode) => {
+				const existingEpisode = acc.find((e) => e.title === episode.title);
+				if (!existingEpisode || episode.feedId > existingEpisode.feedId) {
+					// If no existing episode with this title, or this episode has a higher feedId
+					// Remove the old one if it exists and add the new one
+					if (existingEpisode) {
+						const index = acc.indexOf(existingEpisode);
+						acc.splice(index, 1);
+					}
+					acc.push(episode);
 				}
-				acc.push(episode);
-			}
 				return acc;
 			}, [] as PIApiEpisodeBase[]);
 	}

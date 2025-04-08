@@ -28,7 +28,7 @@
 			label: 'Podcasts',
 			icon: Home,
 			hasUpdate: () => false,
-			disabled: () => false
+			disabled: () => !hasFeeds
 		},
 		{
 			href: '/new-episodes',
