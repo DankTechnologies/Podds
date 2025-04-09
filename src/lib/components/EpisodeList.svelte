@@ -3,7 +3,17 @@
 	import type { Episode, ActiveEpisode } from '$lib/types/db';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { Log } from '$lib/service/LogService';
-	import { Play, Dot, ArrowUp, Download, Check, Plus, Trash2, Share2 } from 'lucide-svelte';
+	import {
+		Play,
+		Dot,
+		ArrowUp,
+		Download,
+		Check,
+		Plus,
+		Trash2,
+		Share2,
+		AudioLines
+	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -185,6 +195,9 @@
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 			data-episode-id={episode.id}
 		>
+			{#if getActiveEpisode(episode)?.isPlaying}
+				<AudioLines strokeWidth="2" class="background-play" />
+			{/if}
 			<button
 				class="episode-card__wrapper"
 				type="button"
@@ -301,11 +314,53 @@
 
 	.episode-card {
 		transition: background 150ms ease-out;
+		position: relative;
 	}
 
 	.episode-card--playing {
 		background: var(--bg-less);
 	}
+
+	.episode-card--playing :global(.background-play) {
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 7rem;
+		height: 7rem;
+		pointer-events: none;
+		color: var(--primary);
+		animation: shimmer 5s ease-in-out infinite;
+	}
+
+	@keyframes shimmer {
+		0% {
+			opacity: 0.08;
+		}
+		50% {
+			opacity: 0.15;
+			filter: brightness(1.3);
+			transform: scale(0.92);
+		}
+		100% {
+			opacity: 0.08;
+		}
+	}
+
+	/* @media (prefers-color-scheme: dark) {
+		@keyframes shimmer {
+			0% {
+				opacity: 0.08;
+			}
+			50% {
+				opacity: 0.15;
+				filter: brightness(1.3);
+				transform: scale(0.92);
+			}
+			100% {
+				opacity: 0.08;
+			}
+		}
+	} */
 
 	.episode-card--focused:not(.episode-card--playing):not(.episode-card--playing-no-image) {
 		background: var(--bg-less);
