@@ -188,7 +188,6 @@
 			<button
 				class="episode-card__wrapper"
 				type="button"
-				style:anchor-name={`--episode-${episode.id}`}
 				onclick={() => toggleEpisodeFocus(episode)}
 			>
 				<div class="episode-card__content">
@@ -269,11 +268,6 @@
 							<ArrowUp size="16" /> Next
 						</button>
 					{/if}
-					{#if getActiveEpisode(episode)?.isDownloaded}
-						<button class="episode-controls__button" onclick={() => removeEpisode(episode)}>
-							<Trash2 size="16" /> Remove
-						</button>
-					{/if}
 					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
 						<button class="episode-controls__button" onclick={() => addFeed(episode.feedId)}>
 							<Plus size="16" /> Add Feed
@@ -282,6 +276,14 @@
 					{#if !isShare}
 						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
 							<Share2 size="16" /> Share
+						</button>
+					{/if}
+					{#if getActiveEpisode(episode)?.isDownloaded}
+						<button
+							class="episode-controls__button episode-controls__button--delete"
+							onclick={() => removeEpisode(episode)}
+						>
+							<Trash2 size="16" />
 						</button>
 					{/if}
 				</div>
@@ -302,12 +304,7 @@
 	}
 
 	.episode-card--playing {
-		background: radial-gradient(
-			ellipse at bottom left,
-			var(--bg-less) 0%,
-			var(--bg-less) 70%,
-			var(--primary) 100%
-		);
+		background: var(--bg-less);
 	}
 
 	.episode-card--focused:not(.episode-card--playing):not(.episode-card--playing-no-image) {
@@ -411,7 +408,6 @@
 		max-height: 0;
 		opacity: 0;
 		overflow: hidden;
-		transition: all 150ms ease-in-out;
 		background: var(--bg-less);
 		border-bottom: 1px solid var(--primary-less);
 	}
@@ -419,10 +415,11 @@
 	.episode-controls--visible {
 		max-height: 600px;
 		opacity: 1;
+		transition: all 150ms ease-in-out;
 	}
 
 	.episode-controls__description-wrapper {
-		padding: 0 1rem 2rem 1rem;
+		padding: 1rem;
 	}
 
 	.episode-controls__description-wrapper--no-image {
@@ -449,11 +446,9 @@
 
 	.episode-controls__buttons {
 		display: flex;
-		gap: 2rem;
-		margin-top: -1px;
 		background: var(--bg-less);
-		width: fit-content;
-		padding: 0 2rem 2rem 2rem;
+		padding: 1rem 0 2rem 1rem;
+		gap: 1.5rem;
 	}
 
 	.episode-controls__button {
@@ -468,6 +463,11 @@
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
+	}
+
+	.episode-controls__button--delete {
+		background: var(--error);
+		color: var(--neutral);
 	}
 
 	.episode-controls--no-transition {
