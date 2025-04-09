@@ -46,7 +46,7 @@ export class FeedService {
 		finderResponse.errors.forEach((x) => Log.error(x));
 
 		finderResponse.episodes.forEach((x) => {
-			const match = db.episodes.findOne({ url: x.url });
+			const match = db.episodes.findOne({ id: x.id });
 
 			if (!match) {
 				Log.info(`Adding ${x.title}`);
@@ -103,11 +103,15 @@ export class FeedService {
 		Log.debug(`Found ${finderResponse.episodes.length} episodes during sync`);
 
 		finderResponse.episodes.forEach((x) => {
-			const match = db.episodes.findOne({ url: x.url });
+			try {
+				const match = db.episodes.findOne({ id: x.id });
 
-			if (!match) {
-				Log.info(`Adding ${x.title}`);
-				db.episodes.insert(x);
+				if (!match) {
+					Log.info(`Adding ${x.title}`);
+					db.episodes.insert(x);
+				}
+			} catch (error) {
+				Log.error(`Error adding episode ${x.title}: ${error instanceof Error ? error.message : String(error)}`);
 			}
 		});
 

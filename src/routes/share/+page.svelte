@@ -5,12 +5,12 @@
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { FeedService } from '$lib/service/FeedService';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
+	import { parseTitle } from '$lib/utils/feedParser';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
-	import { List, History, BadgePlus, Podcast, Calendar } from 'lucide-svelte';
+	import { List, History, Podcast } from 'lucide-svelte';
 	import { formatEpisodeDate } from '$lib/utils/time';
 
 	let isLoading = $state(true);

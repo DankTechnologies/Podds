@@ -35,7 +35,7 @@
 	let feeds = $derived(getFeeds());
 
 	function getActiveEpisode(episode: Episode): ActiveEpisode | undefined {
-		return activeEpisodes.find((x) => x.url === episode.url);
+		return activeEpisodes.find((x) => x.id === episode.id);
 	}
 
 	function playEpisode(episode: Episode) {
@@ -170,6 +170,11 @@
 			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 		>
+			{#if !isShare && focusedEpisodeId === episode.id}
+				<button class="episode-card__share" onclick={() => shareEpisode(episode)}>
+					<Share2 size="16" />
+				</button>
+			{/if}
 			<button
 				class="episode-card__wrapper"
 				type="button"
@@ -266,11 +271,6 @@
 							<Plus size="16" /> Add Feed
 						</button>
 					{/if}
-					{#if !isShare}
-						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
-							<Share2 size="16" /> Share
-						</button>
-					{/if}
 				</div>
 			</div>
 		</li>
@@ -348,6 +348,7 @@
 
 	.episode-card__title {
 		font-weight: 600;
+		margin-right: 2rem;
 		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
 	}
@@ -380,6 +381,18 @@
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
+	}
+
+	.episode-card__share {
+		display: flex;
+		float: right;
+		margin: 1rem 1rem -3rem 0;
+		background: var(--primary-less);
+		border: none;
+		padding: 0.5rem;
+		color: var(--neutral);
+		border-radius: 0.25rem;
+		position: relative;
 	}
 
 	.download-progress {
