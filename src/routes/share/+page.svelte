@@ -85,6 +85,11 @@
 			const finderResponse = await feedService.runEpisodeFinder(finderRequest);
 			episodes = finderResponse.episodes;
 			isLoading = false;
+
+			const loadingScreen = document.getElementById('appLoading');
+			if (loadingScreen) {
+				loadingScreen.remove();
+			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load shared content';
 			isLoading = false;

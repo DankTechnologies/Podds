@@ -6,6 +6,8 @@
 	import { FeedService } from '$lib/service/FeedService';
 	import { db, getActiveEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
+	import { page } from '$app/state';
+
 	let feedService = new FeedService();
 
 	let isDbReady = $state(false);
@@ -31,70 +33,28 @@
 				Log.error('Storage persistence not granted');
 			}
 		}
+
+		// share takes care of hiding the loading screen
+		if (!page.url.pathname.startsWith('/share')) {
+			const loadingScreen = document.getElementById('appLoading');
+			if (loadingScreen) {
+				loadingScreen.remove();
+			}
+		}
 	});
 
 	let { children } = $props();
 </script>
 
-{#if !isDbReady}
-	<div class="loading">
-		Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
-	</div>
-{:else}
-	<main>
+<main>
+	{#if isDbReady}
 		{@render children()}
 		{#if activeEpisode}
 			<Player episode={activeEpisode} {feedIconsById} />
 		{/if}
 		<BottomNavBar />
-	</main>
-{/if}
+	{/if}
+</main>
 
 <style>
-	.loading {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100vh;
-		font-size: var(--text-4xl);
-		color: var(--primary);
-	}
-
-	.dot {
-		opacity: 0;
-		margin: 0 3px;
-		animation: pulse 1.5s infinite;
-	}
-
-	.dot:nth-child(2) {
-		animation-delay: 0.2s;
-	}
-
-	.dot:nth-child(3) {
-		animation-delay: 0.4s;
-	}
-
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes pulse {
-		0% {
-			opacity: 0;
-			transform: scale(0.8);
-		}
-		50% {
-			opacity: 1;
-			transform: scale(1);
-		}
-		100% {
-			opacity: 0;
-			transform: scale(0.8);
-		}
-	}
 </style>
