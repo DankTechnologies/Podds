@@ -88,6 +88,7 @@
 		toggleEpisodeFocus(episode);
 
 		if (getActiveEpisode(episode)?.isPlaying) {
+			AudioService.stop();
 			EpisodeService.clearPlayingEpisodes();
 		}
 
