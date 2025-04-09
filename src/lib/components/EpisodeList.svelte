@@ -117,6 +117,19 @@
 		if (isShare) return;
 
 		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
+
+		if (focusedEpisodeId) {
+			// Wait for next tick to allow the controls to expand
+			setTimeout(() => {
+				const card = document.querySelector(`.episode-card[data-episode-id="${episode.id}"]`);
+				if (card) {
+					const cardBottom = card.getBoundingClientRect().bottom;
+					if (cardBottom + 350 > window.innerHeight) {
+						card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					}
+				}
+			}, 0);
+		}
 	}
 
 	function handlePlayNext(episode: Episode) {
@@ -170,6 +183,7 @@
 			class="episode-card fade-in"
 			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
+			data-episode-id={episode.id}
 		>
 			{#if !isShare && focusedEpisodeId === episode.id}
 				<button class="episode-card__share" onclick={() => shareEpisode(episode)}>
