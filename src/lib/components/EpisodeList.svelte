@@ -185,11 +185,6 @@
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 			data-episode-id={episode.id}
 		>
-			{#if !isShare && focusedEpisodeId === episode.id}
-				<button class="episode-card__share" onclick={() => shareEpisode(episode)}>
-					<Share2 size="16" />
-				</button>
-			{/if}
 			<button
 				class="episode-card__wrapper"
 				type="button"
@@ -282,6 +277,11 @@
 					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
 						<button class="episode-controls__button" onclick={() => addFeed(episode.feedId)}>
 							<Plus size="16" /> Add Feed
+						</button>
+					{/if}
+					{#if !isShare}
+						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
+							<Share2 size="16" /> Share
 						</button>
 					{/if}
 				</div>
@@ -398,18 +398,6 @@
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
-	}
-
-	.episode-card__share {
-		display: flex;
-		float: right;
-		margin: 1rem 1rem -3rem 0;
-		background: var(--primary-less);
-		border: none;
-		padding: 0.5rem;
-		color: var(--neutral);
-		border-radius: 0.25rem;
-		position: relative;
 	}
 
 	.download-progress {
