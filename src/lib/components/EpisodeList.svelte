@@ -234,11 +234,9 @@
 
 			<div
 				class="episode-controls"
+				class:episode-controls--visible={focusedEpisodeId === episode.id}
 				class:episode-controls--playing={getActiveEpisode(episode)?.isPlaying}
-				class:episode-controls--hidden={focusedEpisodeId !== episode.id}
 				class:episode-controls--no-transition={isReordering}
-				style:position-anchor={`--episode-${episode.id}`}
-				style:position="fixed"
 			>
 				<div
 					class="episode-controls__description-wrapper"
@@ -310,6 +308,10 @@
 		text-align: left;
 		color: var(--text);
 		border-bottom: 1px solid var(--primary-less);
+	}
+
+	.episode-card--focused .episode-card__wrapper {
+		border-bottom: none;
 	}
 
 	.episode-card__content {
@@ -404,20 +406,21 @@
 	}
 
 	.episode-controls {
-		position-area: end span-all;
-		margin-top: -1px;
-		width: 100vw;
+		max-height: 0;
+		opacity: 0;
+		overflow: hidden;
+		transition: all 150ms ease-in-out;
 		background: var(--bg-less);
+		border-bottom: 1px solid var(--primary-less);
+	}
+
+	.episode-controls--visible {
+		max-height: 600px;
 		opacity: 1;
-		visibility: visible;
-		position: relative;
-		background: transparent;
 	}
 
 	.episode-controls__description-wrapper {
 		padding: 0 1rem 2rem 1rem;
-		background: var(--bg-less);
-		border-bottom: 1px solid var(--primary-less);
 	}
 
 	.episode-controls__description-wrapper--no-image {
@@ -449,16 +452,6 @@
 		background: var(--bg-less);
 		width: fit-content;
 		padding: 0 2rem 2rem 2rem;
-		border-right: 1px solid var(--primary-less);
-		border-bottom: 1px solid var(--primary-less);
-	}
-
-	.episode-controls--hidden {
-		opacity: 0;
-		transform: translateY(-0.25rem);
-		visibility: hidden;
-		background: var(--bg);
-		pointer-events: none;
 	}
 
 	.episode-controls__button {
