@@ -24,7 +24,7 @@
 	let feeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 
-	let targetEpisode = $derived(episodes.find((e) => e.id === config?.episodeGuid));
+	let targetEpisode = $derived(episodes.find((e) => e.url === config?.episodeUrl));
 	let isFeedAdded = $derived(feeds.find((f) => f.id === config?.feedId));
 
 	let oldestEpisode = $derived(

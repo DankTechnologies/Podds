@@ -104,7 +104,9 @@ export class FeedService {
 
 		finderResponse.episodes.forEach((x) => {
 			try {
-				const match = db.episodes.findOne({ id: x.id });
+				// episode id (guid) isn't supposed to change but it does in practice on some feeds
+				// url is more reliable
+				const match = db.episodes.findOne({ url: x.url });
 
 				if (!match) {
 					Log.info(`Adding ${x.title}`);

@@ -3,7 +3,7 @@ export interface ShareConfig {
 	podcastIndexSecret: string;
 	corsHelperUrl: string;
 	feedId: string;
-	episodeGuid?: string;
+	episodeUrl?: string;
 }
 
 export function encodeShareLink(config: ShareConfig): string {

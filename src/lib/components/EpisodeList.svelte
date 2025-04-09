@@ -179,7 +179,7 @@
 			podcastIndexSecret: settings.podcastIndexSecret,
 			corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
 			feedId: episode.feedId,
-			episodeGuid: episode.id
+			episodeUrl: episode.url
 		});
 
 		navigator.clipboard.writeText(url);
