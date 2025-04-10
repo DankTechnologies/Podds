@@ -90,7 +90,7 @@
 			episode.url,
 			() => handleDownloadComplete(episode),
 			(err) => handleDownloadError(episode.id!, err),
-			(progress) => downloadProgress.set(episode.id!, progress)
+			(progress) => downloadProgress.set(episode.id!, progress === 100 ? 99 : progress) // avoid brief 100% flash
 		);
 	}
 
