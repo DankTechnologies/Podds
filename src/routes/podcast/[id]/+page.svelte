@@ -3,13 +3,13 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { RefreshCcw, Share2, Trash2 } from 'lucide-svelte';
+	import { Share2, Trash2 } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	import { Log } from '$lib/service/LogService';
-	import { encodeShareLink } from '$lib/utils/shareLink';
+	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	const feedId = page.params.id;
 	let searchQuery = $state('');
 
@@ -93,15 +93,7 @@
 			return;
 		}
 
-		const url = encodeShareLink({
-			podcastIndexKey: settings.podcastIndexKey,
-			podcastIndexSecret: settings.podcastIndexSecret,
-			corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
-			feedId: feed.id
-		});
-
-		navigator.clipboard.writeText(url);
-		alert('Share link copied to clipboard!');
+		shareFeedUtil(feed, settings.podcastIndexKey, settings.podcastIndexSecret);
 	}
 </script>
 

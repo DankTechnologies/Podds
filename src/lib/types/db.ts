@@ -47,6 +47,7 @@ export interface Settings {
 	id: string;
 	podcastIndexKey: string;
 	podcastIndexSecret: string;
+	corsHelperUrl: string;
 	lastSyncAt?: Date;
 	syncIntervalMinutes: number;
 	isSyncing?: boolean;

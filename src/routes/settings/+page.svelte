@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
-	import { decodeShareLink } from '$lib/utils/shareLink';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
-	import { Log } from '$lib/service/LogService';
-	import { db, getSettings } from '$lib/stores/db.svelte';
+	import { db } from '$lib/stores/db.svelte';
 	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
 	import PodcastIndexClient from '$lib/api/podcast-index';
@@ -15,6 +13,7 @@
 		id: '1',
 		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
 		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
+		corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL || '',
 		syncIntervalMinutes: 15,
 		logLevel: 'info'
 	});
@@ -23,7 +22,6 @@
 		'1052374,1074603,1077200,1329334,1491827,165630,204504,214340,220911,223113,309699,318113,3240656,3455133,3745116,460150,480976,522889,5320480,533288,542376,548735,555339,561997,577105,5775917,5928182,6029956,637281,6596894,6660056,6752757,7123066,7132376,743229,853158,910728,5199634,7229334'
 	);
 
-	let isFirstVisit = $state<boolean>(true);
 	let apiStatus = $state<'untested' | 'success' | 'error'>('untested');
 
 	// Raw state holders for query results
@@ -38,31 +36,6 @@
 		return () => {
 			logsCursor.cleanup();
 		};
-	});
-
-	onMount(() => {
-		const hash = window.location.hash.slice(1);
-		if (hash) {
-			try {
-				const decoded = decodeShareLink(hash);
-				settings = {
-					id: '1',
-					syncIntervalMinutes: 15,
-					logLevel: 'info',
-					...decoded
-				};
-				history.replaceState(null, '', window.location.pathname);
-				onTest();
-			} catch (error) {
-				Log.error('Invalid settings URL');
-			}
-		} else {
-			const savedSettings = getSettings();
-			if (savedSettings) {
-				settings = savedSettings;
-				isFirstVisit = false;
-			}
-		}
 	});
 
 	onMount(async () => {
@@ -118,6 +91,16 @@
 				id="podcastIndexSecret"
 				type="text"
 				bind:value={settings.podcastIndexSecret}
+				onchange={() => (apiStatus = 'untested')}
+				required
+			/>
+		</div>
+		<div>
+			<label for="corsHelperUrl">CORS Helper</label>
+			<input
+				id="corsHelperUrl"
+				type="text"
+				bind:value={settings.corsHelperUrl}
 				onchange={() => (apiStatus = 'untested')}
 				required
 			/>

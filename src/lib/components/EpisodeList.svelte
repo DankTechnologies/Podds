@@ -19,7 +19,7 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
-	import { encodeShareLink } from '$lib/utils/shareLink';
+	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 
 	let {
 		episodes,
@@ -174,16 +174,13 @@
 			return;
 		}
 
-		const url = encodeShareLink({
-			podcastIndexKey: settings.podcastIndexKey,
-			podcastIndexSecret: settings.podcastIndexSecret,
-			corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
-			feedId: episode.feedId,
-			episodeUrl: episode.url
-		});
+		const feed = feeds.find((f) => f.id === episode.feedId);
+		if (!feed) {
+			Log.error('Feed not found for episode, skipping share link');
+			return;
+		}
 
-		navigator.clipboard.writeText(url);
-		alert('Share link copied to clipboard!');
+		shareEpisodeUtil(episode, feed, settings.podcastIndexKey, settings.podcastIndexSecret);
 	}
 </script>
 

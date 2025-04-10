@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { decodeShareLink, type ShareConfig } from '$lib/utils/shareLink';
 	import { PodcastIndexClient } from '$lib/api/podcast-index';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { FeedService } from '$lib/service/FeedService';
@@ -10,27 +9,26 @@
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
-	import { List, History, Podcast } from 'lucide-svelte';
-	import { formatEpisodeDate } from '$lib/utils/time';
+	import { List, Podcast, Play, Download, Dot } from 'lucide-svelte';
+	import { decodeShareLink, type ShareConfig } from '$lib/utils/share';
+	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
+	import { downloadAudio } from '$lib/utils/downloadAudio';
+	import { AudioService } from '$lib/service/AudioService.svelte';
 
-	let isLoading = $state(true);
+	let isFeedAdded = $state(false);
 	let config = $state<ShareConfig | null>(null);
 	let error = $state<string | null>(null);
 	let feed = $state.raw<Feed | null>(null);
 	let episodes = $state<Episode[]>([]);
 	let iconData = $state<string | null>(null);
 	let feedService = new FeedService();
-
+	let downloadProgress = $state<number>(0);
 	let feeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 
-	let targetEpisode = $derived(episodes.find((e) => e.url === config?.episodeUrl));
-	let isFeedAdded = $derived(feeds.find((f) => f.id === config?.feedId));
-
-	let oldestEpisode = $derived(
-		[...episodes].sort(
-			(a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime()
-		)[0]
+	let targetEpisode = $derived(
+		episodes.find((e) => e.publishedAt.getTime() / 1000 === config?.episodePublishedAt)
 	);
 
 	const ICON_MAX_WIDTH = 300;
@@ -50,6 +48,7 @@
 				id: '1',
 				podcastIndexKey: config.podcastIndexKey,
 				podcastIndexSecret: config.podcastIndexSecret,
+				corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
 				syncIntervalMinutes: 15,
 				logLevel: 'info'
 			});
@@ -65,7 +64,7 @@
 
 			// Resize and store icon
 			const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
-			const corsHelperUrl = `${config.corsHelperUrl}?url=${encodeURIComponent(imageUrl)}`;
+			const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
 			iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
 
 			feed = {
@@ -76,6 +75,8 @@
 				lastUpdatedAt: new Date()
 			};
 
+			isFeedAdded = feeds.find((f) => f.id === config?.feedId) !== undefined;
+
 			// Get episodes
 			const finderRequest = {
 				feeds: [feed],
@@ -84,7 +85,6 @@
 
 			const finderResponse = await feedService.runEpisodeFinder(finderRequest);
 			episodes = finderResponse.episodes;
-			isLoading = false;
 
 			const loadingScreen = document.getElementById('appLoading');
 			if (loadingScreen) {
@@ -92,24 +92,51 @@
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load shared content';
-			isLoading = false;
 		}
 	});
 
-	async function addFeed() {
+	function addFeed() {
 		if (!feed || !iconData || isFeedAdded) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
 		goto(`/podcast/${feed.id}`);
 	}
+
+	function playEpisode(feed: Feed, episode: Episode) {
+		feedService.addFeedAndEpisodes(feed, episodes);
+
+		EpisodeService.setPlayingEpisode(episode);
+
+		downloadProgress = 0;
+		downloadAudio(
+			episode.url,
+			() => {
+				EpisodeService.markDownloaded(episode);
+				AudioService.play(episode.url, 0);
+			},
+			() => alert('failed to download episode'),
+			(progress) => (downloadProgress = progress)
+		);
+	}
+
+	function downloadEpisode(feed: Feed, episode: Episode) {
+		feedService.addFeedAndEpisodes(feed, episodes);
+
+		downloadProgress = 0;
+
+		downloadAudio(
+			episode.url,
+			() => {
+				EpisodeService.markDownloaded(episode);
+				goto('/playlist');
+			},
+			() => alert('failed to download episode'),
+			(progress) => (downloadProgress = progress)
+		);
+	}
 </script>
 
 <div class="share-container">
-	{#if isLoading}
-		<div class="loading">
-			<div class="spinner"></div>
-			<div>Loading...</div>
-		</div>
-	{:else if error}
+	{#if error}
 		<div class="error">{error}</div>
 	{:else if feed}
 		<header class="podcast-header">
@@ -124,52 +151,68 @@
 						{episodes.length} episodes
 					</div>
 				</div>
-				<div class="podcast-header__meta">
-					<div class="meta-with-icon">
-						<History size="1rem" />
-						{formatEpisodeDate(oldestEpisode.publishedAt)}
-					</div>
-				</div>
-				<div class="podcast-header__buttons">
-					{#if !isFeedAdded}
-						<button class="podcast-header__button" onclick={addFeed}>
-							<Podcast size="24" />
-							Subscribe
-						</button>
-					{/if}
-				</div>
 			</div>
 		</header>
 
-		<EpisodeList {episodes} {activeEpisodes} isShare={true} />
+		<div class="action-buttons">
+			{#if targetEpisode}
+				<!-- Episode-specific buttons -->
+				<button class="action-button" onclick={() => playEpisode(feed!, targetEpisode)}>
+					<Play size="24" />
+					Play Now
+				</button>
+				<button class="action-button" onclick={() => downloadEpisode(feed!, targetEpisode)}>
+					<Download size="24" />
+					Play Later
+				</button>
+			{:else}
+				<!-- Feed-specific buttons -->
+				{#if isFeedAdded}
+					<button class="action-button" onclick={() => goto(`/podcast/${config?.feedId}`)}>
+						<Podcast size="24" />
+						Go to podcast
+					</button>
+				{:else}
+					<button class="action-button" onclick={addFeed}>
+						<Podcast size="24" />
+						Subscribe
+					</button>
+				{/if}
+			{/if}
+		</div>
+
+		{#if targetEpisode}
+			<div class="podcast-episode-container">
+				<time class="podcast-episode-meta">
+					{#if downloadProgress > 0 && downloadProgress < 100}
+						<div class="download-progress">
+							{Math.round(downloadProgress)}%
+						</div>
+					{:else if downloadProgress === 100}
+						<div>
+							<Download size="14" />
+						</div>
+					{/if}
+					<div>
+						{formatEpisodeDate(targetEpisode.publishedAt)}
+					</div>
+					<div>
+						<Dot size="14" />
+					</div>
+					<div>
+						{formatEpisodeDuration(targetEpisode.durationMin)}
+					</div>
+				</time>
+				<h2 class="podcast-episode-title">{targetEpisode.title}</h2>
+				<p class="podcast-episode-description">{@html targetEpisode.content}</p>
+			</div>
+		{:else}
+			<EpisodeList {episodes} {activeEpisodes} isShare={true} />
+		{/if}
 	{/if}
 </div>
 
 <style>
-	.loading {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 50vh;
-		gap: 1rem;
-	}
-
-	.spinner {
-		width: 40px;
-		height: 40px;
-		border: 4px solid var(--primary-less);
-		border-top-color: var(--primary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	.error {
 		color: var(--error);
 		text-align: center;
@@ -193,7 +236,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		padding-top: 1rem;
 	}
 
 	.podcast-header__title {
@@ -217,14 +259,13 @@
 		gap: 0.5rem;
 	}
 
-	.podcast-header__buttons {
+	.action-buttons {
 		display: flex;
-		gap: 2rem;
-		margin-top: 0.5rem;
-		width: fit-content;
+		gap: 1rem;
+		padding: 1rem;
 	}
 
-	.podcast-header__button {
+	.action-button {
 		display: flex;
 		align-items: center;
 		font-size: var(--text-large);
@@ -232,10 +273,42 @@
 		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
-		padding: 0.5rem 1rem;
+		padding: 0.75rem 1.5rem;
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
 		stroke-width: 2.5;
+		flex: 1;
+		justify-content: center;
+	}
+
+	.podcast-episode-container {
+		padding: 1rem;
+	}
+
+	.podcast-episode-meta {
+		font-size: var(--text-medium);
+		font-family: monospace;
+		color: var(--primary);
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding-bottom: 0.5rem;
+	}
+
+	.download-progress {
+		color: var(--primary);
+		min-width: 3ch;
+		padding-right: 0.5rem;
+	}
+
+	.podcast-episode-title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.podcast-episode-description {
+		line-height: var(--line-height-slack);
 	}
 </style>
