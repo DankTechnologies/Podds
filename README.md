@@ -1,6 +1,6 @@
-# jibjab
+# podds
 
-**jibjab** is a podcast-focused web app for Miniflux RSS reader
+**podds** is a podcast-focused web app for Miniflux RSS reader
 
 ## Motivations
 
