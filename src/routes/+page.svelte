@@ -62,25 +62,25 @@
 	<defs>
 		<filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
 			<feDropShadow
-				dx="-7"
-				dy="7"
+				dx="-2"
+				dy="2"
 				stdDeviation="1"
-				flood-color="var(--grey-medium)"
-				flood-opacity="0.3"
+				flood-color="var(--grey-light)"
+				flood-opacity="0.25"
 			/>
 			<feDropShadow
-				dx="-14"
+				dx="-12"
 				dy="6"
 				stdDeviation="1"
 				flood-color="var(--grey-dark)"
-				flood-opacity="0.08"
+				flood-opacity="0.06"
 			/>
 			<feDropShadow
 				dx="10"
 				dy="-8"
 				stdDeviation="1"
 				flood-color="var(--grey-dark)"
-				flood-opacity="0.10"
+				flood-opacity="0.08"
 			/>
 		</filter>
 		<radialGradient id="gradient" cx="0%" cy="100%" r="100%" fx="0%" fy="100%">
