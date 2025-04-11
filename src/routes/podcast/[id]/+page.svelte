@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Share2, Trash2 } from 'lucide-svelte';
+	import { Share2, Trash2, Search } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
@@ -12,6 +12,8 @@
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	const feedId = page.params.id;
 	let searchQuery = $state('');
+	let isSearchVisible = $state(false);
+	let searchInput = $state<HTMLInputElement | null>(null);
 
 	const ITEMS_PER_PAGE = 10;
 	let limit = $state<number>(ITEMS_PER_PAGE);
@@ -113,32 +115,45 @@
 			<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
 			<span class="podcast-header__subtitle">{parseSubtitle(feed.title)}</span>
 			<div class="podcast-header__buttons">
-				<button class="podcast-header__button" onclick={() => deleteFeed(feed)}>
-					<Trash2 size="14" />
-					Delete
-				</button>
-				<!-- <button
-					class="podcast-header__button"
-					disabled={isUpdating}
-					onclick={() => updateFeed(feed)}
-				>
-					<RefreshCcw size="14" />
-					Sync
-				</button> -->
 				<button class="podcast-header__button" onclick={() => shareFeed(feed)}>
 					<Share2 size="14" />
 					Share
+				</button>
+				<button
+					class="podcast-header__button"
+					onclick={() => {
+						isSearchVisible = !isSearchVisible;
+						if (isSearchVisible) {
+							setTimeout(() => searchInput?.focus(), 0);
+						}
+					}}
+				>
+					<Search size="14" />
+					Search
+				</button>
+				<button
+					class="podcast-header__button podcast-header__button--delete"
+					onclick={() => deleteFeed(feed)}
+				>
+					<Trash2 size="14" />
 				</button>
 			</div>
 		</div>
 	</header>
 
 	<!-- Search Bar -->
-	<div class="search-container">
-		<div class="search-bar">
-			<input type="search" bind:value={searchQuery} placeholder="Search episodes..." />
+	{#if isSearchVisible}
+		<div class="search-container">
+			<div class="search-bar">
+				<input
+					type="search"
+					bind:value={searchQuery}
+					bind:this={searchInput}
+					placeholder="Search episodes..."
+				/>
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<!-- Episodes List -->
 	<section class="podcast-section">
@@ -187,21 +202,20 @@
 
 	.podcast-header__button {
 		display: flex;
+		align-items: center;
 		font-size: var(--text-small);
 		font-weight: 600;
-		align-items: center;
 		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
 		padding: 0.5rem;
 		color: var(--neutral);
-		cursor: pointer;
 		border-radius: 0.25rem;
-		transition: opacity 0.2s ease;
 	}
 
-	.podcast-header__button:disabled {
-		opacity: 0.5;
+	.podcast-header__button--delete {
+		background: var(--error);
+		color: var(--neutral);
 	}
 
 	.status-screen {
@@ -233,6 +247,7 @@
 		border: 1px solid var(--primary-less);
 		background: var(--bg);
 		color: var(--text);
+		border-radius: 0.25rem;
 	}
 
 	.message {

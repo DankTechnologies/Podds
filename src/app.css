@@ -95,6 +95,11 @@ select {
 	color: inherit;
 }
 
+input::placeholder {
+	color: var(--text-less);
+	opacity: 0.5;
+}
+
 /* Headings */
 h1,
 h2,
