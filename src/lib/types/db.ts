@@ -1,9 +1,14 @@
 export interface Feed {
 	id: string;
 	title: string;
+	description: string;
+	author: string;
+	ownerName: string;
+	link: string;
 	url: string;
 	iconData: string;
 	lastUpdatedAt?: Date;
+	categories: string[];
 }
 
 export interface Episode {

@@ -1,9 +1,11 @@
+import { Log } from "$lib/service/LogService";
+
 export function resizeBase64Image(
 	url: string,
 	maxWidth: number,
 	maxHeight: number
 ): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		const img = new Image();
 		img.crossOrigin = 'anonymous';
 
@@ -35,7 +37,10 @@ export function resizeBase64Image(
 			resolve(canvas.toDataURL('image/png'));
 		};
 
-		img.onerror = () => reject(new Error('Failed to load image'));
+		img.onerror = () => {
+			Log.debug(`Failed to load image: ${url}`);
+			resolve('');
+		};
 		img.src = url;
 	});
 }

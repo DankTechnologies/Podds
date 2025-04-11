@@ -72,7 +72,12 @@
 				url: feedResponse.feed.url,
 				title: feedResponse.feed.title,
 				iconData: iconData || '',
-				lastUpdatedAt: new Date()
+				lastUpdatedAt: new Date(),
+				description: feedResponse.feed.description,
+				author: feedResponse.feed.author,
+				ownerName: feedResponse.feed.ownerName,
+				link: feedResponse.feed.link,
+				categories: Array.from(feedResponse.feed.categories?.values() || [])
 			};
 
 			isFeedAdded = feeds.find((f) => f.id === config?.feedId) !== undefined;

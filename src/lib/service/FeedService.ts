@@ -152,8 +152,13 @@ export class FeedService {
 			id: feed.id.toString(),
 			url: feed.url,
 			title: feed.title,
+			description: feed.description,
+			author: feed.author,
+			ownerName: feed.ownerName,
+			link: feed.link,
 			iconData: iconData,
-			lastUpdatedAt: new Date()
+			lastUpdatedAt: new Date(),
+			categories: Object.values(feed.categories || {})
 		};
 
 		db.feeds.insert(newFeed);
@@ -181,8 +186,13 @@ export class FeedService {
 			id: feed.id.toString(),
 			url: feed.url,
 			title: feed.title,
+			description: feed.description,
+			author: feed.author,
+			ownerName: feed.ownerName,
+			link: feed.link,
 			iconData: iconData,
-			lastUpdatedAt: new Date()
+			lastUpdatedAt: new Date(),
+			categories: Object.values(feed.categories || {})
 		}));
 
 		db.feeds.insertMany(newFeeds);
