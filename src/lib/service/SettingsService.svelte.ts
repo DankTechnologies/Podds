@@ -1,5 +1,6 @@
 import { db, getSettings } from '$lib/stores/db.svelte';
 import type { Settings } from '$lib/types/db';
+import { Log } from './LogService';
 
 export const SessionInfo = $state({
 	hasUpdate: false
@@ -11,8 +12,10 @@ export class SettingsService {
 
 		if (!currentSettings) {
 			db.settings.insert(settings);
+			Log.info('Added initial settings');
 		} else {
 			db.settings.updateOne({ id: '1' }, { $set: { ...settings } });
+			Log.info('Updated settings');
 		}
 	}
 

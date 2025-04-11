@@ -2,10 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { getFeeds } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
-	import { Settings, Share2 } from 'lucide-svelte';
+	import { RefreshCw, Settings, Share2 } from 'lucide-svelte';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
+	import { SessionInfo } from '$lib/service/SettingsService.svelte';
+	import { applyUpdate } from '$lib/utils/versionUpdate';
 
 	let feeds = $derived(
 		getFeeds()
@@ -34,6 +36,13 @@
 			shareFeedUtil(feeds[0], settings.podcastIndexKey, settings.podcastIndexSecret);
 		}
 	}
+
+	function handleUpdate() {
+		// Replace body content with the loading screen from app.html
+		document.body.innerHTML =
+			'<div id="appLoading"><img src="/podds.svg" alt="Loading..." /></div>';
+		applyUpdate();
+	}
 </script>
 
 <div class="grid">
@@ -50,6 +59,11 @@
 </div>
 
 <div class="subnav-container">
+	{#if SessionInfo.hasUpdate}
+		<button class="subnav" onclick={handleUpdate}>
+			<RefreshCw size="128" />
+		</button>
+	{/if}
 	<button class="subnav" onclick={shareAllFeeds}>
 		<Share2 size="128" />
 	</button>

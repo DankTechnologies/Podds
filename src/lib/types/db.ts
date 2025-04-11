@@ -56,6 +56,7 @@ export interface Settings {
 	lastSyncAt?: Date;
 	syncIntervalMinutes: number;
 	isSyncing?: boolean;
+	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 

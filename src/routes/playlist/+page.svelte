@@ -100,6 +100,7 @@
 		background-color: var(--bg-less);
 		position: sticky;
 		top: 0;
+		z-index: 10;
 	}
 
 	.playlist-view-button {
