@@ -51,13 +51,6 @@
 			hasUpdate: () => false,
 			disabled: () => !hasSettings,
 			hidden: () => false
-		},
-		{
-			href: '/settings',
-			label: 'Settings',
-			icon: Settings,
-			hasUpdate: () => SessionInfo.hasUpdate,
-			disabled: () => !hasFeeds
 		}
 	];
 </script>
@@ -86,7 +79,7 @@
 <style>
 	nav {
 		display: grid;
-		grid-template-columns: repeat(5, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		position: fixed;
 		bottom: 0;
 		left: 0;
