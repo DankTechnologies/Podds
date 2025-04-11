@@ -61,19 +61,39 @@
 <svg width="0" height="0">
 	<defs>
 		<filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-			<feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="rgb(0, 0, 0)" flood-opacity="0.8" />
+			<feDropShadow
+				dx="-7"
+				dy="7"
+				stdDeviation="1"
+				flood-color="var(--grey-medium)"
+				flood-opacity="0.3"
+			/>
+			<feDropShadow
+				dx="-14"
+				dy="6"
+				stdDeviation="1"
+				flood-color="var(--grey-dark)"
+				flood-opacity="0.08"
+			/>
+			<feDropShadow
+				dx="10"
+				dy="-8"
+				stdDeviation="1"
+				flood-color="var(--grey-dark)"
+				flood-opacity="0.10"
+			/>
 		</filter>
 		<radialGradient id="gradient" cx="0%" cy="100%" r="100%" fx="0%" fy="100%">
-			<stop offset="0%" style="stop-color: var(--accent-less)" />
+			<stop offset="0%" style="stop-color: var(--primary-less); stop-opacity: 0.9" />
 			<stop
 				offset="40%"
-				style="stop-color: color-mix(in oklch, var(--accent) 60%, var(--accent) 40%)"
+				style="stop-color: color-mix(in oklch, var(--primary) 50%, var(--primary-less) 10%); stop-opacity: 0.95"
 			/>
 			<stop
 				offset="70%"
-				style="stop-color: color-mix(in oklch, var(--accent-less) 30%, var(--accent) 70%)"
+				style="stop-color: color-mix(in oklch, var(--bg-less) 7%, var(--primary) 70%); stop-opacity: 0.9"
 			/>
-			<stop offset="100%" style="stop-color: var(--accent)" />
+			<stop offset="100%" style="stop-color: var(--primary); stop-opacity: 0.85" />
 		</radialGradient>
 	</defs>
 </svg>

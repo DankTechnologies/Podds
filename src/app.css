@@ -41,6 +41,11 @@
 
 	--text-less: color-mix(in oklch, var(--text) 50%, white);
 	--text-more: color-mix(in oklch, var(--text) 25%, white);
+
+	/* Grey Colors */
+	--grey-light: oklch(85% 0.01 270);
+	--grey-medium: oklch(70% 0.01 270);
+	--grey-dark: oklch(55% 0.01 270);
 }
 
 @media (prefers-color-scheme: dark) {
