@@ -10,6 +10,7 @@
 	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
 	import { Log } from '$lib/service/LogService';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 	const feedId = page.params.id;
 	let searchQuery = $state('');
 	let isSearchVisible = $state(false);
@@ -123,7 +124,8 @@
 					class="podcast-header__button"
 					onclick={() => {
 						isSearchVisible = !isSearchVisible;
-						if (isSearchVisible) {
+
+						if (isSearchVisible && !isAppleDevice) {
 							setTimeout(() => searchInput?.focus(), 0);
 						}
 					}}
