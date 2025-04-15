@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { onMount } from 'svelte';
-	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { db, getSettings } from '$lib/stores/db.svelte';
 	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
@@ -121,6 +120,15 @@
 						bind:value={settings.syncIntervalMinutes}
 						required
 					/>
+				</div>
+				<div>
+					<label for="logLevel">Log Level</label>
+					<select id="logLevel" bind:value={settings.logLevel}>
+						<option value="debug">Debug</option>
+						<option value="info">Info</option>
+						<option value="warn">Warning</option>
+						<option value="error">Error</option>
+					</select>
 				</div>
 				<div class="actions">
 					<button type="button" onclick={onSave}>Save Changes</button>
@@ -275,7 +283,8 @@
 			padding-bottom: 1rem;
 		}
 
-		input {
+		input,
+		select {
 			background-color: var(--bg-less);
 			border: 1px solid var(--bg-less);
 			color: var(--text);
@@ -283,6 +292,7 @@
 	}
 
 	input,
+	select,
 	button {
 		padding: 0.5em;
 		border-radius: 0.25rem;
