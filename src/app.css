@@ -82,7 +82,7 @@ body {
 	line-height: var(--line-height-normal);
 }
 
-input:focus {
+input:focus, select:focus {
 	outline: none;
 	border-color: var(--primary-less);
 	box-shadow: 0 0 0 1px var(--primary-less);
