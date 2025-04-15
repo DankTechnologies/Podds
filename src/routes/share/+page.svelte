@@ -50,7 +50,8 @@
 				podcastIndexSecret: config.podcastIndexSecret,
 				corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
 				syncIntervalMinutes: 15,
-				logLevel: 'info'
+				logLevel: 'info',
+				isAdvanced: false
 			});
 
 			// Initialize API client
