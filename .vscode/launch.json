@@ -8,7 +8,7 @@
 			"type": "chrome",
 			"request": "launch",
 			"name": "Launch Chrome against localhost",
-			"url": "https://woowoo.local:5173",
+			"url": "https://podds-test.danktech.io",
 			"webRoot": "${workspaceFolder}"
 		},
 		{
