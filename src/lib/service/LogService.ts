@@ -1,4 +1,4 @@
-import { db } from '$lib/stores/db.svelte';
+import { db, getSettings } from '$lib/stores/db.svelte';
 import type { LogEntry } from '$lib/types/db';
 
 export class Log {
@@ -9,10 +9,9 @@ export class Log {
 		error: 3
 	} as const;
 
-	private static minLevel: keyof typeof Log.levels = 'info';
-
 	private static async write(level: LogEntry['level'], message: string) {
-		if (Log.levels[level] < Log.levels[this.minLevel]) {
+		let settings = getSettings();
+		if (settings?.logLevel && Log.levels[level] < Log.levels[settings.logLevel]) {
 			return;
 		}
 
@@ -52,9 +51,5 @@ export class Log {
 				}
 			});
 		}
-	}
-
-	static setMinLevel(level: keyof typeof Log.levels) {
-		this.minLevel = level;
 	}
 }
