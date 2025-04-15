@@ -18,7 +18,7 @@ export function downloadAudio(
 			case 'complete':
 				const audio = new Audio(URL.createObjectURL(blob));
 				audio.addEventListener(
-					'loadeddata',
+					'loadedmetadata',
 					() => {
 						if (onComplete) onComplete();
 					},
