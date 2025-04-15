@@ -50,6 +50,7 @@
 				podcastIndexSecret: config.podcastIndexSecret,
 				corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
 				syncIntervalMinutes: 15,
+				lastSyncAt: new Date(),
 				logLevel: 'info',
 				isAdvanced: false
 			});
@@ -73,7 +74,6 @@
 				url: feedResponse.feed.url,
 				title: feedResponse.feed.title,
 				iconData: iconData || '',
-				lastUpdatedAt: new Date(),
 				description: feedResponse.feed.description,
 				author: feedResponse.feed.author,
 				ownerName: feedResponse.feed.ownerName,

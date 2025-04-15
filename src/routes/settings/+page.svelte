@@ -16,6 +16,7 @@
 			podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
 			corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL || '',
 			syncIntervalMinutes: 15,
+			lastSyncAt: new Date(),
 			isAdvanced: false,
 			logLevel: 'info'
 		}

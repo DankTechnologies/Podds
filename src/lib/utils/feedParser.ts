@@ -1,13 +1,33 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { Episode } from '$lib/types/db';
 
+interface ParseFeedResult {
+	episodes: Episode[];
+	status: number;
+	lastModified?: string;
+	ttlMinutes?: number;
+}
+
+interface ParseXmlResult {
+	episodes: Episode[];
+	ttlMinutes?: number;
+}
+
 export async function parseFeedUrl(
 	feedId: string,
 	url: string,
-	since?: number
-): Promise<Episode[]> {
+	since?: number,
+	headers?: Record<string, string>
+): Promise<ParseFeedResult> {
 	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-	const response = await fetch(corsHelperUrl);
+	const response = await fetch(corsHelperUrl, { headers });
+
+	if (response.status === 304) {
+		return {
+			episodes: [],
+			status: 304
+		};
+	}
 
 	if (response.status >= 400) {
 		throw new Error(`Failed to fetch feed: HTTP ${response.status}`);
@@ -20,10 +40,17 @@ export async function parseFeedUrl(
 	}
 
 	const xmlString = await response.text();
-	return parseEpisodesFromXml(feedId, xmlString, since);
+	const { episodes, ttlMinutes } = parseEpisodesFromXml(feedId, xmlString, since);
+
+	return {
+		episodes,
+		status: response.status,
+		lastModified: response.headers.get('last-modified') || undefined,
+		ttlMinutes
+	};
 }
 
-function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): Episode[] {
+function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): ParseXmlResult {
 	const parser = new XMLParser({
 		ignoreAttributes: false,
 		attributeNamePrefix: '@_'
@@ -31,12 +58,15 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 	const result = parser.parse(xmlString);
 	const items = result.rss.channel.item;
 
-	if (!items) return [];
+	// Extract TTL if present
+	const ttlMinutes = result.rss?.channel?.ttl ? parseInt(result.rss.channel.ttl, 10) : undefined;
+
+	if (!items) return { episodes: [], ttlMinutes };
 
 	// Ensure items is always an array
 	const itemsArray = Array.isArray(items) ? items : [items];
 
-	return itemsArray
+	const episodes = itemsArray
 		.filter((item) => {
 			const publishedAt = new Date(item.pubDate);
 			return !since || publishedAt.getTime() / 1000 >= since;
@@ -78,6 +108,8 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 				durationMin: Math.floor(durationSeconds / 60)
 			};
 		});
+
+	return { episodes, ttlMinutes };
 }
 
 function decodeHtmlEntities(text: string): string {

@@ -24,39 +24,6 @@ export class FeedService {
 		}
 	}
 
-	async updateFeed(feedId: string, since?: number) {
-		let feeds = getFeeds();
-
-		const feed = feeds.find((x) => x.id === feedId);
-
-		if (!feed) {
-			Log.warn('Feed not found, skipping update');
-			return;
-		}
-
-		Log.info(`Starting update of feed ${feed.title}`);
-
-		const finderRequest: EpisodeFinderRequest = {
-			feeds: [feed],
-			since: since
-		};
-
-		const finderResponse = await this.runEpisodeFinder(finderRequest);
-
-		finderResponse.errors.forEach((x) => Log.error(x));
-
-		finderResponse.episodes.forEach((x) => {
-			const match = db.episodes.findOne({ id: x.id });
-
-			if (!match) {
-				Log.info(`Adding ${x.title}`);
-				db.episodes.insert(x);
-			}
-		});
-
-		Log.info(`Finished update of feed ${feed.title}`);
-	}
-
 	async updateAllFeeds() {
 		let settings = getSettings();
 		let feeds = getFeeds();
@@ -73,9 +40,7 @@ export class FeedService {
 
 		const timestampNow = Math.floor(Date.now() / 1000);
 
-		const timestampLastSync = settings.lastSyncAt
-			? Math.floor(new Date(settings.lastSyncAt).getTime() / 1000)
-			: timestampNow - ONE_DAY_IN_SECONDS;
+		const timestampLastSync = Math.floor(new Date(settings.lastSyncAt).getTime() / 1000);
 
 		const lastSyncAtSeconds = timestampNow - timestampLastSync;
 		if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
@@ -115,6 +80,19 @@ export class FeedService {
 			} catch (error) {
 				Log.error(`Error adding episode ${x.title}: ${error instanceof Error ? error.message : String(error)}`);
 			}
+		});
+
+		db.feeds.batch(() => {
+			finderResponse.feeds.forEach((x) => {
+				db.feeds.updateOne({ id: x.id }, {
+					$set: {
+						lastCheckedAt: x.lastCheckedAt,
+						lastSyncedAt: x.lastSyncedAt,
+						lastModified: x.lastModified,
+						ttlMinutes: x.ttlMinutes
+					}
+				});
+			});
 		});
 
 		SettingsService.updateLastSyncAt();
@@ -174,6 +152,19 @@ export class FeedService {
 
 		db.episodes.insertMany(finderResponse.episodes);
 
+		db.feeds.batch(() => {
+			finderResponse.feeds.forEach((x) => {
+				db.feeds.updateOne({ id: x.id }, {
+					$set: {
+						lastCheckedAt: x.lastCheckedAt,
+						lastSyncedAt: x.lastSyncedAt,
+						lastModified: x.lastModified,
+						ttlMinutes: x.ttlMinutes
+					}
+				});
+			});
+		});
+
 		Log.info(`Finished adding ${feed.title}`);
 	}
 
@@ -182,7 +173,7 @@ export class FeedService {
 
 		Log.info(`Adding ${feeds.length} feeds`);
 
-		const newFeeds = feeds.map(({ feed, iconData }) => ({
+		const newFeeds = feeds.map(({ feed, iconData }): Feed => ({
 			id: feed.id.toString(),
 			url: feed.url,
 			title: feed.title,
@@ -191,7 +182,6 @@ export class FeedService {
 			ownerName: feed.ownerName,
 			link: feed.link,
 			iconData: iconData,
-			lastUpdatedAt: new Date(),
 			categories: Object.values(feed.categories || {})
 		}));
 
@@ -207,6 +197,19 @@ export class FeedService {
 		finderResponse.errors.forEach((x) => Log.error(x));
 
 		db.episodes.insertMany(finderResponse.episodes);
+
+		db.feeds.batch(() => {
+			finderResponse.feeds.forEach((x) => {
+				db.feeds.updateOne({ id: x.id }, {
+					$set: {
+						lastCheckedAt: x.lastCheckedAt,
+						lastSyncedAt: x.lastSyncedAt,
+						lastModified: x.lastModified,
+						ttlMinutes: x.ttlMinutes
+					}
+				});
+			});
+		});
 
 		Log.info(`Finished adding ${feeds.length} feeds`);
 	}
@@ -265,6 +268,8 @@ export class FeedService {
 			if (validFeeds.length > 0) {
 				Log.info(`Successfully processed ${validFeeds.length}/${ids.length} feeds`);
 				await this.addFeeds(validFeeds);
+
+				SettingsService.updateLastSyncAt();
 			} else {
 				Log.warn('No valid feeds were processed');
 			}

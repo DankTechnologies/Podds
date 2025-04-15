@@ -7,5 +7,6 @@ export interface EpisodeFinderRequest {
 
 export interface EpisodeFinderResponse {
 	episodes: Episode[];
+	feeds: Feed[];
 	errors: string[];
 }

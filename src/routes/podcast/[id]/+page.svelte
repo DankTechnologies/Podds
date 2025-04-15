@@ -78,17 +78,6 @@
 		});
 	}
 
-	async function updateFeed(feed: Feed) {
-		isUpdating = true;
-		try {
-			await feedService.updateFeed(feed.id, (episodes[0]?.publishedAt.getTime() ?? 0) / 1000);
-		} catch (error) {
-			Log.error(error instanceof Error ? error.message : String(error));
-		} finally {
-			isUpdating = false;
-		}
-	}
-
 	function shareFeed(feed: Feed) {
 		const settings = getSettings();
 		if (!settings) {

@@ -7,7 +7,10 @@ export interface Feed {
 	link: string;
 	url: string;
 	iconData: string;
-	lastUpdatedAt?: Date;
+	lastModified?: Date;
+	ttlMinutes?: number;
+	lastCheckedAt?: Date;
+	lastSyncedAt?: Date;
 	categories: string[];
 }
 
@@ -53,7 +56,7 @@ export interface Settings {
 	podcastIndexKey: string;
 	podcastIndexSecret: string;
 	corsHelperUrl: string;
-	lastSyncAt?: Date;
+	lastSyncAt: Date;
 	syncIntervalMinutes: number;
 	isSyncing?: boolean;
 	isAdvanced: boolean;

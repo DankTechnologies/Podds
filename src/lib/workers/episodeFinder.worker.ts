@@ -2,54 +2,38 @@ import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
+const FEED_TIMEOUT_MS = 30000; // 30 seconds per feed
+
 // Add error handling for the worker itself
 self.onerror = (error) => {
 	console.error('Worker error:', error);
 };
 
-const BATCH_SIZE = 5; // Process 5 feeds at a time
-const FEED_TIMEOUT_MS = 15000; // 15 seconds per feed (slightly longer than parseFeedUrl's timeout)
-
-async function fetchFeedWithTimeout(feed: Feed, since?: number): Promise<{
-	episodes: Episode[];
-	errors: string[];
-}> {
-	const timeoutPromise = new Promise<never>((_, reject) =>
-		setTimeout(() => reject(new Error('Worker timeout')), FEED_TIMEOUT_MS)
-	);
-
-	try {
-		const resultPromise = parseFeedUrl(feed.id, feed.url, since).then(
-			(episodes) => ({ episodes, errors: [] as string[] })
-		);
-
-		const result = await Promise.race([resultPromise, timeoutPromise]);
-		return result;
-	} catch (error) {
-		return {
-			episodes: [],
-			errors: [
-				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? error.message : 'Unknown error'
-				}`
-			]
-		};
-	}
-}
-
 self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
 		const { feeds, since } = e.data;
+
+		let updatedFeeds: Feed[] = [];
+		let newEpisodes: Episode[] = [];
+		let errors: string[] = [];
 
 		// Validate required inputs
 		if (!feeds) {
 			throw new Error('Missing required parameters: feeds');
 		}
 
-		const result = await fetchFeedEpisodes(feeds, since);
+		for (const feed of feeds) {
+			const result = await fetchFeedWithTimeout(feed, since);
+
+			updatedFeeds.push(result.feed);
+			newEpisodes = [...newEpisodes, ...result.episodes];
+			errors = [...errors, ...result.errors];
+		}
 
 		const response: EpisodeFinderResponse = {
-			episodes: result.episodes,
-			errors: result.errors
+			episodes: newEpisodes,
+			feeds: updatedFeeds,
+			errors: errors
 		};
 
 		self.postMessage(response);
@@ -62,33 +46,70 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	}
 };
 
-async function fetchFeedEpisodes(
-	feeds: Feed[],
-	since?: number
-): Promise<{ episodes: Episode[]; errors: string[] }> {
-	let allEpisodes: Episode[] = [];
-	let allErrors: string[] = [];
+async function fetchFeedWithTimeout(feed: Feed, since?: number): Promise<{
+	episodes: Episode[];
+	feed: Feed;
+	errors: string[];
+}> {
+	const timeoutPromise = new Promise<never>((_, reject) =>
+		setTimeout(() => reject(new Error(`Feed ${feed.title} fetch timed out after ${FEED_TIMEOUT_MS / 1000}s`)), FEED_TIMEOUT_MS)
+	);
 
-	// Process feeds in batches
-	for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
-		const batch = feeds.slice(i, i + BATCH_SIZE);
+	try {
+		// Check if we should skip this feed based on TTL
+		if (feed.lastCheckedAt && feed.ttlMinutes) {
+			const minutesSinceLastCheck = (new Date().getTime() - feed.lastCheckedAt.getTime()) / 60000; // Convert to minutes
+			if (minutesSinceLastCheck < feed.ttlMinutes) {
+				return {
+					episodes: [],
+					feed: feed,
+					errors: []
+				};
+			}
+		}
 
-		const results = await Promise.all(
-			batch.map((feed) => fetchFeedWithTimeout(feed, since))
+		const updatedFeed = { ...feed };
+		updatedFeed.lastCheckedAt = new Date();
+
+		// Prepare headers for conditional fetch
+		const headers: Record<string, string> = {};
+
+		if (feed.lastModified) {
+			headers['If-Modified-Since'] = feed.lastModified.toUTCString();
+		}
+
+		const resultPromise = parseFeedUrl(feed.id, feed.url, since, headers).then(
+			(result) => {
+
+				if (result.status === 200) {
+					updatedFeed.lastSyncedAt = new Date();
+
+					if (result.lastModified) {
+						updatedFeed.lastModified = new Date(result.lastModified);
+					}
+					// Update TTL if provided in feed
+					if (result.ttlMinutes) {
+						updatedFeed.ttlMinutes = result.ttlMinutes;
+					}
+				}
+
+				return {
+					episodes: result.episodes,
+					feed: updatedFeed,
+					errors: []
+				};
+			}
 		);
 
-		// Accumulate results from this batch
-		const batchResults = results.reduce(
-			(acc, result) => ({
-				episodes: [...acc.episodes, ...result.episodes],
-				errors: [...acc.errors, ...result.errors]
-			}),
-			{ episodes: [], errors: [] }
-		);
-
-		allEpisodes = [...allEpisodes, ...batchResults.episodes];
-		allErrors = [...allErrors, ...batchResults.errors];
+		const result = await Promise.race([resultPromise, timeoutPromise]);
+		return result;
+	} catch (error) {
+		return {
+			episodes: [],
+			feed: feed, // Return original feed without updating lastCheckedAt
+			errors: [
+				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? error.message : 'Unknown error'}`
+			]
+		};
 	}
-
-	return { episodes: allEpisodes, errors: allErrors };
 }
