@@ -56,20 +56,23 @@
 			</button>
 		</div>
 	{/each}
-</div>
-
-<div class="subnav-container">
-	{#if SessionInfo.hasUpdate}
-		<button class="subnav" onclick={handleUpdate}>
-			<RefreshCw size="128" />
+	<div class="subnav-container">
+		<button class="subnav" onclick={() => goto('/settings')}>
+			<Settings size="128" />
 		</button>
+	</div>
+	<div class="subnav-container">
+		<button class="subnav" onclick={shareAllFeeds}>
+			<Share2 size="128" />
+		</button>
+	</div>
+	{#if SessionInfo.hasUpdate}
+		<div class="subnav-container">
+			<button class="subnav" onclick={handleUpdate}>
+				<RefreshCw size="128" />
+			</button>
+		</div>
 	{/if}
-	<button class="subnav" onclick={shareAllFeeds}>
-		<Share2 size="128" />
-	</button>
-	<button class="subnav" onclick={() => goto('/settings')}>
-		<Settings size="128" />
-	</button>
 </div>
 
 <svg width="0" height="0">
