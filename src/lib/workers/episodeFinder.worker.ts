@@ -2,7 +2,7 @@ import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
-const FEED_TIMEOUT_MS = 30000; // 30 seconds per feed
+const FEED_TIMEOUT_MS = 10000; // 10 seconds per feed
 
 // Add error handling for the worker itself
 self.onerror = (error) => {
@@ -13,27 +13,20 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
 		const { feeds, since } = e.data;
 
-		let updatedFeeds: Feed[] = [];
-		let newEpisodes: Episode[] = [];
-		let errors: string[] = [];
-
 		// Validate required inputs
 		if (!feeds) {
 			throw new Error('Missing required parameters: feeds');
 		}
 
-		for (const feed of feeds) {
-			const result = await fetchFeedWithTimeout(feed, since);
-
-			updatedFeeds.push(result.feed);
-			newEpisodes = [...newEpisodes, ...result.episodes];
-			errors = [...errors, ...result.errors];
-		}
+		// Fetch all feeds concurrently
+		const results = await Promise.all(
+			feeds.map(feed => fetchFeedWithTimeout(feed, since))
+		);
 
 		const response: EpisodeFinderResponse = {
-			episodes: newEpisodes,
-			feeds: updatedFeeds,
-			errors: errors
+			episodes: results.flatMap(r => r.episodes),
+			feeds: results.map(r => r.feed),
+			errors: results.flatMap(r => r.errors)
 		};
 
 		self.postMessage(response);
