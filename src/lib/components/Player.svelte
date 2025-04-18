@@ -4,12 +4,11 @@
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { onMount } from 'svelte';
-	import { fade, slide } from 'svelte/transition';
-	import { circIn, circOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import type { ActiveEpisode } from '$lib/types/db';
 	import type { SvelteMap } from 'svelte/reactivity';
 	import { page } from '$app/state';
+	import PlayerDetails from './PlayerDetails.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -157,21 +156,6 @@
 		goto(`/podcast/${episode.feedId}`);
 	}
 
-	function slideIn(node: Element) {
-		return slide(node, {
-			duration: 200,
-			easing: circIn,
-			axis: 'y'
-		});
-	}
-
-	function fadeOut(node: Element) {
-		return fade(node, {
-			duration: 200,
-			easing: circOut
-		});
-	}
-
 	function handleSeek(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const newTime = Number(target.value);
@@ -183,53 +167,20 @@
 
 <div
 	class="player"
-	class:player-expanded={showDetailedControls}
 	onclick={() => (showDetailedControls = !showDetailedControls)}
 	onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
 	role="button"
 	tabindex="0"
 >
-	{#if showDetailedControls}
-		<div class="player__episode-title" in:slideIn out:fadeOut>
-			{episode.title}
-		</div>
-		<div class="player__episode-feed-title" in:slideIn out:fadeOut>
-			<a href="/" onclick={handleFeedClick}>
-				{episode.feedTitle}
-			</a>
-		</div>
-		<div class="player__time" in:slideIn out:fadeOut>
-			<div>
-				{formatPlaybackPosition(currentTime)}
-			</div>
-			<div>
-				-{formatPlaybackPosition(remainingTime)}
-			</div>
-		</div>
-		<input
-			class="player__playback-expanded"
-			in:slideIn
-			out:fadeOut
-			type="range"
-			min="0"
-			bind:value={currentTime}
-			max={duration}
-			onchange={handleSeek}
-			onclick={(e) => e.stopPropagation()}
-		/>
-	{:else}
-		<input
-			class="player__playback"
-			in:slideIn
-			out:fadeOut
-			type="range"
-			min="0"
-			bind:value={currentTime}
-			max={duration}
-			style="--value: {currentTime}; --max: {duration}"
-			disabled
-		/>
-	{/if}
+	<input
+		class="player__playback"
+		type="range"
+		min="0"
+		bind:value={currentTime}
+		max={duration}
+		style="--value: {currentTime}; --max: {duration}"
+		disabled
+	/>
 	<div class="player__controls">
 		<div class="player__artwork">
 			<img src={`data:${feedIconsById.get(episode.feedId)}`} alt="" />
@@ -274,6 +225,21 @@
 	</div>
 </div>
 
+<PlayerDetails
+	{episode}
+	{currentTime}
+	{duration}
+	{remainingTime}
+	{paused}
+	onBack={handleBack}
+	onPlayPause={handlePlayPause}
+	onForward={handleForward}
+	onSeek={handleSeek}
+	onFeedClick={handleFeedClick}
+	onClose={() => (showDetailedControls = false)}
+	isOpen={showDetailedControls}
+/>
+
 <style>
 	.player {
 		display: flex;
@@ -283,36 +249,9 @@
 		bottom: 4rem;
 		left: 0;
 		right: 0;
-		z-index: 50;
+		z-index: 49;
 		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
 	}
-
-	.player.player-expanded {
-		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
-		border-radius: 1rem;
-	}
-
-	.player__episode-title {
-		text-align: center;
-		font-weight: bold;
-		padding: 1rem;
-		font-size: var(--text-xl);
-	}
-
-	.player__episode-feed-title {
-		text-align: center;
-		font-weight: bold;
-		/* font-size: var(--text-small); */
-		padding: 1rem;
-	}
-
-	.player__time {
-		display: flex;
-		justify-content: space-between;
-		font-size: var(--text-small);
-		padding: 0 1rem;
-	}
-
 	.player__playback {
 		display: flex;
 		flex: 1;
@@ -353,43 +292,6 @@
 	.player__playback::-moz-range-thumb {
 		width: 0;
 		height: 0;
-		border: none;
-	}
-
-	.player__playback-expanded {
-		display: flex;
-		flex: 1;
-		appearance: none;
-		border: none;
-		margin: 1rem;
-	}
-
-	.player__playback-expanded::-webkit-slider-runnable-track {
-		height: 1rem;
-		background: var(--primary);
-		border: none;
-	}
-
-	.player__playback-expanded::-moz-range-track {
-		height: 1rem;
-		background: var(--primary);
-		border: none;
-	}
-
-	.player__playback-expanded::-webkit-slider-thumb {
-		appearance: none;
-		width: 1.25rem;
-		height: 2rem;
-		background-color: var(--primary-more);
-		border: 2px solid var(--primary-less);
-		margin-top: -0.5rem;
-		border-radius: 0.25rem;
-	}
-
-	.player__playback-expanded::-moz-range-thumb {
-		width: 1.25rem;
-		height: 1.25rem;
-		background-color: var(--primary-more);
 		border: none;
 	}
 
@@ -447,6 +349,7 @@
 	.play-pause {
 		color: white;
 	}
+
 	.play-pause__circle {
 		width: 3rem;
 		height: 3rem;
@@ -456,7 +359,6 @@
 
 	.play-pause__icon {
 		color: var(--neutral);
-		opacity: 0.85;
 		place-self: center;
 	}
 

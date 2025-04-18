@@ -1,0 +1,320 @@
+<script lang="ts">
+	import { RotateCcw, RotateCw, Play, Pause, Loader2 } from 'lucide-svelte';
+	import { formatPlaybackPosition } from '$lib/utils/time';
+	import { BottomSheet } from 'svelte-bottom-sheet';
+	import type { ActiveEpisode } from '$lib/types/db';
+
+	let {
+		episode,
+		onBack,
+		onPlayPause,
+		onForward,
+		onSeek,
+		onFeedClick,
+		currentTime,
+		duration,
+		remainingTime,
+		paused,
+		onClose,
+		isOpen
+	} = $props<{
+		episode: ActiveEpisode;
+		onBack: (e: Event) => void;
+		onPlayPause: (e: Event) => void;
+		onForward: (e: Event) => void;
+		onSeek: (e: Event) => void;
+		onFeedClick: (e: Event) => void;
+		currentTime: number;
+		duration: number;
+		remainingTime: number;
+		paused: boolean;
+		onClose: () => void;
+		isOpen: boolean;
+	}>();
+</script>
+
+<div class="bottom-sheet">
+	<BottomSheet settings={{ maxHeight: 0.8 }} bind:isSheetOpen={isOpen} onclose={onClose}>
+		<BottomSheet.Overlay>
+			<BottomSheet.Sheet>
+				<BottomSheet.Handle />
+				<BottomSheet.Content>
+					<div class="content">
+						<div class="header">
+							<div class="episode-title">
+								{episode.title}
+							</div>
+							<div class="feed-title">
+								<a href="/" onclick={onFeedClick}>
+									{episode.feedTitle}
+								</a>
+							</div>
+						</div>
+						<div class="description">
+							{@html episode.content}
+						</div>
+						<div class="controls">
+							<div class="progress-container">
+								<div class="time">
+									<div>
+										{formatPlaybackPosition(currentTime)}
+									</div>
+									<div>
+										-{formatPlaybackPosition(remainingTime)}
+									</div>
+								</div>
+								<input
+									class="progress-bar"
+									type="range"
+									min="0"
+									bind:value={currentTime}
+									max={duration}
+									onchange={onSeek}
+									onclick={(e) => e.stopPropagation()}
+								/>
+							</div>
+							<div class="buttons">
+								<button class="button" onclick={onBack}>
+									<div class="stack-cell">
+										<div>
+											<RotateCcw size="3rem" />
+										</div>
+										<div class="time-text">10</div>
+									</div>
+								</button>
+
+								<button class="button play-pause" onclick={onPlayPause}>
+									<div class="stack-cell">
+										<div class="play-pause__circle"></div>
+										<div class="play-pause__icon">
+											{#if !episode.isDownloaded}
+												<Loader2 class="play-pause__icon--loading" size="6rem" />
+											{:else if paused}
+												<Play class="play-pause__icon--play" size="4.5rem" />
+											{:else}
+												<Pause class="play-pause__icon--pause" size="4.5rem" />
+											{/if}
+										</div>
+									</div>
+								</button>
+
+								<button class="button" onclick={onForward}>
+									<div class="stack-cell">
+										<div>
+											<RotateCw size="3rem" />
+										</div>
+										<div class="time-text">30</div>
+									</div>
+								</button>
+							</div>
+							<div class="bottom-nav-spacer"></div>
+						</div>
+					</div>
+				</BottomSheet.Content>
+			</BottomSheet.Sheet>
+		</BottomSheet.Overlay>
+	</BottomSheet>
+</div>
+
+<style>
+	@media (prefers-color-scheme: dark) {
+		.bottom-sheet :global(.handle-container) {
+			background-color: var(--primary);
+		}
+
+		.bottom-sheet :global(.bottom-sheet) {
+			background-color: var(--bg-less);
+		}
+	}
+
+	.bottom-sheet :global(.bottom-sheet-content) {
+		height: 100%;
+		padding: 0;
+	}
+
+	.content {
+		display: grid;
+		gap: 2rem;
+		padding: 1.5rem 1rem 0 1rem;
+		height: 100%;
+		box-sizing: border-box;
+		grid-template-rows: auto 1fr auto auto;
+	}
+
+	.header {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.episode-title {
+		text-align: center;
+		font-weight: bold;
+		font-size: var(--text-xl);
+	}
+
+	.feed-title {
+		text-align: center;
+		font-weight: bold;
+	}
+
+	.description {
+		font-size: var(--text-smaller);
+		line-height: var(--line-height-slack);
+		overflow-y: auto;
+		min-height: 0;
+		padding: 0 1rem;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
+
+		:global(p) {
+			margin: 0;
+		}
+	}
+
+	.controls {
+		display: flex;
+		flex-direction: column;
+		gap: 3rem;
+		justify-content: space-between;
+	}
+
+	.progress-container {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.time {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--text-small);
+		font-family: monospace;
+	}
+
+	.progress-bar {
+		appearance: none;
+		border: none;
+		margin-top: 0.5rem;
+
+		&::-webkit-slider-runnable-track {
+			height: 1rem;
+			background: var(--primary);
+			border: none;
+			border-radius: 0.25rem;
+		}
+
+		&::-moz-range-track {
+			height: 1rem;
+			background: var(--primary);
+			border: none;
+		}
+
+		&::-webkit-slider-thumb {
+			appearance: none;
+			width: 1.25rem;
+			height: 2rem;
+			background-color: var(--primary-more);
+			border: 3px solid var(--primary-less);
+			margin-top: -0.5rem;
+			border-radius: 0.25rem;
+			background: white;
+
+			@media (prefers-color-scheme: dark) {
+				background: black;
+			}
+		}
+
+		&::-moz-range-thumb {
+			width: 1.25rem;
+			height: 1.25rem;
+			background-color: var(--primary-more);
+			border: none;
+			background: white;
+
+			@media (prefers-color-scheme: dark) {
+				background: black;
+			}
+		}
+	}
+
+	.buttons {
+		display: flex;
+		justify-content: space-between;
+		padding: 0 8vw;
+		align-items: center;
+	}
+
+	.button {
+		border: none;
+		background: none;
+		color: var(--primary-more);
+		border-radius: 5rem;
+		transition:
+			box-shadow 0.05s,
+			transform 0.05s;
+	}
+
+	.button:active {
+		box-shadow: 0 0 2rem var(--bg-less);
+		transform: scale(0.95);
+	}
+
+	.stack-cell {
+		display: grid;
+		place-content: center;
+	}
+
+	.stack-cell > * {
+		grid-area: 1 / 1;
+	}
+
+	.time-text {
+		font-weight: bold;
+		font-size: 1rem;
+		place-self: center;
+	}
+
+	.play-pause__circle {
+		width: 6rem;
+		height: 6rem;
+		background-color: var(--primary);
+		border-radius: 50%;
+	}
+
+	.play-pause__icon {
+		color: var(--neutral);
+		place-self: center;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--play) {
+		margin-top: 0.5rem;
+		margin-left: 0.5rem;
+		stroke-width: 2.5;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--pause) {
+		margin-top: 0.5rem;
+		stroke-width: 2.5;
+	}
+
+	.play-pause__icon :global(.play-pause__icon--loading) {
+		margin-top: 0.5rem;
+		stroke-width: 2.5;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.bottom-nav-spacer {
+		height: 4rem;
+	}
+</style>
