@@ -1,6 +1,20 @@
 <script lang="ts">
-	import { RotateCcw, RotateCw, Play, Pause, Loader2 } from 'lucide-svelte';
-	import { formatPlaybackPosition } from '$lib/utils/time';
+	import {
+		RotateCcw,
+		RotateCw,
+		Play,
+		Pause,
+		Loader2,
+		AudioWaveform,
+		Calendar,
+		Clock,
+		Antenna
+	} from 'lucide-svelte';
+	import {
+		formatEpisodeDate,
+		formatEpisodeDuration,
+		formatPlaybackPosition
+	} from '$lib/utils/time';
 	import { BottomSheet } from 'svelte-bottom-sheet';
 	import type { ActiveEpisode } from '$lib/types/db';
 
@@ -42,12 +56,28 @@
 					<div class="content">
 						<div class="header">
 							<div class="episode-title">
-								{episode.title}
+								<div class="episode-title-feed">
+									<a href="/" onclick={onFeedClick}>
+										{episode.feedTitle}
+									</a>
+								</div>
+								<div class="episode-title-separator">
+									<Antenna size="14" />
+								</div>
+								<div>
+									{episode.title}
+								</div>
 							</div>
-							<div class="feed-title">
-								<a href="/" onclick={onFeedClick}>
-									{episode.feedTitle}
-								</a>
+							<div class="episode-details">
+								<div class="episode-details-date">
+									<Calendar size="14" />
+									{formatEpisodeDate(episode.publishedAt)}
+								</div>
+								<div class="episode-details-duration">
+									<Clock size="14" />
+									{formatEpisodeDuration(episode.durationMin)}
+								</div>
+								<div class="episode-details-separator"></div>
 							</div>
 						</div>
 						<div class="description">
@@ -71,6 +101,12 @@
 									max={duration}
 									onchange={onSeek}
 									onclick={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onmousemove={(e) => e.stopPropagation()}
+									onmouseup={(e) => e.stopPropagation()}
+									ontouchstart={(e) => e.stopPropagation()}
+									ontouchmove={(e) => e.stopPropagation()}
+									ontouchend={(e) => e.stopPropagation()}
 								/>
 							</div>
 							<div class="buttons">
@@ -141,21 +177,39 @@
 		grid-template-rows: auto 1fr auto auto;
 	}
 
-	.header {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-	}
-
 	.episode-title {
-		text-align: center;
 		font-weight: bold;
-		font-size: var(--text-xl);
+		font-size: var(--text-large);
+		line-height: var(--line-height-slack);
 	}
 
-	.feed-title {
-		text-align: center;
-		font-weight: bold;
+	.episode-title > div {
+		display: inline;
+	}
+
+	.episode-title-separator {
+		padding: 0 0.25rem;
+	}
+
+	.episode-details {
+		font-size: var(--text-small);
+		font-family: monospace;
+		color: var(--primary);
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 1rem;
+	}
+
+	.episode-details > div {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.episode-details-separator {
+		border-right: 5px solid var(--primary);
+		height: 2rem;
 	}
 
 	.description {
@@ -196,7 +250,7 @@
 	.progress-bar {
 		appearance: none;
 		border: none;
-		margin-top: 0.5rem;
+		margin-top: 0.75rem;
 
 		&::-webkit-slider-runnable-track {
 			height: 1rem;
@@ -213,11 +267,11 @@
 
 		&::-webkit-slider-thumb {
 			appearance: none;
-			width: 1.25rem;
-			height: 2rem;
+			width: 1.5rem;
+			height: 2.5rem;
 			background-color: var(--primary-more);
 			border: 3px solid var(--primary-less);
-			margin-top: -0.5rem;
+			margin-top: -0.75rem;
 			border-radius: 0.25rem;
 			background: white;
 
@@ -315,6 +369,6 @@
 	}
 
 	.bottom-nav-spacer {
-		height: 4rem;
+		height: 3rem;
 	}
 </style>

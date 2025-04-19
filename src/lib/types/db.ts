@@ -29,6 +29,7 @@ export interface ActiveEpisode {
 	feedId: string;
 	// denormalized fields
 	durationMin: number;
+	publishedAt: Date;
 	feedTitle: string;
 	title: string;
 	content: string;

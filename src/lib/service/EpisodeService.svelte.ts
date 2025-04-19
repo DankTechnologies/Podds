@@ -22,6 +22,7 @@ export class EpisodeService {
 			feedId: episode.feedId,
 			playbackPosition: 0,
 			lastUpdatedAt: new Date(),
+			publishedAt: episode.publishedAt,
 			durationMin: episode.durationMin,
 			minutesLeft: episode.durationMin,
 			isCompleted: 0,
