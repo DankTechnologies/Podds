@@ -2,18 +2,16 @@ import type { EpisodeCleanerRequest, EpisodeCleanerResponse } from '$lib/types/e
 
 async function deleteCachedAudio(url: string): Promise<void> {
     if ('caches' in self) {
-        try {
-            const cache = await caches.open('mp3-cache');
-            // Find and delete matching cache entries
-            const keys = await cache.keys();
-            const matchingKey = keys.find(key =>
-                key.url.includes(encodeURIComponent(url))
-            );
-            if (matchingKey) {
-                await cache.delete(matchingKey);
-            }
-        } catch (error) {
-            throw new Error(`Failed to clear cache for URL ${url}: ${error}`);
+        const cache = await caches.open('mp3-cache');
+        // Find and delete matching cache entries
+        const keys = await cache.keys();
+        const matchingKey = keys.find(key =>
+            key.url.includes(encodeURIComponent(url))
+        );
+        if (matchingKey) {
+            await cache.delete(matchingKey);
+        } else {
+            throw new Error(`No matching cache entry found for URL ${url}`);
         }
     }
 }

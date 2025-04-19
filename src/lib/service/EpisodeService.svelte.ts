@@ -118,7 +118,7 @@ export class EpisodeService {
 
 			response.errors.forEach((x) => Log.error(x));
 		} catch (error) {
-			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? error.message : `${error}`}`);
 		} finally {
 			worker.terminate();
 		}
