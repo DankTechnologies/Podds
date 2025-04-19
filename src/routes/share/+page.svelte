@@ -78,7 +78,7 @@
 				author: feedResponse.feed.author,
 				ownerName: feedResponse.feed.ownerName,
 				link: feedResponse.feed.link,
-				categories: Array.from(feedResponse.feed.categories?.values() || [])
+				categories: Object.values(feedResponse.feed.categories || {})
 			};
 
 			isFeedAdded = feeds.find((f) => f.id === config?.feedId) !== undefined;
@@ -98,6 +98,7 @@
 			}
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load shared content';
+			alert(error);
 		}
 	});
 
