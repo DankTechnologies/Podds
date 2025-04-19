@@ -88,11 +88,11 @@
 										<div class="play-pause__circle"></div>
 										<div class="play-pause__icon">
 											{#if !episode.isDownloaded}
-												<Loader2 class="play-pause__icon--loading" size="6rem" />
+												<Loader2 class="play-pause__icon--loading" size="4rem" />
 											{:else if paused}
-												<Play class="play-pause__icon--play" size="4.5rem" />
+												<Play class="play-pause__icon--play" size="4rem" />
 											{:else}
-												<Pause class="play-pause__icon--pause" size="4.5rem" />
+												<Pause class="play-pause__icon--pause" size="4rem" />
 											{/if}
 										</div>
 									</div>
@@ -277,8 +277,8 @@
 	}
 
 	.play-pause__circle {
-		width: 6rem;
-		height: 6rem;
+		width: 5rem;
+		height: 5rem;
 		background-color: var(--primary);
 		border-radius: 50%;
 	}
@@ -289,18 +289,18 @@
 	}
 
 	.play-pause__icon :global(.play-pause__icon--play) {
-		margin-top: 0.5rem;
-		margin-left: 0.5rem;
+		margin-top: 0.35rem;
+		margin-left: 0.35rem;
 		stroke-width: 2.5;
 	}
 
 	.play-pause__icon :global(.play-pause__icon--pause) {
-		margin-top: 0.5rem;
+		margin-top: 0.25rem;
 		stroke-width: 2.5;
 	}
 
 	.play-pause__icon :global(.play-pause__icon--loading) {
-		margin-top: 0.5rem;
+		margin-top: 0.25rem;
 		stroke-width: 2.5;
 		animation: spin 1s linear infinite;
 	}
