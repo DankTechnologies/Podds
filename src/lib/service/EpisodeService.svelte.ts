@@ -8,7 +8,7 @@ export class EpisodeService {
 
 		// set episode as playing, add if needed
 		if (this.findActiveEpisode(episode.id)) {
-			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1 } });
+			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1, lastUpdatedAt: new Date(), isCompleted: 0 } });
 		} else {
 			this.addActiveEpisode(episode as Episode, true, false);
 		}
