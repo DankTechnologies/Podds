@@ -4,9 +4,9 @@
 	import { db, getSettings } from '$lib/stores/db.svelte';
 	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
-	import PodcastIndexClient from '$lib/api/podcast-index';
 	import { FeedService } from '$lib/service/FeedService';
 	import { calculateStorageUsage, formatBytes, type StorageInfo } from '$lib/utils/storage';
+	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	let feedService = new FeedService();
 
 	let settings = $state<Settings>(
@@ -26,7 +26,6 @@
 		'1052374,1074603,1077200,1329334,1491827,165630,204504,214340,220911,223113,309699,318113,3240656,3455133,3745116,460150,480976,522889,5320480,533288,542376,548735,555339,561997,577105,5775917,5928182,6029956,637281,6596894,6660056,6752757,7123066,7132376,743229,853158,910728,5199634,7229334'
 	);
 
-	let apiStatus = $state<'untested' | 'success' | 'error'>('untested');
 	let activeSection = $state<'general' | 'api' | 'backup' | 'logs' | 'storage'>('general');
 	let storageInfo = $state<StorageInfo>({
 		cacheSize: 0,
@@ -58,11 +57,6 @@
 			settings.syncIntervalMinutes = 15;
 		}
 		SettingsService.saveSettings(settings);
-	}
-
-	async function onTest() {
-		const api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-		apiStatus = (await api.testConnection()) ? 'success' : 'error';
 	}
 
 	async function onImportFeeds() {
@@ -162,63 +156,10 @@
 	{/if}
 
 	{#if activeSection === 'api' && settings.isAdvanced}
-		<section class="section">
-			<div>
-				<label for="podcastIndexKey">Podcast Index Key</label>
-				<input
-					id="podcastIndexKey"
-					class="api-input"
-					type="text"
-					bind:value={settings.podcastIndexKey}
-					onchange={() => (apiStatus = 'untested')}
-					required
-				/>
-			</div>
-			<div>
-				<label for="podcastIndexSecret">Podcast Index Secret</label>
-				<input
-					id="podcastIndexSecret"
-					class="api-input"
-					type="text"
-					bind:value={settings.podcastIndexSecret}
-					onchange={() => (apiStatus = 'untested')}
-					required
-				/>
-			</div>
-			<div>
-				<label for="corsHelperUrl">CORS Helper</label>
-				<input
-					id="corsHelperUrl"
-					class="api-input"
-					type="text"
-					bind:value={settings.corsHelperUrl}
-					onchange={() => (apiStatus = 'untested')}
-					required
-				/>
-			</div>
-			<div>
-				<label for="connectionStatus">Connection Status</label>
-				<div
-					id="connectionStatus"
-					role="status"
-					class="status"
-					class:success={apiStatus === 'success'}
-					class:error={apiStatus === 'error'}
-				>
-					{#if apiStatus === 'untested'}
-						Not tested
-					{:else if apiStatus === 'success'}
-						Connection successful
-					{:else}
-						Connection failed
-					{/if}
-				</div>
-			</div>
-			<div class="actions">
-				<button type="button" onclick={onTest}>Test Connection</button>
-				<button type="button" onclick={onSave}>Save Changes</button>
-			</div>
-		</section>
+		<ApiSettings bind:settings />
+		<div class="actions">
+			<button type="button" onclick={onSave}>Save Changes</button>
+		</div>
 	{/if}
 
 	{#if activeSection === 'backup' && settings.isAdvanced}
@@ -297,23 +238,6 @@
 	button {
 		padding: 0.5em;
 		border-radius: 0.25rem;
-	}
-
-	.status {
-		font-family: monospace;
-	}
-
-	.status.success {
-		color: var(--success);
-	}
-
-	.status.error {
-		color: var(--error);
-	}
-
-	.api-input {
-		font-size: var(--text-small);
-		font-family: monospace;
 	}
 
 	.actions {

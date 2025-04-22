@@ -4,13 +4,17 @@
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
 	import { FeedService } from '$lib/service/FeedService';
-	import { db, getActiveEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes, getFeedIconsById, getSettings } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { page } from '$app/state';
+	import SetupWizard from '$lib/components/SetupWizard.svelte';
 
 	let feedService = new FeedService();
 
 	let isDbReady = $state(false);
+
+	let settings = $derived(getSettings());
+	let hasSettings = $derived(settings !== undefined);
 
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
@@ -48,11 +52,15 @@
 
 <main>
 	{#if isDbReady}
-		{@render children()}
-		{#if activeEpisode}
-			<Player episode={activeEpisode} {feedIconsById} />
+		{#if hasSettings}
+			{@render children()}
+			{#if activeEpisode}
+				<Player episode={activeEpisode} {feedIconsById} />
+			{/if}
+			<BottomNavBar />
+		{:else}
+			<SetupWizard />
 		{/if}
-		<BottomNavBar />
 	{/if}
 </main>
 
