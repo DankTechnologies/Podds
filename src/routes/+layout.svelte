@@ -52,7 +52,7 @@
 
 <main>
 	{#if isDbReady}
-		{#if hasSettings}
+		{#if hasSettings || page.url.pathname.startsWith('/share')}
 			{@render children()}
 			{#if activeEpisode}
 				<Player episode={activeEpisode} {feedIconsById} />
