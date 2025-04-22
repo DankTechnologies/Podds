@@ -6,7 +6,22 @@ import path from 'path';
 const isDev = process.env.NODE_ENV === 'development';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		sveltekit(),
+		{
+			name: 'copy-manifest',
+			buildStart() {
+				const manifestPath = path.resolve(__dirname, 'static/manifest.webmanifest');
+				const manifestDevPath = path.resolve(__dirname, 'static/manifest-dev.webmanifest');
+
+				if (isDev) {
+					fs.copyFileSync(manifestDevPath, manifestPath);
+				} else {
+					fs.copyFileSync(path.resolve(__dirname, 'static/manifest-prod.webmanifest'), manifestPath);
+				}
+			}
+		}
+	],
 	server: {
 		host: '0.0.0.0',
 		allowedHosts: true,

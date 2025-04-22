@@ -1,5 +1,6 @@
 node_modules
 cert
+static/manifest.webmanifest
 # Output
 .output
 .vercel

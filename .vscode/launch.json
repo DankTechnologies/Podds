@@ -8,7 +8,7 @@
 			"type": "chrome",
 			"request": "launch",
 			"name": "Launch Chrome against localhost",
-			"url": "https://woowoo.local:5173",
+			"url": "https://dbk-lt.local:5173",
 			"webRoot": "${workspaceFolder}"
 		},
 		{
@@ -16,9 +16,14 @@
 			"request": "launch",
 			"name": "Debug Vitest Tests",
 			"autoAttachChildProcesses": true,
-			"skipFiles": ["<node_internals>/**"],
+			"skipFiles": [
+				"<node_internals>/**"
+			],
 			"program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
-			"args": ["run", "${relativeFile}"],
+			"args": [
+				"run",
+				"${relativeFile}"
+			],
 			"smartStep": true,
 			"console": "integratedTerminal"
 		}
