@@ -43,6 +43,8 @@
 			})
 	);
 
+	let playingEpisode = $derived(getActiveEpisodes().find((x) => x.isPlaying));
+
 	let feedIconsById = $derived(getFeedIconsById());
 	let view = $state('upNext');
 
@@ -55,12 +57,13 @@
 		// avoid wiggle on page load
 		if (previousUpNextCount === -1) {
 			previousUpNextCount = upNextEpisodes.length;
+			previousListenedToCount = listenedToEpisodes.length;
+			return;
 		}
 
-		// avoid wiggle on page load
-		if (previousListenedToCount === -1) {
-			previousListenedToCount = listenedToEpisodes.length;
-		}	
+		if (playingEpisode) {
+			return;
+		}
 
 		if (upNextEpisodes.length !== previousUpNextCount) {
 			wiggleUpNext = true;
@@ -164,10 +167,18 @@
 	}
 
 	@keyframes wiggle {
-		0% { transform: rotate(0deg); }
-		25% { transform: rotate(-2deg); }
-		75% { transform: rotate(2deg); }
-		100% { transform: rotate(0deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		25% {
+			transform: rotate(-2deg);
+		}
+		75% {
+			transform: rotate(2deg);
+		}
+		100% {
+			transform: rotate(0deg);
+		}
 	}
 
 	.wiggle {
