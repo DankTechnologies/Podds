@@ -129,16 +129,29 @@
 		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
 
 		if (focusedEpisodeId) {
-			// Wait for next tick to allow the controls to expand
-			setTimeout(() => {
+			// Use requestAnimationFrame to ensure DOM updates are complete
+			requestAnimationFrame(() => {
 				const card = document.querySelector(`.episode-card[data-episode-id="${episode.id}"]`);
 				if (card) {
 					const cardBottom = card.getBoundingClientRect().bottom;
 					if (cardBottom + 350 > window.innerHeight) {
-						card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						// Use a more reliable scroll approach
+						const scrollOptions: ScrollIntoViewOptions = {
+							behavior: 'smooth',
+							block: 'center'
+						};
+
+						// Try smooth scrolling first, fall back to instant if needed
+						try {
+							card.scrollIntoView(scrollOptions);
+						} catch (e) {
+							// Fallback for browsers that don't support smooth scrolling
+							scrollOptions.behavior = 'auto';
+							card.scrollIntoView(scrollOptions);
+						}
 					}
 				}
-			}, 0);
+			});
 		}
 	}
 
@@ -457,17 +470,22 @@
 	}
 
 	.episode-controls {
-		max-height: 0;
+		transform: scaleY(0);
+		transform-origin: top;
 		opacity: 0;
 		overflow: hidden;
 		background: var(--bg-less);
 		border-bottom: 1px solid var(--primary-less);
+		height: 0;
 	}
 
 	.episode-controls--visible {
-		max-height: 600px;
+		transform: scaleY(1);
 		opacity: 1;
-		transition: all 150ms ease-in-out;
+		height: auto;
+		transition:
+			transform 150ms ease-in-out,
+			opacity 150ms ease-in-out;
 	}
 
 	.episode-controls__description-wrapper {

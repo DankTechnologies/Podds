@@ -79,12 +79,7 @@
 				</div>
 			</button>
 
-			<div
-				class="feed-controls"
-				class:feed-controls--hidden={focusedFeedId !== feed.id.toString()}
-				style:position-anchor={`--feed-${feed.id}`}
-				style:position="fixed"
-			>
+			<div class="feed-controls" class:feed-controls--hidden={focusedFeedId !== feed.id.toString()}>
 				<div class="feed-controls__description-wrapper">
 					<div class="feed-controls__description">{@html feed.description}</div>
 				</div>
@@ -127,6 +122,10 @@
 		text-align: left;
 		color: var(--text);
 		border-bottom: 1px solid var(--primary-less);
+	}
+
+	.feed-card--focused .feed-card__wrapper {
+		border-bottom: none;
 	}
 
 	.feed-card__content {
@@ -232,60 +231,36 @@
 	}
 
 	.feed-controls {
-		position-area: end span-all;
-		margin-top: -1px;
-		width: 100vw;
+		max-height: 0;
+		opacity: 0;
+		overflow: hidden;
 		background: var(--bg-less);
+		border-bottom: 1px solid var(--primary-less);
+	}
+
+	.feed-controls--hidden {
+		max-height: 0;
+		opacity: 0;
+		transition: all 150ms ease-in-out;
+		background: var(--bg);
+		pointer-events: none;
+	}
+
+	.feed-controls:not(.feed-controls--hidden) {
+		max-height: 600px;
 		opacity: 1;
-		visibility: visible;
-		position: relative;
-		background: transparent;
-		z-index: 10;
+		transition: all 150ms ease-in-out;
 	}
 
 	.feed-controls__description-wrapper {
-		padding: 0 1rem 2rem 1rem;
-		background: var(--bg-less);
-		border-bottom: 1px solid var(--primary-less);
-		z-index: 10;
-	}
-
-	.feed-controls__description {
-		font-size: var(--text-small);
-		line-height: var(--line-height-normal);
-		overflow: hidden;
-		border-left: 0.5rem solid var(--primary-less);
-		padding: 0 1rem;
-		text-overflow: ellipsis;
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		line-clamp: 3;
-		-webkit-box-orient: vertical;
-		word-break: break-word;
-
-		:global(p) {
-			margin: 0;
-		}
+		padding: 1rem;
 	}
 
 	.feed-controls__buttons {
 		display: flex;
-		gap: 2rem;
-		margin-top: -1px;
 		background: var(--bg-less);
-		width: fit-content;
-		padding: 0 2rem 2rem 2rem;
-		border-right: 1px solid var(--primary-less);
-		border-bottom: 1px solid var(--primary-less);
-		z-index: 10;
-	}
-
-	.feed-controls--hidden {
-		opacity: 0;
-		transform: translateY(-0.25rem);
-		visibility: hidden;
-		background: var(--bg);
-		pointer-events: none;
+		padding: 1rem 0 2rem 1rem;
+		gap: 1.5rem;
 	}
 
 	.feed-controls__button {
@@ -300,5 +275,23 @@
 		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
+	}
+
+	.feed-controls__description {
+		font-size: var(--text-small);
+		line-height: var(--line-height-normal);
+		overflow: hidden;
+		border-left: 0.5rem solid var(--primary-less);
+		padding: 0 1rem;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 6;
+		line-clamp: 6;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
+
+		:global(p) {
+			margin: 0;
+		}
 	}
 </style>
