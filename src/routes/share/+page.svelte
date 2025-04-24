@@ -7,7 +7,7 @@
 	import { parseTitle } from '$lib/utils/feedParser';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
-	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
 	import { List, Podcast, Play, Download, Dot } from 'lucide-svelte';
 	import { decodeShareLink, type ShareConfig } from '$lib/utils/share';
@@ -16,7 +16,7 @@
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 
-	let isFeedAdded = $state(false);
+	let feedExists = $state(false);
 	let config = $state<ShareConfig | null>(null);
 	let error = $state<string | null>(null);
 	let feed = $state.raw<Feed | null>(null);
@@ -26,6 +26,7 @@
 	let downloadProgress = $state<number>(0);
 	let feeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
+	let settings = $derived(getSettings());
 
 	let targetEpisode = $derived(
 		episodes.find((e) => e.publishedAt.getTime() / 1000 === config?.episodePublishedAt)
@@ -49,43 +50,46 @@
 				podcastIndexKey: config.podcastIndexKey,
 				podcastIndexSecret: config.podcastIndexSecret,
 				corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
-				syncIntervalMinutes: 15,
-				lastSyncAt: new Date(),
-				logLevel: 'info',
-				isAdvanced: false
+				syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
+				lastSyncAt: settings?.lastSyncAt ?? new Date(),
+				logLevel: settings?.logLevel ?? 'info',
+				isAdvanced: settings?.isAdvanced ?? false
 			});
 
-			// Initialize API client
-			const api = new PodcastIndexClient(config.podcastIndexKey, config.podcastIndexSecret);
+			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
+			feedExists = feed !== null;
 
-			// Get feed details
-			const feedResponse = await api.podcastById(Number(config.feedId));
-			if (!feedResponse) {
-				throw new Error('Feed not found');
+			if (!feedExists) {
+				// Initialize API client
+				const api = new PodcastIndexClient(config.podcastIndexKey, config.podcastIndexSecret);
+
+				// Get feed details
+				const feedResponse = await api.podcastById(Number(config.feedId));
+				if (!feedResponse) {
+					throw new Error('Feed not found');
+				}
+
+				// Resize and store icon
+				const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
+				const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
+				iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+
+				feed = {
+					id: feedResponse.feed.id.toString(),
+					url: feedResponse.feed.url,
+					title: feedResponse.feed.title,
+					iconData: iconData || '',
+					description: feedResponse.feed.description,
+					author: feedResponse.feed.author,
+					ownerName: feedResponse.feed.ownerName,
+					link: feedResponse.feed.link,
+					categories: Object.values(feedResponse.feed.categories || {})
+				};
 			}
-
-			// Resize and store icon
-			const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
-			const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
-			iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
-
-			feed = {
-				id: feedResponse.feed.id.toString(),
-				url: feedResponse.feed.url,
-				title: feedResponse.feed.title,
-				iconData: iconData || '',
-				description: feedResponse.feed.description,
-				author: feedResponse.feed.author,
-				ownerName: feedResponse.feed.ownerName,
-				link: feedResponse.feed.link,
-				categories: Object.values(feedResponse.feed.categories || {})
-			};
-
-			isFeedAdded = feeds.find((f) => f.id === config?.feedId) !== undefined;
 
 			// Get episodes
 			const finderRequest = {
-				feeds: [feed],
+				feeds: feed ? [feed] : [],
 				since: undefined
 			};
 
@@ -103,13 +107,13 @@
 	});
 
 	function addFeed() {
-		if (!feed || !iconData || isFeedAdded) return;
+		if (!feed || !iconData || !feedExists) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
 		goto(`/podcast/${feed.id}`);
 	}
 
 	function playEpisode(feed: Feed, episode: Episode) {
-		if (!isFeedAdded) {
+		if (!feedExists) {
 			feedService.addFeedAndEpisodes(feed, episodes);
 		}
 
@@ -128,7 +132,7 @@
 	}
 
 	function downloadEpisode(feed: Feed, episode: Episode) {
-		if (!isFeedAdded) {
+		if (!feedExists) {
 			feedService.addFeedAndEpisodes(feed, episodes);
 		}
 
@@ -178,7 +182,7 @@
 				</button>
 			{:else}
 				<!-- Feed-specific buttons -->
-				{#if isFeedAdded}
+				{#if feedExists}
 					<button class="action-button" onclick={() => goto(`/podcast/${config?.feedId}`)}>
 						<Podcast size="24" />
 						Go to podcast
