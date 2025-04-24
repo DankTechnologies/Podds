@@ -109,7 +109,9 @@
 	}
 
 	function playEpisode(feed: Feed, episode: Episode) {
-		feedService.addFeedAndEpisodes(feed, episodes);
+		if (!isFeedAdded) {
+			feedService.addFeedAndEpisodes(feed, episodes);
+		}
 
 		EpisodeService.setPlayingEpisode(episode);
 
@@ -126,7 +128,9 @@
 	}
 
 	function downloadEpisode(feed: Feed, episode: Episode) {
-		feedService.addFeedAndEpisodes(feed, episodes);
+		if (!isFeedAdded) {
+			feedService.addFeedAndEpisodes(feed, episodes);
+		}
 
 		downloadProgress = 0;
 
