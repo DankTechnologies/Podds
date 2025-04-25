@@ -37,12 +37,12 @@
 
 	onMount(async () => {
 		try {
-			const hash = window.location.hash.slice(1);
-			if (!hash) {
+			const shareData = getShareData();
+			if (!shareData) {
 				throw new Error('No share data found');
 			}
 
-			config = decodeShareLink(hash);
+			config = decodeShareLink(shareData);
 
 			// Update settings with shared config
 			SettingsService.saveSettings({
@@ -60,41 +60,12 @@
 			feedExists = feed !== null;
 
 			if (!feedExists) {
-				// Initialize API client
-				const api = new PodcastIndexClient(config.podcastIndexKey, config.podcastIndexSecret);
-
-				// Get feed details
-				const feedResponse = await api.podcastById(Number(config.feedId));
-				if (!feedResponse) {
-					throw new Error('Feed not found');
-				}
-
-				// Resize and store icon
-				const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
-				const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
-				iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
-
-				feed = {
-					id: feedResponse.feed.id.toString(),
-					url: feedResponse.feed.url,
-					title: feedResponse.feed.title,
-					iconData: iconData || '',
-					description: feedResponse.feed.description,
-					author: feedResponse.feed.author,
-					ownerName: feedResponse.feed.ownerName,
-					link: feedResponse.feed.link,
-					categories: Object.values(feedResponse.feed.categories || {})
-				};
+				const { feed: newFeed, iconData: newIconData } = await getFeedFromPodcastIndex();
+				feed = newFeed;
+				iconData = newIconData;
 			}
 
-			// Get episodes
-			const finderRequest = {
-				feeds: feed ? [feed] : [],
-				since: undefined
-			};
-
-			const finderResponse = await feedService.runEpisodeFinder(finderRequest);
-			episodes = finderResponse.episodes;
+			episodes = await getEpisodes(feed);
 
 			const loadingScreen = document.getElementById('appLoading');
 			if (loadingScreen) {
@@ -110,6 +81,46 @@
 		if (!feed || !iconData || !feedExists) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
 		goto(`/podcast/${feed.id}`);
+	}
+
+	async function getEpisodes(feed: Feed | null): Promise<Episode[]> {
+		const finderRequest = {
+			feeds: feed ? [feed] : [],
+			since: undefined
+		};
+
+		const finderResponse = await feedService.runEpisodeFinder(finderRequest);
+		return finderResponse.episodes;
+	}
+
+	async function getFeedFromPodcastIndex(): Promise<{ feed: Feed; iconData: string }> {
+		// Initialize API client
+		const api = new PodcastIndexClient(config!.podcastIndexKey, config!.podcastIndexSecret);
+
+		// Get feed details
+		const feedResponse = await api.podcastById(Number(config!.feedId));
+		if (!feedResponse) {
+			throw new Error('Feed not found');
+		}
+
+		// Resize and store icon
+		const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
+		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
+		const iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+
+		const feed = {
+			id: feedResponse.feed.id.toString(),
+			url: feedResponse.feed.url,
+			title: feedResponse.feed.title,
+			iconData: iconData || '',
+			description: feedResponse.feed.description,
+			author: feedResponse.feed.author,
+			ownerName: feedResponse.feed.ownerName,
+			link: feedResponse.feed.link,
+			categories: Object.values(feedResponse.feed.categories || {})
+		};
+
+		return { feed, iconData };
 	}
 
 	function playEpisode(feed: Feed, episode: Episode) {
@@ -147,6 +158,11 @@
 			() => alert('failed to download episode'),
 			(progress) => (downloadProgress = progress)
 		);
+	}
+
+	function getShareData(): string | null {
+		const url = new URL(window.location.href);
+		return url.hash.slice(1) ?? null;
 	}
 </script>
 
