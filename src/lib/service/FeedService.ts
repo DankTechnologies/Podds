@@ -273,6 +273,8 @@ export class FeedService {
 			} else {
 				Log.warn('No valid feeds were processed');
 			}
+		} catch (error) {
+			Log.error(`Error importing feeds: ${error instanceof Error ? error.message : String(error)}`);
 		} finally {
 			this.isUpdating = false;
 		}

@@ -26,7 +26,6 @@
 
 	function onFinish() {
 		SettingsService.saveSettings(settings);
-		goto('/search');
 	}
 </script>
 

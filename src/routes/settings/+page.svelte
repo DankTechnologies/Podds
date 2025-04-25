@@ -18,7 +18,7 @@
 			syncIntervalMinutes: 15,
 			lastSyncAt: new Date(),
 			isAdvanced: false,
-			logLevel: 'info'
+			logLevel: 'debug'
 		}
 	);
 
