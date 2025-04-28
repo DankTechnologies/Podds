@@ -124,11 +124,11 @@
 										<div class="play-pause__circle"></div>
 										<div class="play-pause__icon">
 											{#if !episode.isDownloaded}
-												<Loader2 class="play-pause__icon--loading" size="4rem" />
+												<Loader2 class="play-pause__icon--loading" size="3rem" />
 											{:else if paused}
-												<Play class="play-pause__icon--play" size="4rem" />
+												<Play class="play-pause__icon--play" size="3rem" />
 											{:else}
-												<Pause class="play-pause__icon--pause" size="4rem" />
+												<Pause class="play-pause__icon--pause" size="3rem" />
 											{/if}
 										</div>
 									</div>
@@ -154,13 +154,17 @@
 
 <style>
 	@media (prefers-color-scheme: dark) {
-		.bottom-sheet :global(.handle-container) {
-			background-color: var(--primary);
-		}
-
 		.bottom-sheet :global(.bottom-sheet) {
 			background-color: var(--bg-less);
 		}
+	}
+
+	.bottom-sheet :global(.handle-container) {
+		background-color: var(--primary);
+	}
+
+	.bottom-sheet :global(.bottom-sheet) {
+		overflow-y: hidden;
 	}
 
 	.bottom-sheet :global(.bottom-sheet-content) {
@@ -192,13 +196,13 @@
 	}
 
 	.episode-details {
-		font-size: var(--text-small);
+		font-size: var(--text-smaller);
 		font-family: monospace;
 		color: var(--primary);
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
-		gap: 1rem;
+		gap: 1.25rem;
 	}
 
 	.episode-details > div {
@@ -331,8 +335,8 @@
 	}
 
 	.play-pause__circle {
-		width: 5rem;
-		height: 5rem;
+		width: 4rem;
+		height: 4rem;
 		background-color: var(--primary);
 		border-radius: 50%;
 	}
