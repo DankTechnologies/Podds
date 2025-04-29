@@ -277,7 +277,7 @@
 				</div>
 				<div class="episode-controls__buttons">
 					{#if !getActiveEpisode(episode)?.isPlaying}
-						<button class="episode-controls__button" onclick={() => playEpisode(episode)}>
+						<button class="episode-controls__button action" onclick={() => playEpisode(episode)}>
 							<Play size="16" /> Play
 						</button>
 					{/if}
@@ -289,11 +289,6 @@
 					{#if isPlaylist && index > 0}
 						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
 							<ArrowUp size="16" /> Next
-						</button>
-					{/if}
-					{#if isSearch && !feeds.find((x) => x.id === episode.feedId)}
-						<button class="episode-controls__button" onclick={() => addFeed(episode.feedId)}>
-							<Plus size="16" /> Add Feed
 						</button>
 					{/if}
 					{#if !isShare}
@@ -325,6 +320,12 @@
 	.episode-card {
 		transition: background 150ms ease-out;
 		position: relative;
+		border-bottom: 1px solid var(--primary);
+	}
+
+	.episode-card--focused {
+		border-bottom: 0.4rem solid light-dark(var(--primary), var(--primary-more));
+		transition: border-bottom 150ms ease-in-out;
 	}
 
 	.episode-card--playing {
@@ -356,22 +357,6 @@
 		}
 	}
 
-	/* @media (prefers-color-scheme: dark) {
-		@keyframes shimmer {
-			0% {
-				opacity: 0.08;
-			}
-			50% {
-				opacity: 0.15;
-				filter: brightness(1.3);
-				transform: scale(0.92);
-			}
-			100% {
-				opacity: 0.08;
-			}
-		}
-	} */
-
 	.episode-card--focused:not(.episode-card--playing):not(.episode-card--playing-no-image) {
 		background: var(--bg-less);
 	}
@@ -383,11 +368,6 @@
 		padding: 1.5rem;
 		text-align: left;
 		color: var(--text);
-		border-bottom: 1px solid var(--primary-less);
-	}
-
-	.episode-card--focused .episode-card__wrapper {
-		border-bottom: none;
 	}
 
 	.episode-card__content {
@@ -432,14 +412,14 @@
 		font-size: var(--text-medium);
 	}
 
-	.episode-card__description {
+	.episode-card__description,
+	.episode-controls__description {
 		color: var(--text-less);
 		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
 		overflow: hidden;
-		border-left: 0.5rem solid var(--primary-less);
+		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
 		padding: 0 1rem;
-		margin: 0.5rem 0;
 		text-overflow: ellipsis;
 		display: -webkit-box;
 		-webkit-line-clamp: 6;
@@ -452,6 +432,14 @@
 		}
 	}
 
+	.episode-card__description {
+		margin: 0.5rem 0;
+	}
+
+	.episode-controls__description {
+		margin: 0;
+	}
+
 	.episode-card__time {
 		font-size: var(--text-small);
 		font-family: monospace;
@@ -460,6 +448,10 @@
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
+	}
+
+	.episode-card--focused .episode-card__time {
+		color: var(--primary-more);
 	}
 
 	.download-progress {
@@ -474,8 +466,6 @@
 		transform-origin: top;
 		opacity: 0;
 		overflow: hidden;
-		background: var(--bg-less);
-		border-bottom: 1px solid var(--primary-less);
 		height: 0;
 	}
 
@@ -496,29 +486,10 @@
 		padding-left: 1.5rem;
 	}
 
-	.episode-controls__description {
-		font-size: var(--text-small);
-		line-height: var(--line-height-normal);
-		overflow: hidden;
-		border-left: 0.5rem solid var(--primary-less);
-		padding: 0 1rem;
-		text-overflow: ellipsis;
-		display: -webkit-box;
-		-webkit-line-clamp: 6;
-		line-clamp: 6;
-		-webkit-box-orient: vertical;
-		word-break: break-word;
-
-		:global(p) {
-			margin: 0;
-		}
-	}
-
 	.episode-controls__buttons {
 		display: flex;
-		background: var(--bg-less);
-		padding: 1rem 0 2rem 1rem;
-		gap: 1.5rem;
+		padding: 1rem;
+		gap: 1rem;
 	}
 
 	.episode-controls__button {
@@ -526,20 +497,21 @@
 		font-size: var(--text-small);
 		font-weight: 600;
 		align-items: center;
-		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
-		padding: 0.5rem 1rem;
-		color: var(--neutral);
+		padding: 0.5rem;
 		cursor: pointer;
 		border-radius: 0.25rem;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
 	.episode-controls__button--delete {
-		background: var(--error);
-		color: var(--neutral);
+		margin-left: auto;
+		color: var(--error);
+		opacity: 0.7;
 	}
-
 	.episode-controls--no-transition {
 		transition: none !important;
 	}

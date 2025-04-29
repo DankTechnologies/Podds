@@ -134,3 +134,10 @@ export function parseSubtitle(title: string | undefined): string {
 	const match = title.match(/^(.*?)(?:[-:])(.*)/);
 	return match ? match[2].trim() : '';
 }
+
+export function parseOwner(author: string | undefined, ownerName: string | undefined): string | undefined {
+	const authorLength = author?.length || 0;
+	const ownerNameLength = ownerName?.length || 0;
+
+	return authorLength > ownerNameLength ? author : ownerName;
+}

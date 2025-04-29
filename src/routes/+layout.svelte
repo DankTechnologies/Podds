@@ -8,6 +8,7 @@
 	import { Log } from '$lib/service/LogService';
 	import { page } from '$app/state';
 	import SetupWizard from '$lib/components/SetupWizard.svelte';
+	import { trackThemePreference } from '$lib/utils/themePreference.svelte';
 
 	let feedService = new FeedService();
 
@@ -18,6 +19,8 @@
 
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
+
+	trackThemePreference();
 
 	Promise.all([
 		db.feeds.isReady(),
@@ -57,7 +60,7 @@
 			{#if activeEpisode}
 				<Player episode={activeEpisode} {feedIconsById} />
 			{/if}
-			<BottomNavBar />
+			<BottomNavBar episode={activeEpisode} />
 		{:else}
 			<SetupWizard />
 		{/if}

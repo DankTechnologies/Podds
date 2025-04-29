@@ -278,7 +278,7 @@
 	.podcast-header__meta {
 		font-size: var(--text-medium);
 		font-family: monospace;
-		color: var(--primary);
+		color: light-dark(var(--primary), var(--primary-more));
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -320,7 +320,7 @@
 	.podcast-episode-meta {
 		font-size: var(--text-medium);
 		font-family: monospace;
-		color: var(--primary);
+		color: light-dark(var(--primary), var(--primary-more));
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
@@ -328,7 +328,7 @@
 	}
 
 	.download-progress {
-		color: var(--primary);
+		color: light-dark(var(--primary), var(--primary-more));
 		min-width: 3ch;
 		padding-right: 0.5rem;
 	}

@@ -43,7 +43,7 @@
 
 	let episodes: Episode[] = $derived(
 		episodeResults.map((episode) => ({
-			id: episode.id.toString(),
+			id: episode.guid, // aligns with feedParser
 			feedId: episode.feedId.toString(),
 			title: episode.title,
 			publishedAt: new Date(episode.datePublished * 1000),
@@ -126,6 +126,7 @@
 		<input
 			type="search"
 			bind:value={query}
+			spellcheck="false"
 			placeholder="Search podcasts..."
 			onkeydown={(e) => e.key === 'Enter' && handleSearch()}
 		/>
@@ -145,7 +146,8 @@
 				class:active={view === 'feeds'}
 				onclick={() => (view = 'feeds')}
 			>
-				Feeds ({feedResults.length})
+				Feeds
+				<span class="search-view-button-count">{feedResults.length}</span>
 			</button>
 		{/if}
 		{#if episodeResults.length > 0}
@@ -154,7 +156,8 @@
 				class:active={view === 'episodes'}
 				onclick={() => (view = 'episodes')}
 			>
-				Episodes ({episodeResults.length})
+				Episodes
+				<span class="search-view-button-count">{episodeResults.length}</span>
 			</button>
 		{/if}
 		{#if libraryEpisodes.length > 0}
@@ -163,7 +166,8 @@
 				class:active={view === 'library'}
 				onclick={() => (view = 'library')}
 			>
-				Library ({libraryEpisodes.length})
+				Library
+				<span class="search-view-button-count">{libraryEpisodes.length}</span>
 			</button>
 		{/if}
 	</div>
@@ -193,8 +197,7 @@
 	.search-bar {
 		display: flex;
 		width: 100%;
-		gap: 0.5rem;
-		margin-bottom: 1rem;
+		gap: 1rem;
 		padding: 1rem;
 	}
 
@@ -202,8 +205,7 @@
 		flex: 1;
 		padding: 0.75rem;
 		border: 1px solid var(--primary-less);
-		background: var(--bg);
-		color: var(--text);
+		border-radius: 0.25rem;
 	}
 
 	.search-button {
@@ -211,6 +213,7 @@
 		background: var(--primary);
 		border: none;
 		color: var(--neutral);
+		border-radius: 0.25rem;
 	}
 
 	.message {
@@ -228,17 +231,39 @@
 		padding: 1rem;
 		gap: 1rem;
 		background-color: var(--bg-less);
+		overflow-x: scroll;
 	}
 
 	.search-view-button {
 		padding: 0.5rem 1rem;
-		border-radius: 0.5rem;
-		color: var(--primary-less);
+		border-radius: 0.25rem;
 		border: none;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.search-view-button.active {
-		color: var(--primary-more);
+		opacity: 1;
+	}
+
+	.search-view-button:not(.active) {
+		opacity: 0.5;
+	}
+
+	.search-view-button-count {
+		font-size: var(--text-xs);
+		font-family: monospace;
 		background-color: var(--bg);
+		padding: 2px 4px;
+		border-radius: 0.25rem;
+	}
+
+	.search-view-button.active .search-view-button-count {
+		background-color: var(--bg-less);
 	}
 </style>

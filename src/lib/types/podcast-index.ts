@@ -1,5 +1,6 @@
 export interface PIApiEpisodeBase {
 	id: number;
+	guid: string;
 	title: string;
 	link: string;
 	description: string;

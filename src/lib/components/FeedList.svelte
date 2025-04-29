@@ -108,10 +108,14 @@
 
 	.feed-card {
 		transition: background 150ms ease-out;
+		position: relative;
+		border-bottom: 1px solid light-dark(var(--primary-less), var(--primary-grey-light));
 	}
 
 	.feed-card--focused {
 		background: var(--bg-less);
+		border-bottom: 0.4rem solid light-dark(var(--primary), var(--primary-more));
+		transition: border-bottom 150ms ease-in-out;
 	}
 
 	.feed-card__wrapper {
@@ -121,7 +125,6 @@
 		padding: 1rem;
 		text-align: left;
 		color: var(--text);
-		border-bottom: 1px solid var(--primary-less);
 	}
 
 	.feed-card--focused .feed-card__wrapper {
@@ -177,6 +180,10 @@
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
+	}
+
+	.feed-card--focused .feed-card__meta {
+		color: light-dark(var(--primary), var(--primary-more));
 	}
 
 	.meta-with-icon {
@@ -235,7 +242,6 @@
 		opacity: 0;
 		overflow: hidden;
 		background: var(--bg-less);
-		border-bottom: 1px solid var(--primary-less);
 	}
 
 	.feed-controls--hidden {
@@ -259,8 +265,8 @@
 	.feed-controls__buttons {
 		display: flex;
 		background: var(--bg-less);
-		padding: 1rem 0 2rem 1rem;
-		gap: 1.5rem;
+		padding: 1rem;
+		gap: 1rem;
 	}
 
 	.feed-controls__button {
@@ -268,20 +274,21 @@
 		font-size: var(--text-small);
 		font-weight: 600;
 		align-items: center;
-		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
-		padding: 0.5rem 1rem;
-		color: var(--neutral);
+		padding: 0.5rem;
 		cursor: pointer;
 		border-radius: 0.25rem;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
 	.feed-controls__description {
 		font-size: var(--text-small);
 		line-height: var(--line-height-normal);
 		overflow: hidden;
-		border-left: 0.5rem solid var(--primary-less);
+		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
 		padding: 0 1rem;
 		text-overflow: ellipsis;
 		display: -webkit-box;

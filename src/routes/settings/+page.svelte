@@ -191,6 +191,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 10;
+		border-bottom: 4px solid var(--primary-less);
 	}
 
 	.settings-content {
@@ -201,15 +202,23 @@
 
 	.nav-item {
 		padding: 0.5rem 1rem;
-		border-radius: 0.5rem;
-		color: var(--primary-less);
+		border-radius: 0.25rem;
 		border: none;
-		cursor: pointer;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.nav-item.active {
-		color: var(--primary-more);
-		background-color: var(--bg);
+		opacity: 1;
+	}
+
+	.nav-item:not(.active) {
+		opacity: 0.5;
 	}
 
 	.section {
@@ -251,13 +260,13 @@
 		font-size: var(--text-smallish);
 		font-weight: 600;
 		align-items: center;
-		background: var(--primary-less);
+		background: var(--bg-less);
 		gap: 0.5rem;
 		border: none;
 		padding: 0.5rem 1rem;
-		color: var(--neutral);
+		color: var(--text);
 		border-radius: 0.25rem;
-		flex: 1;
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
 	.logs {

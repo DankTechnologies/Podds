@@ -199,13 +199,14 @@
 		font-size: var(--text-smallish);
 		font-weight: 600;
 		align-items: center;
-		background: var(--primary-less);
 		gap: 0.5rem;
 		border: none;
 		padding: 0.5rem 1rem;
-		color: var(--neutral);
 		border-radius: 0.25rem;
 		flex: 1;
+		background: var(--bg-less);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
 	.status-container {

@@ -142,24 +142,31 @@
 	.playlist-view-button {
 		padding: 0.5rem 1rem;
 		border-radius: 0.25rem;
-		color: var(--primary-less);
-		font-size: var(--text-smaller);
-
 		border: none;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.playlist-view-button.active {
-		color: var(--primary-more);
-		background-color: var(--bg);
+		opacity: 1;
+	}
+
+	.playlist-view-button:not(.active) {
+		opacity: 0.5;
 	}
 
 	.playlist-view-button-count {
 		font-size: var(--text-xs);
 		font-family: monospace;
+		color: var(--primary-200);
 		background-color: var(--bg);
 		padding: 2px 4px;
 		border-radius: 0.25rem;
-		display: inline-block;
 	}
 
 	.playlist-view-button.active .playlist-view-button-count {

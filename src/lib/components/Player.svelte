@@ -172,15 +172,6 @@
 	role="button"
 	tabindex="0"
 >
-	<input
-		class="player__playback"
-		type="range"
-		min="0"
-		bind:value={currentTime}
-		max={duration}
-		style="--value: {currentTime}; --max: {duration}"
-		disabled
-	/>
 	<div class="player__controls">
 		<div class="player__artwork">
 			<img src={`data:${feedIconsById.get(episode.feedId)}`} alt="" />
@@ -223,6 +214,15 @@
 			<X size={ICON_SIZE} />
 		</button>
 	</div>
+	<input
+		class="player__playback"
+		type="range"
+		min="0"
+		bind:value={currentTime}
+		max={duration}
+		style="--value: {currentTime}; --max: {duration}"
+		disabled
+	/>
 </div>
 
 <PlayerDetails
@@ -252,6 +252,11 @@
 		z-index: 49;
 		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
 	}
+
+	.player:focus-visible {
+		outline: none;
+	}
+
 	.player__playback {
 		display: flex;
 		flex: 1;
@@ -319,7 +324,7 @@
 	.player__button {
 		border: none;
 		background: none;
-		color: var(--primary-more);
+		color: light-dark(var(--primary-grey-dark), var(--primary-black));
 		border-radius: 5rem;
 		transition:
 			box-shadow 0.05s,
@@ -346,19 +351,15 @@
 		place-self: center;
 	}
 
-	.play-pause {
-		color: white;
-	}
-
 	.play-pause__circle {
 		width: 3rem;
 		height: 3rem;
-		background-color: var(--primary);
+		background-color: light-dark(var(--primary), var(--primary-more));
 		border-radius: 50%;
 	}
 
 	.play-pause__icon {
-		color: var(--neutral);
+		color: light-dark(var(--grey-100), var(--primary-grey-light));
 		place-self: center;
 	}
 

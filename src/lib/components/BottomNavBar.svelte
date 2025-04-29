@@ -2,11 +2,15 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
-	import { CassetteTape, Hotel, ListMusic, Radar, Settings } from 'lucide-svelte';
+	import { CassetteTape, Hotel, ListMusic, Radar } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
+	import type { ActiveEpisode } from '$lib/types/db';
 
 	const ICON_SIZE = '2rem';
+
+	let { episode }: { episode: ActiveEpisode | undefined } = $props();
 
 	onUpdateReady(() => {
 		SessionInfo.hasUpdate = true;
@@ -21,6 +25,8 @@
 		}
 		return page.url.pathname === href;
 	});
+
+	const showBorderTop = $derived(!episode && getIsLightMode());
 
 	const navItems = [
 		{
@@ -70,7 +76,7 @@
 	</button>
 {/snippet}
 
-<nav>
+<nav class:nav-border={showBorderTop}>
 	{#each navItems as { href, label, icon, hasUpdate, disabled }}
 		{@render NavButton(href, label, icon, hasUpdate(), disabled())}
 	{/each}
@@ -87,7 +93,6 @@
 		z-index: 50;
 		height: 4rem;
 		background-color: var(--bg-less);
-		border-top: 0.15rem solid var(--primary);
 	}
 
 	.nav-item {
@@ -95,10 +100,11 @@
 		flex-direction: column;
 		align-items: center;
 		text-decoration: none;
-		color: var(--primary-less);
+		color: light-dark(var(--primary-grey-dark), var(--primary-grey-light));
 		border: 0;
 		padding: 0.5rem;
 		background: none;
+		transition: all 0.2s ease-in-out;
 	}
 
 	.nav-item__label {
@@ -114,7 +120,7 @@
 	}
 
 	.nav-item.active {
-		color: var(--primary-more);
+		color: light-dark(var(--primary), var(--primary-more));
 		transform: rotate(2deg);
 	}
 
@@ -123,18 +129,8 @@
 		cursor: not-allowed;
 	}
 
-	.nav-item.has-update {
-		position: relative;
-	}
-
-	.nav-item.has-update::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 8px;
-		height: 8px;
-		background: var(--accent);
-		border-radius: 50%;
+	.nav-border {
+		border-top: 0.15rem solid light-dark(var(--primary-less), var(--primary-grey-light));
+		transition: all 1s ease-in-out;
 	}
 </style>

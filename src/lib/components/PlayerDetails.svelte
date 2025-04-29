@@ -84,6 +84,40 @@
 							{@html episode.content}
 						</div>
 						<div class="controls">
+							<div class="buttons">
+								<button class="button" onclick={onBack}>
+									<div class="stack-cell">
+										<div>
+											<RotateCcw size="2.5rem" />
+										</div>
+										<div class="time-text">10</div>
+									</div>
+								</button>
+
+								<button class="button play-pause" onclick={onPlayPause}>
+									<div class="stack-cell">
+										<div class="play-pause__circle"></div>
+										<div class="play-pause__icon">
+											{#if !episode.isDownloaded}
+												<Loader2 class="play-pause__icon--loading" size="3rem" />
+											{:else if paused}
+												<Play class="play-pause__icon--play" size="3rem" />
+											{:else}
+												<Pause class="play-pause__icon--pause" size="3rem" />
+											{/if}
+										</div>
+									</div>
+								</button>
+
+								<button class="button" onclick={onForward}>
+									<div class="stack-cell">
+										<div>
+											<RotateCw size="2.5rem" />
+										</div>
+										<div class="time-text">30</div>
+									</div>
+								</button>
+							</div>
 							<div class="progress-container">
 								<div class="time">
 									<div>
@@ -109,40 +143,6 @@
 									ontouchend={(e) => e.stopPropagation()}
 								/>
 							</div>
-							<div class="buttons">
-								<button class="button" onclick={onBack}>
-									<div class="stack-cell">
-										<div>
-											<RotateCcw size="3rem" />
-										</div>
-										<div class="time-text">10</div>
-									</div>
-								</button>
-
-								<button class="button play-pause" onclick={onPlayPause}>
-									<div class="stack-cell">
-										<div class="play-pause__circle"></div>
-										<div class="play-pause__icon">
-											{#if !episode.isDownloaded}
-												<Loader2 class="play-pause__icon--loading" size="3rem" />
-											{:else if paused}
-												<Play class="play-pause__icon--play" size="3rem" />
-											{:else}
-												<Pause class="play-pause__icon--pause" size="3rem" />
-											{/if}
-										</div>
-									</div>
-								</button>
-
-								<button class="button" onclick={onForward}>
-									<div class="stack-cell">
-										<div>
-											<RotateCw size="3rem" />
-										</div>
-										<div class="time-text">30</div>
-									</div>
-								</button>
-							</div>
 							<div class="bottom-nav-spacer"></div>
 						</div>
 					</div>
@@ -160,7 +160,11 @@
 	}
 
 	.bottom-sheet :global(.handle-container) {
-		background-color: var(--primary);
+		background-color: light-dark(var(--primary), var(--primary-more));
+	}
+
+	.bottom-sheet :global(.bottom-sheet-handle) {
+		background-color: light-dark(var(--grey-100), var(--primary-grey-light));
 	}
 
 	.bottom-sheet :global(.bottom-sheet) {
@@ -183,7 +187,7 @@
 
 	.episode-title {
 		font-weight: bold;
-		font-size: var(--text-large);
+		font-size: var(--text-medium);
 		line-height: var(--line-height-slack);
 	}
 
@@ -196,9 +200,8 @@
 	}
 
 	.episode-details {
-		font-size: var(--text-smaller);
 		font-family: monospace;
-		color: var(--primary);
+		color: light-dark(var(--primary), var(--primary-more));
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
@@ -212,7 +215,7 @@
 	}
 
 	.episode-details-separator {
-		border-right: 5px solid var(--primary);
+		border-right: 0.4rem solid light-dark(var(--primary), var(--primary-more));
 		height: 2rem;
 	}
 
@@ -235,7 +238,7 @@
 	.controls {
 		display: flex;
 		flex-direction: column;
-		gap: 3rem;
+		gap: 1rem;
 		justify-content: space-between;
 	}
 
@@ -277,11 +280,7 @@
 			border: 3px solid var(--primary-less);
 			margin-top: -0.75rem;
 			border-radius: 0.25rem;
-			background: white;
-
-			@media (prefers-color-scheme: dark) {
-				background: black;
-			}
+			background: light-dark(var(--grey-100), var(--primary-grey-light));
 		}
 
 		&::-moz-range-thumb {
@@ -289,11 +288,7 @@
 			height: 1.25rem;
 			background-color: var(--primary-more);
 			border: none;
-			background: white;
-
-			@media (prefers-color-scheme: dark) {
-				background: black;
-			}
+			background: light-dark(var(--grey-100), var(--primary-grey-light));
 		}
 	}
 
@@ -307,7 +302,7 @@
 	.button {
 		border: none;
 		background: none;
-		color: var(--primary-more);
+		color: light-dark(var(--primary-grey-dark), var(--primary-black));
 		border-radius: 5rem;
 		transition:
 			box-shadow 0.05s,
@@ -342,7 +337,7 @@
 	}
 
 	.play-pause__icon {
-		color: var(--neutral);
+		color: light-dark(var(--grey-100), var(--primary-grey-light));
 		place-self: center;
 	}
 
@@ -373,6 +368,6 @@
 	}
 
 	.bottom-nav-spacer {
-		height: 3rem;
+		height: 5.25rem;
 	}
 </style>

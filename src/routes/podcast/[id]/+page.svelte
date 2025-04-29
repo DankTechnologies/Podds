@@ -7,7 +7,7 @@
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
-	import { parseSubtitle, parseTitle } from '$lib/utils/feedParser';
+	import { parseOwner } from '$lib/utils/feedParser';
 	import { Log } from '$lib/service/LogService';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
@@ -100,35 +100,39 @@
 {:else if feed}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
-		<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
-		<div class="podcast-header__content">
-			<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
-			<span class="podcast-header__subtitle">{parseSubtitle(feed.title)}</span>
-			<div class="podcast-header__buttons">
-				<button class="podcast-header__button" onclick={() => shareFeed(feed)}>
-					<Share2 size="14" />
-					Share
-				</button>
-				<button
-					class="podcast-header__button"
-					onclick={() => {
-						isSearchVisible = !isSearchVisible;
-
-						if (isSearchVisible && !isAppleDevice) {
-							setTimeout(() => searchInput?.focus(), 0);
-						}
-					}}
-				>
-					<Search size="14" />
-					Search
-				</button>
-				<button
-					class="podcast-header__button podcast-header__button--delete"
-					onclick={() => deleteFeed(feed)}
-				>
-					<Trash2 size="14" />
-				</button>
+		<div class="podcast-header__main">
+			<a href={feed.link} target="_blank" rel="noopener noreferrer">
+				<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
+			</a>
+			<div class="podcast-header__content">
+				<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
+				<div class="podcast-header__description">{feed.description}</div>
 			</div>
+		</div>
+		<div class="podcast-header__buttons">
+			<button
+				class="podcast-header__button"
+				onclick={() => {
+					isSearchVisible = !isSearchVisible;
+
+					if (isSearchVisible && !isAppleDevice) {
+						setTimeout(() => searchInput?.focus(), 0);
+					}
+				}}
+			>
+				<Search size="14" />
+				Search
+			</button>
+			<button class="podcast-header__button" onclick={() => shareFeed(feed)}>
+				<Share2 size="14" />
+				Share
+			</button>
+			<button
+				class="podcast-header__button podcast-header__button--delete"
+				onclick={() => deleteFeed(feed)}
+			>
+				<Trash2 size="14" />
+			</button>
 		</div>
 	</header>
 
@@ -162,8 +166,15 @@
 <style>
 	.podcast-header {
 		display: flex;
-		gap: 1.5rem;
+		flex-direction: column;
+		gap: 1rem;
 		padding: 1rem;
+		background-color: var(--bg-less);
+	}
+
+	.podcast-header__main {
+		display: flex;
+		gap: 1rem;
 	}
 
 	.podcast-header__image {
@@ -177,36 +188,49 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		padding-top: 1rem;
+		padding-top: 0.25rem;
 	}
 
-	.podcast-header__title {
-		font-size: 1.75rem;
+	.podcast-header__owner {
 		font-weight: 600;
-		margin: 0;
+	}
+
+	.podcast-header__description {
+		font-size: var(--text-smaller);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 5;
+		line-clamp: 5;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
 	}
 
 	.podcast-header__buttons {
 		display: flex;
-		gap: 0.5rem;
+		gap: 1rem;
 	}
 
 	.podcast-header__button {
 		display: flex;
-		align-items: center;
 		font-size: var(--text-small);
 		font-weight: 600;
-		background: var(--primary-less);
+		align-items: center;
 		gap: 0.5rem;
 		border: none;
 		padding: 0.5rem;
-		color: var(--neutral);
+		cursor: pointer;
 		border-radius: 0.25rem;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
 	.podcast-header__button--delete {
-		background: var(--error);
-		color: var(--neutral);
+		margin-left: auto;
+
+		color: var(--error);
+		opacity: 0.7;
 	}
 
 	.status-screen {
@@ -223,13 +247,14 @@
 	}
 
 	.search-container {
-		padding: 1rem 2rem;
+		padding: 1rem;
 		display: flex;
+		background-color: var(--bg-less);
 	}
 
 	.search-bar {
 		display: flex;
-		width: 100%;
+		width: 100vw;
 	}
 
 	input {
