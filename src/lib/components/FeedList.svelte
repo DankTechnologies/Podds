@@ -26,6 +26,36 @@
 	function deleteFeed(feedId: string) {
 		feedService.deleteFeed(feedId);
 	}
+
+	function toggleFeedFocus(feed: PIApiFeed) {
+		focusedFeedId = focusedFeedId === feed.id.toString() ? null : feed.id.toString();
+
+		if (focusedFeedId) {
+			// Use requestAnimationFrame to ensure DOM updates are complete
+			requestAnimationFrame(() => {
+				const card = document.querySelector(`.feed-card__wrapper[data-feed-id="${feed.id}"]`);
+				if (card) {
+					const cardBottom = card.getBoundingClientRect().bottom;
+					if (cardBottom + 350 > window.innerHeight) {
+						// Use a more reliable scroll approach
+						const scrollOptions: ScrollIntoViewOptions = {
+							behavior: 'smooth',
+							block: 'center'
+						};
+
+						// Try smooth scrolling first, fall back to instant if needed
+						try {
+							card.scrollIntoView(scrollOptions);
+						} catch (e) {
+							// Fallback for browsers that don't support smooth scrolling
+							scrollOptions.behavior = 'auto';
+							card.scrollIntoView(scrollOptions);
+						}
+					}
+				}
+			});
+		}
+	}
 </script>
 
 <ul class="feed-list" role="list">
@@ -34,9 +64,8 @@
 			<button
 				class="feed-card__wrapper"
 				type="button"
-				style:anchor-name={`--feed-${feed.id}`}
-				onclick={() =>
-					(focusedFeedId = focusedFeedId === feed.id.toString() ? null : feed.id.toString())}
+				data-feed-id={feed.id}
+				onclick={() => toggleFeedFocus(feed)}
 			>
 				<div class="feed-card__content">
 					<div class="feed-card__image-container">
@@ -238,24 +267,25 @@
 	}
 
 	.feed-controls {
-		max-height: 0;
+		transform: scaleY(0);
+		transform-origin: top;
 		opacity: 0;
 		overflow: hidden;
-		background: var(--bg-less);
+		height: 0;
 	}
 
 	.feed-controls--hidden {
-		max-height: 0;
-		opacity: 0;
-		transition: all 150ms ease-in-out;
 		background: var(--bg);
 		pointer-events: none;
 	}
 
 	.feed-controls:not(.feed-controls--hidden) {
-		max-height: 600px;
+		transform: scaleY(1);
 		opacity: 1;
-		transition: all 150ms ease-in-out;
+		height: auto;
+		transition:
+			transform 150ms ease-in-out,
+			opacity 150ms ease-in-out;
 	}
 
 	.feed-controls__description-wrapper {
