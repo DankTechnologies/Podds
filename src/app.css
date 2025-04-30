@@ -98,18 +98,9 @@
 	--text-less: light-dark(var(--text-light-400), var(--text-dark-600));
 	--text-more: light-dark(var(--text-light-600), var(--text-dark-400));
 
-	--primary-black: light-dark(
-		color-mix(in oklch, var(--primary) 90%, black),
-		color-mix(in oklch, var(--primary-dark) 90%, black)
-	);
-	--primary-grey-dark: light-dark(
-		color-mix(in oklch, var(--primary) 60%, var(--grey-900)),
-		color-mix(in oklch, var(--primary-dark) 60%, var(--grey-900))
-	);
-	--primary-grey-light: light-dark(
-		color-mix(in oklch, var(--primary-more) 30%, var(--grey-300)),
-		color-mix(in oklch, var(--primary-dark-more) 30%, var(--grey-300))
-	);
+	--primary-black: color-mix(in oklch, var(--primary) 90%, black);
+	--primary-grey-dark: color-mix(in oklch, var(--primary) 60%, var(--grey-900));
+	--primary-grey-light: color-mix(in oklch, var(--primary-more) 30%, var(--grey-300));
 
 	--primary-less: light-dark(var(--primary-400), var(--primary-dark-400));
 	--primary-more: light-dark(var(--primary-700), var(--primary-dark-600));

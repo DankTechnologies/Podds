@@ -19,14 +19,14 @@
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let hasSettings = $derived(getSettings() !== undefined);
 
-	const isActive = $derived((href: string) => {
+	let isActive = $derived((href: string) => {
 		if (href === '/') {
 			return page.url.pathname === '/' || page.url.pathname.startsWith('/podcast');
 		}
 		return page.url.pathname === href;
 	});
 
-	const showBorderTop = $derived(!episode && getIsLightMode());
+	let showBorderTop = $derived(!episode && getIsLightMode());
 
 	const navItems = [
 		{
@@ -130,7 +130,7 @@
 	}
 
 	.nav-border {
-		border-top: 0.15rem solid light-dark(var(--primary-less), var(--primary-grey-light));
+		border-top: 0.15rem solid var(--primary-less);
 		transition: all 1s ease-in-out;
 	}
 </style>
