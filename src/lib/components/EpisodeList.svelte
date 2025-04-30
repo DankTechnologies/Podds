@@ -291,7 +291,7 @@
 							<ArrowUp size="16" /> Next
 						</button>
 					{/if}
-					{#if !isShare}
+					{#if !isShare && !isSearch}
 						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
 							<Share2 size="16" /> Share
 						</button>

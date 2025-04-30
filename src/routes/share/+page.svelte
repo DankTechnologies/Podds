@@ -4,7 +4,6 @@
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { FeedService } from '$lib/service/FeedService';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import { parseTitle } from '$lib/utils/feedParser';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
@@ -15,6 +14,7 @@
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { AudioService } from '$lib/service/AudioService.svelte';
+	import { parseOwner } from '$lib/utils/feedParser';
 
 	let feedExists = $state(false);
 	let config = $state<ShareConfig | null>(null);
@@ -59,7 +59,9 @@
 			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
 			feedExists = feed !== null;
 
-			if (!feedExists) {
+			if (feedExists) {
+				iconData = feed?.iconData ?? null;
+			} else {
 				const { feed: newFeed, iconData: newIconData } = await getFeedFromPodcastIndex();
 				feed = newFeed;
 				iconData = newIconData;
@@ -78,7 +80,7 @@
 	});
 
 	function addFeed() {
-		if (!feed || !iconData || !feedExists) return;
+		if (!feed || !iconData || feedExists) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
 		goto(`/podcast/${feed.id}`);
 	}
@@ -171,46 +173,14 @@
 		<div class="error">{error}</div>
 	{:else if feed}
 		<header class="podcast-header">
-			{#if iconData}
+			<div class="podcast-header__main">
 				<img class="podcast-header__image" src={`data:${iconData}`} alt={feed.title} />
-			{/if}
-			<div class="podcast-header__content">
-				<h1 class="podcast-header__title">{parseTitle(feed.title)}</h1>
-				<div class="podcast-header__meta">
-					<div class="meta-with-icon">
-						<List size="1rem" />
-						{episodes.length} episodes
-					</div>
+				<div class="podcast-header__content">
+					<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
+					<div class="podcast-header__description">{feed.description}</div>
 				</div>
 			</div>
 		</header>
-
-		<div class="action-buttons">
-			{#if targetEpisode}
-				<!-- Episode-specific buttons -->
-				<button class="action-button" onclick={() => playEpisode(feed!, targetEpisode)}>
-					<Play size="24" />
-					Play Now
-				</button>
-				<button class="action-button" onclick={() => downloadEpisode(feed!, targetEpisode)}>
-					<Download size="24" />
-					Play Later
-				</button>
-			{:else}
-				<!-- Feed-specific buttons -->
-				{#if feedExists}
-					<button class="action-button" onclick={() => goto(`/podcast/${config?.feedId}`)}>
-						<Podcast size="24" />
-						Go to podcast
-					</button>
-				{:else}
-					<button class="action-button" onclick={addFeed}>
-						<Podcast size="24" />
-						Subscribe
-					</button>
-				{/if}
-			{/if}
-		</div>
 
 		{#if targetEpisode}
 			<div class="podcast-episode-container">
@@ -237,7 +207,33 @@
 				<h2 class="podcast-episode-title">{targetEpisode.title}</h2>
 				<p class="podcast-episode-description">{@html targetEpisode.content}</p>
 			</div>
+			<div class="action-buttons">
+				<button class="action-button" onclick={() => playEpisode(feed!, targetEpisode)}>
+					<Play size="24" />
+					Play Now
+				</button>
+				<button
+					class="action-button action-button--secondary"
+					onclick={() => downloadEpisode(feed!, targetEpisode)}
+				>
+					<Download size="24" />
+					Play Later
+				</button>
+			</div>
 		{:else}
+			<div class="action-buttons">
+				{#if feedExists}
+					<button class="action-button" onclick={() => goto(`/podcast/${config?.feedId}`)}>
+						<Podcast size="24" />
+						Go to podcast
+					</button>
+				{:else}
+					<button class="action-button" onclick={addFeed}>
+						<Podcast size="24" />
+						Subscribe
+					</button>
+				{/if}
+			</div>
 			<EpisodeList {episodes} {activeEpisodes} isShare={true} />
 		{/if}
 	{/if}
@@ -252,13 +248,20 @@
 
 	.podcast-header {
 		display: flex;
-		gap: 1.5rem;
+		flex-direction: column;
+		gap: 1rem;
 		padding: 1rem;
+		background-color: var(--bg-less);
+	}
+
+	.podcast-header__main {
+		display: flex;
+		gap: 1rem;
 	}
 
 	.podcast-header__image {
-		width: 200px;
-		height: 200px;
+		width: 150px;
+		height: 150px;
 		border-radius: 0.5rem;
 		object-fit: cover;
 	}
@@ -267,32 +270,27 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		padding-top: 0.25rem;
 	}
 
-	.podcast-header__title {
-		font-size: 1.75rem;
+	.podcast-header__owner {
 		font-weight: 600;
-		margin: 0;
 	}
 
-	.podcast-header__meta {
-		font-size: var(--text-medium);
-		font-family: monospace;
-		color: light-dark(var(--primary), var(--primary-more));
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.meta-with-icon {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+	.podcast-header__description {
+		font-size: var(--text-smaller);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-line-clamp: 5;
+		line-clamp: 5;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
 	}
 
 	.action-buttons {
 		display: flex;
-		gap: 1rem;
+		gap: 1.5rem;
 		padding: 1rem;
 	}
 
@@ -301,16 +299,23 @@
 		align-items: center;
 		font-size: var(--text-large);
 		font-weight: 600;
-		background: var(--primary-less);
+		background: light-dark(var(--primary), var(--primary-more));
+		color: var(--neutral);
 		gap: 0.5rem;
 		border: none;
 		padding: 0.75rem 1.5rem;
-		color: var(--neutral);
 		cursor: pointer;
 		border-radius: 0.25rem;
 		stroke-width: 2.5;
 		flex: 1;
 		justify-content: center;
+		box-shadow: 0 0 0 1px light-dark(var(--grey-100), var(--grey-750));
+	}
+
+	.action-button--secondary {
+		background: light-dark(var(--grey-100), var(--grey-850));
+		color: light-dark(var(--grey-700), var(--neutral));
+		box-shadow: 0 0 0 1px light-dark(var(--grey-500), var(--grey-700));
 	}
 
 	.podcast-episode-container {

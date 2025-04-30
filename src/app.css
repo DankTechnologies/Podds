@@ -47,7 +47,8 @@
 	--grey-700: color-mix(in oklch, var(--grey) 40%, black);
 	--grey-750: color-mix(in oklch, var(--grey) 30%, black);
 	--grey-800: color-mix(in oklch, var(--grey) 25%, black);
-	--grey-850: color-mix(in oklch, var(--grey) 20%, black);
+	--grey-825: color-mix(in oklch, var(--grey) 20%, black);
+	--grey-850: color-mix(in oklch, var(--grey) 15%, black);
 	--grey-900: color-mix(in oklch, var(--grey) 10%, black);
 
 	/* Text colors - light mode base at 500 */
