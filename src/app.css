@@ -33,6 +33,18 @@
 	--primary-800: oklch(60% 0.28 300);
 	--primary-900: oklch(60% 0.32 300);
 
+	/* Dark mode primary colors */
+	--primary-dark: oklch(70% 0.18 300);
+	--primary-dark-100: oklch(70% 0.05 300);
+	--primary-dark-200: oklch(70% 0.08 300);
+	--primary-dark-300: oklch(70% 0.12 300);
+	--primary-dark-400: oklch(70% 0.15 300);
+	--primary-dark-500: var(--primary-dark);
+	--primary-dark-600: oklch(70% 0.22 300);
+	--primary-dark-700: oklch(70% 0.25 300);
+	--primary-dark-800: oklch(70% 0.28 300);
+	--primary-dark-900: oklch(70% 0.32 300);
+
 	--error: oklch(65% 0.18 25);
 	--success: oklch(75% 0.15 140);
 
@@ -45,7 +57,10 @@
 	--grey-500: var(--grey);
 	--grey-600: color-mix(in oklch, var(--grey) 60%, black);
 	--grey-700: color-mix(in oklch, var(--grey) 40%, black);
-	--grey-750: color-mix(in oklch, var(--grey) 30%, black);
+	--grey-750: color-mix(in oklch, var(--grey) 35%, black);
+	--grey-775: color-mix(in oklch, var(--grey) 30%, black);
+	--grey-780: color-mix(in oklch, var(--grey) 28%, black);
+	--grey-790: color-mix(in oklch, var(--grey) 26%, black);
 	--grey-800: color-mix(in oklch, var(--grey) 25%, black);
 	--grey-825: color-mix(in oklch, var(--grey) 20%, black);
 	--grey-850: color-mix(in oklch, var(--grey) 15%, black);
@@ -76,19 +91,28 @@
 	--text-dark-900: color-mix(in oklch, var(--text-dark) 10%, white);
 
 	/* Semantic color variables */
-	--bg: light-dark(var(--grey-300), var(--grey-800));
+	--bg: light-dark(var(--grey-300), var(--grey-780));
 	--bg-less: light-dark(var(--grey-100), black);
 	
 	--text: light-dark(var(--text-light-500), var(--text-dark-500));
 	--text-less: light-dark(var(--text-light-400), var(--text-dark-600));
 	--text-more: light-dark(var(--text-light-600), var(--text-dark-400));
 
-	--primary-black: color-mix(in oklch, var(--primary) 90%, black);
-	--primary-grey-dark: color-mix(in oklch, var(--primary) 60%, var(--grey-900));
-	--primary-grey-light: color-mix(in oklch, var(--primary-more) 30%, var(--grey-300));
+	--primary-black: light-dark(
+		color-mix(in oklch, var(--primary) 90%, black),
+		color-mix(in oklch, var(--primary-dark) 90%, black)
+	);
+	--primary-grey-dark: light-dark(
+		color-mix(in oklch, var(--primary) 60%, var(--grey-900)),
+		color-mix(in oklch, var(--primary-dark) 60%, var(--grey-900))
+	);
+	--primary-grey-light: light-dark(
+		color-mix(in oklch, var(--primary-more) 30%, var(--grey-300)),
+		color-mix(in oklch, var(--primary-dark-more) 30%, var(--grey-300))
+	);
 
-	--primary-less: light-dark(var(--primary-400), var(--primary-400));
-	--primary-more: light-dark(var(--primary-700), var(--primary-700));
+	--primary-less: light-dark(var(--primary-400), var(--primary-dark-400));
+	--primary-more: light-dark(var(--primary-700), var(--primary-dark-600));
 	
 	--neutral: light-dark(var(--grey-500), var(--grey-500));
 }

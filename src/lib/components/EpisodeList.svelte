@@ -450,6 +450,12 @@
 		padding-bottom: 0.1rem;
 	}
 
+	@media (prefers-color-scheme: dark) {
+		.episode-card__time {
+			font-weight: bold;
+		}
+	}
+
 	.episode-card--focused .episode-card__time {
 		color: var(--primary-more);
 	}
