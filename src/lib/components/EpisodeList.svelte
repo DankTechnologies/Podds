@@ -248,12 +248,14 @@
 							<div>
 								{formatEpisodeDate(episode.publishedAt)}
 							</div>
-							<div>
-								<Dot size="14" />
-							</div>
-							<div>
-								{getEpisodeDurationDisplay(episode)}
-							</div>
+							{#if episode.durationMin > 0}
+								<div>
+									<Dot size="14" />
+								</div>
+								<div>
+									{getEpisodeDurationDisplay(episode)}
+								</div>
+							{/if}
 						</time>
 						<div class="episode-card__title">{episode.title}</div>
 						{#if isShare}

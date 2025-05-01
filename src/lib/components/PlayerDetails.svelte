@@ -73,10 +73,12 @@
 									<Calendar size="14" />
 									{formatEpisodeDate(episode.publishedAt)}
 								</div>
-								<div class="episode-details-duration">
-									<Clock size="14" />
-									{formatEpisodeDuration(episode.durationMin)}
-								</div>
+								{#if episode.durationMin > 0}
+									<div class="episode-details-duration">
+										<Clock size="14" />
+										{formatEpisodeDuration(episode.durationMin)}
+									</div>
+								{/if}
 								<div class="episode-details-separator"></div>
 							</div>
 						</div>
