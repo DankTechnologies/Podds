@@ -72,7 +72,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 			return !since || publishedAt.getTime() / 1000 >= since;
 		})
 		.map((item) => {
-			const publishedAt = new Date(item.pubDate || new Date());
+			const publishedAt = new Date(decodeHtmlEntities(item.pubDate || new Date()));
 			const enclosure = Array.isArray(item.enclosure)
 				? item.enclosure.find(
 					(e: { '@_type': string; '@_url': string }) =>

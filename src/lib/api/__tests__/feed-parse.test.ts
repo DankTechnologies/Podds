@@ -32,8 +32,18 @@ describe('FeedService RSS parsing', () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});
 
-	it.only('should parse DevTools.fm', async () => {
+	it('should parse DevTools.fm', async () => {
 		const url = 'https://anchor.fm/s/dd6922b4/podcast/rss';
+
+		const episodes = await parseFeedUrl('12345', url);
+
+		console.log(episodes);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	});
+
+	it.only('should parse Lapsed', async () => {
+		const url = 'https://feeds.redcircle.com/01ece97c-8cee-40b0-935b-0186ec657940';
 
 		const episodes = await parseFeedUrl('12345', url);
 
