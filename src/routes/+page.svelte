@@ -150,10 +150,4 @@
 		width: 100%;
 		height: 100%;
 	}
-
-	@media (prefers-color-scheme: light) {
-		.subnav :global(svg) {
-			filter: url(#shadow);
-		}
-	}
 </style>
