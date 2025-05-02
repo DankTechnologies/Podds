@@ -131,7 +131,7 @@
 				class="podcast-header__button podcast-header__button--delete"
 				onclick={() => deleteFeed(feed)}
 			>
-				<Trash2 size="14" />
+				<Trash2 size="14" /> Delete
 			</button>
 		</div>
 	</header>
