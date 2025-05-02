@@ -7,6 +7,7 @@
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
 	import type { ActiveEpisode } from '$lib/types/db';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 
 	const ICON_SIZE = '2rem';
 
@@ -76,7 +77,7 @@
 	</button>
 {/snippet}
 
-<nav class:nav-border={showBorderTop}>
+<nav class:nav-border={showBorderTop} class:is-apple-device={isAppleDevice}>
 	{#each navItems as { href, label, icon, hasUpdate, disabled }}
 		{@render NavButton(href, label, icon, hasUpdate(), disabled())}
 	{/each}
@@ -93,6 +94,10 @@
 		z-index: 50;
 		height: 4rem;
 		background-color: var(--bg-less);
+	}
+
+	.is-apple-device {
+		padding-bottom: 1rem;
 	}
 
 	.nav-item {

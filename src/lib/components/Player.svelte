@@ -10,6 +10,7 @@
 	import PlayerDetails from './PlayerDetails.svelte';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { getSettings } from '$lib/stores/db.svelte';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 
 	const ICON_SIZE = '2rem';
 	const PLAYBACK_SPEEDS = [1.0, 1.25, 1.5, 1.75, 2.0];
@@ -188,6 +189,7 @@
 
 <div
 	class="player"
+	class:is-apple-device={isAppleDevice}
 	onclick={() => (showDetailedControls = !showDetailedControls)}
 	onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
 	role="button"
@@ -276,6 +278,10 @@
 		right: 0;
 		z-index: 49;
 		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
+	}
+
+	.is-apple-device {
+		padding-bottom: 1rem;
 	}
 
 	.player:focus-visible {

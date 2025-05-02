@@ -3,6 +3,7 @@
 	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { BottomSheet } from 'svelte-bottom-sheet';
 	import type { ActiveEpisode, Chapter } from '$lib/types/db';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 
 	let {
 		episode,
@@ -72,9 +73,14 @@
 		e.preventDefault();
 		onSeek({ target: { value: chapter.startTime } } as unknown as Event);
 	}
+
+	function handleStop(e: Event) {
+		onClose();
+		onStop(e);
+	}
 </script>
 
-<div class="bottom-sheet">
+<div class="bottom-sheet" class:is-apple-device={isAppleDevice}>
 	<BottomSheet settings={{ maxHeight: 0.85 }} bind:isSheetOpen={isOpen} onclose={onClose}>
 		<BottomSheet.Overlay>
 			<BottomSheet.Sheet>
@@ -188,7 +194,7 @@
 										<div class="time-text">30</div>
 									</div>
 								</button>
-								<button class="button" onclick={onStop}>
+								<button class="button" onclick={handleStop}>
 									<X size="2.5rem" />
 								</button>
 							</div>
@@ -231,6 +237,10 @@
 		max-height: calc(100% - 7rem);
 		box-sizing: border-box;
 		grid-template-rows: auto 1fr auto auto;
+	}
+
+	.is-apple-device .content {
+		max-height: calc(100% - 8rem);
 	}
 
 	.episode-title {
