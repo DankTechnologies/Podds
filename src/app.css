@@ -51,6 +51,7 @@
 	/* Grey scale - base at 500 */
 	--grey: oklch(91% 0.01 270);
 	--grey-100: color-mix(in oklch, var(--grey) 10%, white);
+	--grey-150: color-mix(in oklch, var(--grey) 15%, white);
 	--grey-200: color-mix(in oklch, var(--grey) 25%, white);
 	--grey-300: color-mix(in oklch, var(--grey) 40%, white);
 	--grey-400: color-mix(in oklch, var(--grey) 60%, white);

@@ -377,6 +377,7 @@
 			border-radius: 0.25rem;
 			background: light-dark(var(--grey-100), var(--primary-grey-light));
 			position: relative;
+			box-shadow: none;
 			z-index: 1;
 		}
 
@@ -389,13 +390,37 @@
 			position: relative;
 			z-index: 1;
 		}
+
+		@media (prefers-color-scheme: light) {
+			&::-webkit-slider-runnable-track {
+				height: 1.75rem;
+			}
+
+			&::-moz-range-track {
+				height: 1.75rem;
+			}
+
+			&::-webkit-slider-thumb {
+				margin-top: 2px;
+				width: 1.5rem;
+				height: 1.5rem;
+			}
+
+			&::-moz-range-thumb {
+				width: 1.5rem;
+				height: 1.5rem;
+			}
+		}
 	}
 
 	.buttons {
 		display: flex;
 		justify-content: space-between;
-		padding: 0 0.5rem;
+		padding: 1rem 0.5rem;
+		margin: -1rem 0;
+		border-radius: 1rem;
 		align-items: center;
+		background: light-dark(var(--grey-150), var(--bg-less));
 	}
 
 	.button {
