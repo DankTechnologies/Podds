@@ -5,10 +5,10 @@
 		Play,
 		Pause,
 		Loader2,
-		AudioWaveform,
 		Calendar,
 		Clock,
-		Antenna
+		Antenna,
+		BookOpen
 	} from 'lucide-svelte';
 	import {
 		formatEpisodeDate,
@@ -16,7 +16,7 @@
 		formatPlaybackPosition
 	} from '$lib/utils/time';
 	import { BottomSheet } from 'svelte-bottom-sheet';
-	import type { ActiveEpisode } from '$lib/types/db';
+	import type { ActiveEpisode, Chapter } from '$lib/types/db';
 
 	let {
 		episode,
@@ -30,7 +30,8 @@
 		remainingTime,
 		paused,
 		onClose,
-		isOpen
+		isOpen,
+		currentChapter
 	} = $props<{
 		episode: ActiveEpisode;
 		onBack: (e: Event) => void;
@@ -44,11 +45,45 @@
 		paused: boolean;
 		onClose: () => void;
 		isOpen: boolean;
+		currentChapter: Chapter | null;
 	}>();
+
+	let previousChapterTitle = $state<string>('');
+
+	$effect(() => {
+		if (
+			isOpen &&
+			currentChapter &&
+			(currentChapter.title !== previousChapterTitle || previousChapterTitle === '')
+		) {
+			previousChapterTitle = currentChapter.title;
+			scrollToCurrentChapter();
+		}
+	});
+
+	function scrollToCurrentChapter() {
+		if (currentChapter) {
+			const currentItem = document.querySelector('.chapter-item.current');
+			if (currentItem) {
+				currentItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			}
+		}
+	}
+
+	function formatChapterTime(time: number): string {
+		const minutes = Math.floor(time / 60);
+		const seconds = Math.floor(time % 60);
+		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+	}
+
+	function handleChapterClick(e: Event, chapter: Chapter) {
+		e.preventDefault();
+		onSeek({ target: { value: chapter.startTime } } as unknown as Event);
+	}
 </script>
 
 <div class="bottom-sheet">
-	<BottomSheet settings={{ maxHeight: 0.8 }} bind:isSheetOpen={isOpen} onclose={onClose}>
+	<BottomSheet settings={{ maxHeight: 0.85 }} bind:isSheetOpen={isOpen} onclose={onClose}>
 		<BottomSheet.Overlay>
 			<BottomSheet.Sheet>
 				<BottomSheet.Handle />
@@ -68,22 +103,57 @@
 									{episode.title}
 								</div>
 							</div>
-							<div class="episode-details">
-								<div class="episode-details-date">
-									<Calendar size="14" />
-									{formatEpisodeDate(episode.publishedAt)}
-								</div>
-								{#if episode.durationMin > 0}
-									<div class="episode-details-duration">
-										<Clock size="14" />
-										{formatEpisodeDuration(episode.durationMin)}
-									</div>
-								{/if}
-								<div class="episode-details-separator"></div>
-							</div>
 						</div>
-						<div class="description">
-							{@html episode.content}
+						{#if episode.chapters?.length}
+							<div class="chapters">
+								<ol class="chapters-list">
+									{#each episode.chapters as chapter, i}
+										<li
+											class="chapter-item {currentChapter?.title === chapter.title
+												? 'current'
+												: ''}"
+										>
+											<button
+												class="chapter-button"
+												onclick={(e) => handleChapterClick(e, chapter)}
+											>
+												<span class="chapter-number">{i + 1}.</span>
+												<span class="chapter-title">{chapter.title}</span>
+												<span class="chapter-time">{formatChapterTime(chapter.startTime)}</span>
+											</button>
+										</li>
+									{/each}
+								</ol>
+							</div>
+						{:else}
+							<div class="description">
+								{@html episode.content}
+							</div>
+						{/if}
+						<div class="progress-container">
+							<div class="time">
+								<div>
+									{formatPlaybackPosition(currentTime)}
+								</div>
+								<div>
+									-{formatPlaybackPosition(remainingTime)}
+								</div>
+							</div>
+							<input
+								class="progress-bar"
+								type="range"
+								min="0"
+								bind:value={currentTime}
+								max={duration}
+								onchange={onSeek}
+								onclick={(e) => e.stopPropagation()}
+								onmousedown={(e) => e.stopPropagation()}
+								onmousemove={(e) => e.stopPropagation()}
+								onmouseup={(e) => e.stopPropagation()}
+								ontouchstart={(e) => e.stopPropagation()}
+								ontouchmove={(e) => e.stopPropagation()}
+								ontouchend={(e) => e.stopPropagation()}
+							/>
 						</div>
 						<div class="controls">
 							<div class="buttons">
@@ -120,32 +190,6 @@
 									</div>
 								</button>
 							</div>
-							<div class="progress-container">
-								<div class="time">
-									<div>
-										{formatPlaybackPosition(currentTime)}
-									</div>
-									<div>
-										-{formatPlaybackPosition(remainingTime)}
-									</div>
-								</div>
-								<input
-									class="progress-bar"
-									type="range"
-									min="0"
-									bind:value={currentTime}
-									max={duration}
-									onchange={onSeek}
-									onclick={(e) => e.stopPropagation()}
-									onmousedown={(e) => e.stopPropagation()}
-									onmousemove={(e) => e.stopPropagation()}
-									onmouseup={(e) => e.stopPropagation()}
-									ontouchstart={(e) => e.stopPropagation()}
-									ontouchmove={(e) => e.stopPropagation()}
-									ontouchend={(e) => e.stopPropagation()}
-								/>
-							</div>
-							<div class="bottom-nav-spacer"></div>
 						</div>
 					</div>
 				</BottomSheet.Content>
@@ -181,8 +225,8 @@
 	.content {
 		display: grid;
 		gap: 2rem;
-		padding: 1.5rem 1rem 0 1rem;
-		height: 100%;
+		padding: 1rem;
+		max-height: calc(100% - 7rem);
 		box-sizing: border-box;
 		grid-template-rows: auto 1fr auto auto;
 	}
@@ -201,26 +245,6 @@
 		padding: 0 0.25rem;
 	}
 
-	.episode-details {
-		font-family: monospace;
-		color: light-dark(var(--primary), var(--primary-more));
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 1.25rem;
-	}
-
-	.episode-details > div {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.episode-details-separator {
-		border-right: 0.4rem solid light-dark(var(--primary), var(--primary-more));
-		height: 2rem;
-	}
-
 	.description {
 		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
@@ -237,6 +261,61 @@
 		}
 	}
 
+	.chapters {
+		font-size: var(--text-smaller);
+		overflow-y: scroll;
+		min-height: 0;
+		padding: 0 1.5rem;
+	}
+
+	.chapters-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.chapter-item {
+		margin-bottom: 1rem;
+	}
+
+	.chapter-item.current {
+		color: var(--primary);
+	}
+
+	.chapter-item.current .chapter-title,
+	.chapter-item.current .chapter-time,
+	.chapter-item.current .chapter-number {
+		font-weight: bold;
+	}
+
+	.chapter-button {
+		display: flex;
+		align-items: baseline;
+		color: inherit;
+		background: none;
+		border: none;
+		padding: 0;
+		width: 100%;
+	}
+
+	.chapter-number {
+		text-align: right;
+		padding-right: 0.5rem;
+		min-width: 1.25rem;
+	}
+
+	.chapter-title {
+		flex: 1;
+		text-align: left;
+	}
+
+	.chapter-time {
+		font-size: var(--text-small);
+		font-family: monospace;
+		text-align: right;
+		padding-right: 0.5rem;
+	}
+
 	.controls {
 		display: flex;
 		flex-direction: column;
@@ -247,6 +326,7 @@
 	.progress-container {
 		display: flex;
 		flex-direction: column;
+		padding: 0 1rem;
 	}
 
 	.time {
@@ -259,38 +339,43 @@
 	.progress-bar {
 		appearance: none;
 		border: none;
-		margin-top: 0.75rem;
+		-webkit-appearance: none;
+		background: none;
 
 		&::-webkit-slider-runnable-track {
-			height: 1rem;
+			height: 1.5rem;
 			background: var(--primary);
 			border: none;
 			border-radius: 0.25rem;
 		}
 
 		&::-moz-range-track {
-			height: 1rem;
+			height: 1.5rem;
 			background: var(--primary);
 			border: none;
+			border-radius: 0.25rem;
 		}
 
 		&::-webkit-slider-thumb {
+			-webkit-appearance: none;
 			appearance: none;
 			width: 1.5rem;
-			height: 2.5rem;
+			height: 1.5rem;
 			background-color: var(--primary-more);
-			border: 3px solid var(--primary-less);
-			margin-top: -0.75rem;
 			border-radius: 0.25rem;
 			background: light-dark(var(--grey-100), var(--primary-grey-light));
+			position: relative;
+			z-index: 1;
 		}
 
 		&::-moz-range-thumb {
-			width: 1.25rem;
-			height: 1.25rem;
+			width: 1.5rem;
+			height: 1.5rem;
 			background-color: var(--primary-more);
-			border: none;
+			border-radius: 0.25rem;
 			background: light-dark(var(--grey-100), var(--primary-grey-light));
+			position: relative;
+			z-index: 1;
 		}
 	}
 
@@ -367,9 +452,5 @@
 		to {
 			transform: rotate(360deg);
 		}
-	}
-
-	.bottom-nav-spacer {
-		height: 5.25rem;
 	}
 </style>

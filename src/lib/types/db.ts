@@ -22,6 +22,7 @@ export interface Episode {
 	content: string;
 	url: string;
 	durationMin: number;
+	chaptersUrl?: string;
 }
 
 export interface ActiveEpisode {
@@ -34,6 +35,7 @@ export interface ActiveEpisode {
 	title: string;
 	content: string;
 	url: string;
+	chapters?: Chapter[];
 	// activity tracking
 	playbackPosition: number;
 	minutesLeft: number;
@@ -43,6 +45,12 @@ export interface ActiveEpisode {
 	isPlaying: 0 | 1;
 	// queue management
 	sortOrder?: number; // explicitly set when user reorders
+}
+
+export interface Chapter {
+	title: string;
+	startTime: number;
+	endTime: number;
 }
 
 export interface LogEntry {

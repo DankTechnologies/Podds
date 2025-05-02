@@ -1,5 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { Episode } from '$lib/types/db';
+import type { Chapter, Episode } from '$lib/types/db';
 
 interface ParseFeedResult {
 	episodes: Episode[];
@@ -40,7 +40,7 @@ export async function parseFeedUrl(
 	}
 
 	const xmlString = await response.text();
-	const { episodes, ttlMinutes } = parseEpisodesFromXml(feedId, xmlString, since);
+	const { episodes, ttlMinutes } = await parseEpisodesFromXml(feedId, xmlString, since);
 
 	return {
 		episodes,
@@ -50,7 +50,7 @@ export async function parseFeedUrl(
 	};
 }
 
-function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): ParseXmlResult {
+async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): Promise<ParseXmlResult> {
 	const parser = new XMLParser({
 		ignoreAttributes: false,
 		attributeNamePrefix: '@_'
@@ -66,12 +66,12 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 	// Ensure items is always an array
 	const itemsArray = Array.isArray(items) ? items : [items];
 
-	const episodes = itemsArray
+	const episodes: Episode[] = await Promise.all(itemsArray
 		.filter((item) => {
 			const publishedAt = new Date(item.pubDate);
 			return !since || publishedAt.getTime() / 1000 >= since;
 		})
-		.map((item) => {
+		.map(async (item) => {
 			const publishedAt = new Date(decodeHtmlEntities(item.pubDate || new Date()));
 			const enclosure = Array.isArray(item.enclosure)
 				? item.enclosure.find(
@@ -80,6 +80,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 				)
 				: item.enclosure;
 
+			const chaptersUrl = item['podcast:chapters']?.['@_url'];
 			const durationStr = item['itunes:duration'] || '0';
 			let durationSeconds = 0;
 
@@ -98,6 +99,7 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 				durationSeconds = parseInt(durationStr, 10) || 0;
 			}
 
+
 			return {
 				id: item.guid?.['#text'] || crypto.randomUUID(),
 				feedId,
@@ -105,9 +107,10 @@ function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number)
 				publishedAt,
 				content: item.description?.trim() || item['itunes:summary']?.trim() || '',
 				url: enclosure?.['@_url'] || '',
-				durationMin: Math.floor(durationSeconds / 60)
+				durationMin: Math.floor(durationSeconds / 60),
+				chaptersUrl
 			};
-		});
+		}));
 
 	return { episodes, ttlMinutes };
 }
@@ -140,4 +143,22 @@ export function parseOwner(author: string | undefined, ownerName: string | undef
 	const ownerNameLength = ownerName?.length || 0;
 
 	return authorLength > ownerNameLength ? author : ownerName;
+}
+
+export async function fetchChapters(url: string): Promise<Chapter[]> {
+	try {
+		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const response = await fetch(corsHelperUrl);
+		if (!response.ok) return [];
+
+		const data = await response.json();
+
+		return data.chapters.map((chapter: Chapter) => ({
+			title: chapter.title,
+			startTime: chapter.startTime,
+			endTime: chapter.endTime
+		}));
+	} catch (error) {
+		return [];
+	}
 }

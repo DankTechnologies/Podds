@@ -26,6 +26,13 @@
 	let previousPage = $state('');
 
 	let remainingTime = $derived(duration - currentTime);
+	let currentChapter = $derived(() => {
+		if (!episode.chapters?.length) return null;
+		return (
+			episode.chapters.findLast((chapter) => currentTime >= chapter.startTime) ??
+			episode.chapters[0]
+		);
+	});
 
 	onMount(() => {
 		AudioService.loadPaused(episode.url, episode.playbackPosition ?? 0);
@@ -231,6 +238,7 @@
 	{duration}
 	{remainingTime}
 	{paused}
+	currentChapter={currentChapter()}
 	onBack={handleBack}
 	onPlayPause={handlePlayPause}
 	onForward={handleForward}

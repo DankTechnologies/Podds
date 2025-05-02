@@ -1,6 +1,7 @@
 import { db } from '$lib/stores/db.svelte';
-import type { ActiveEpisode, Episode } from '$lib/types/db';
+import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
+import { fetchChapters } from '$lib/utils/feedParser';
 
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
@@ -10,12 +11,24 @@ export class EpisodeService {
 		if (this.findActiveEpisode(episode.id)) {
 			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1, lastUpdatedAt: new Date(), isCompleted: 0 } });
 		} else {
-			this.addActiveEpisode(episode as Episode, true, false);
+			this.addActiveEpisode(episode as Episode, true, false).catch((error) => {
+				Log.error(`Error adding episode ${episode.title}: ${error}`);
+			});
 		}
 	}
 
-	static addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): void {
+	static async addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): Promise<void> {
 		const feed = db.feeds.findOne({ id: episode.feedId });
+
+		let chapters: Chapter[] | undefined = undefined;
+		if (episode.chaptersUrl) {
+			Log.debug(`Fetching chapters for episode ${episode.title}`);
+			try {
+				chapters = await fetchChapters(episode.chaptersUrl);
+			} catch (error) {
+				Log.error(`Error fetching chapters for episode ${episode.title}: ${error}`);
+			}
+		}
 
 		db.activeEpisodes.insert({
 			id: episode.id,
@@ -31,7 +44,8 @@ export class EpisodeService {
 			url: episode.url,
 			title: episode.title,
 			content: episode.content,
-			feedTitle: feed?.title ?? ''
+			feedTitle: feed?.title ?? '',
+			chapters
 		});
 	}
 
@@ -85,7 +99,9 @@ export class EpisodeService {
 		if (this.findActiveEpisode(episode.id)) {
 			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isDownloaded: 1 } });
 		} else {
-			this.addActiveEpisode(episode, false, true);
+			this.addActiveEpisode(episode, false, true).catch((error) => {
+				Log.error(`Error adding episode ${episode.title}: ${error}`);
+			});
 		}
 	}
 
