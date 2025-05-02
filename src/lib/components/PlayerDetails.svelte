@@ -155,13 +155,11 @@
 						</div>
 						<div class="controls">
 							<div class="buttons">
-								<button class="button" onclick={onSpeedChange}>
+								<button class="button playback-speed" onclick={onSpeedChange}>
 									<div>
-										<div>
-											<Gauge size="2.5rem" />
-										</div>
-										<div class="playback-speed">{playbackSpeed}x</div>
+										<Gauge size="1.5rem" />
 									</div>
+									<div class="playback-speed-text">{playbackSpeed}x</div>
 								</button>
 								<button class="button" onclick={onBack}>
 									<div class="stack-cell">
@@ -194,8 +192,8 @@
 										<div class="time-text">30</div>
 									</div>
 								</button>
-								<button class="button" onclick={handleStop}>
-									<X size="2.5rem" />
+								<button class="button stop" onclick={handleStop}>
+									<X size="1.5rem" />
 								</button>
 							</div>
 						</div>
@@ -454,6 +452,12 @@
 	}
 
 	.playback-speed {
+		width: 3rem;
+		opacity: 0.8;
+	}
+
+	.playback-speed-text {
+		font-size: var(--text-smaller);
 		font-weight: bold;
 		margin-top: -0.5rem;
 	}
