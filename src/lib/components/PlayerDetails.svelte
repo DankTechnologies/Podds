@@ -1,20 +1,6 @@
 <script lang="ts">
-	import {
-		RotateCcw,
-		RotateCw,
-		Play,
-		Pause,
-		Loader2,
-		Calendar,
-		Clock,
-		Antenna,
-		BookOpen
-	} from 'lucide-svelte';
-	import {
-		formatEpisodeDate,
-		formatEpisodeDuration,
-		formatPlaybackPosition
-	} from '$lib/utils/time';
+	import { RotateCcw, RotateCw, Play, Pause, Loader2, Antenna, X, Gauge } from 'lucide-svelte';
+	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { BottomSheet } from 'svelte-bottom-sheet';
 	import type { ActiveEpisode, Chapter } from '$lib/types/db';
 
@@ -25,13 +11,16 @@
 		onForward,
 		onSeek,
 		onFeedClick,
+		onStop,
 		currentTime,
 		duration,
 		remainingTime,
 		paused,
 		onClose,
 		isOpen,
-		currentChapter
+		currentChapter,
+		onSpeedChange,
+		playbackSpeed
 	} = $props<{
 		episode: ActiveEpisode;
 		onBack: (e: Event) => void;
@@ -39,6 +28,7 @@
 		onForward: (e: Event) => void;
 		onSeek: (e: Event) => void;
 		onFeedClick: (e: Event) => void;
+		onStop: (e: Event) => void;
 		currentTime: number;
 		duration: number;
 		remainingTime: number;
@@ -46,6 +36,8 @@
 		onClose: () => void;
 		isOpen: boolean;
 		currentChapter: Chapter | null;
+		onSpeedChange: (e: Event) => void;
+		playbackSpeed: number;
 	}>();
 
 	let previousChapterTitle = $state<string>('');
@@ -157,6 +149,14 @@
 						</div>
 						<div class="controls">
 							<div class="buttons">
+								<button class="button" onclick={onSpeedChange}>
+									<div>
+										<div>
+											<Gauge size="2.5rem" />
+										</div>
+										<div class="playback-speed">{playbackSpeed}x</div>
+									</div>
+								</button>
 								<button class="button" onclick={onBack}>
 									<div class="stack-cell">
 										<div>
@@ -165,7 +165,6 @@
 										<div class="time-text">10</div>
 									</div>
 								</button>
-
 								<button class="button play-pause" onclick={onPlayPause}>
 									<div class="stack-cell">
 										<div class="play-pause__circle"></div>
@@ -188,6 +187,9 @@
 										</div>
 										<div class="time-text">30</div>
 									</div>
+								</button>
+								<button class="button" onclick={onStop}>
+									<X size="2.5rem" />
 								</button>
 							</div>
 						</div>
@@ -382,7 +384,7 @@
 	.buttons {
 		display: flex;
 		justify-content: space-between;
-		padding: 0 8vw;
+		padding: 0 0.5rem;
 		align-items: center;
 	}
 
@@ -414,6 +416,11 @@
 		font-weight: bold;
 		font-size: 1rem;
 		place-self: center;
+	}
+
+	.playback-speed {
+		font-weight: bold;
+		margin-top: -0.5rem;
 	}
 
 	.play-pause__circle {

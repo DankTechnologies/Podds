@@ -70,6 +70,7 @@ export interface Settings {
 	isSyncing?: boolean;
 	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';
+	playbackSpeed: number;
 }
 
 // Helper type for creating new records without an ID

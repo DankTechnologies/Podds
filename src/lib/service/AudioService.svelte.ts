@@ -1,3 +1,5 @@
+import { getSettings } from "$lib/stores/db.svelte";
+
 export class AudioService {
 	private static audio = new Audio();
 
@@ -89,9 +91,12 @@ export class AudioService {
 	static async loadPaused(url: string, currentTime: number = 0) {
 		if (this.audio.src) return;
 
+		const settings = getSettings();
+
 		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 		this.audio.src = corsHelperUrl;
 		this.audio.currentTime = currentTime;
+		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
 	}
 
 	static async play(url: string, currentTime: number = 0) {
@@ -102,7 +107,11 @@ export class AudioService {
 		if (this.audio.readyState < 1) {
 			await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
 		}
+
+		const settings = getSettings();
+
 		this.audio.currentTime = currentTime;
+		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
 
 		this.setupMediaSession();
 		this.audio.play();
@@ -145,5 +154,9 @@ export class AudioService {
 	static getPaused() {
 		this.updateMediaSessionPlaybackState(this.audio.paused);
 		return this.audio.paused;
+	}
+
+	static setPlaybackSpeed(speed: number) {
+		this.audio.playbackRate = speed;
 	}
 }

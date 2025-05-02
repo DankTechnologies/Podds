@@ -20,12 +20,11 @@ export class SettingsService {
 	}
 
 	static updateLastSyncAt(): void {
-		let currentSettings = getSettings();
-
-		if (!currentSettings) {
-			throw new Error('Settings not found');
-		}
 		db.settings.updateOne({ id: '1' }, { $set: { lastSyncAt: new Date() } });
+	}
+
+	static updatePlaybackSpeed(playbackSpeed: number): void {
+		db.settings.updateOne({ id: '1' }, { $set: { playbackSpeed } });
 	}
 
 	static async clearAllLocalState(): Promise<void> {

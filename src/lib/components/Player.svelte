@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { RotateCcw, RotateCw, Play, Pause, X, Loader2 } from 'lucide-svelte';
-	import { formatPlaybackPosition } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { onMount } from 'svelte';
@@ -9,8 +8,11 @@
 	import type { SvelteMap } from 'svelte/reactivity';
 	import { page } from '$app/state';
 	import PlayerDetails from './PlayerDetails.svelte';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { getSettings } from '$lib/stores/db.svelte';
 
 	const ICON_SIZE = '2rem';
+	const PLAYBACK_SPEEDS = [1.0, 1.25, 1.5, 1.75, 2.0];
 
 	let {
 		episode,
@@ -24,6 +26,7 @@
 	let showDetailedControls = $state(false);
 	let previousEpisodeId = $state('');
 	let previousPage = $state('');
+	let settings = $derived(getSettings());
 
 	let remainingTime = $derived(duration - currentTime);
 	let currentChapter = $derived(() => {
@@ -170,6 +173,17 @@
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
 	}
+
+	function handleSpeedChange(e: Event) {
+		e.stopPropagation();
+
+		const currentIndex = PLAYBACK_SPEEDS.indexOf(settings!.playbackSpeed);
+		const nextIndex = (currentIndex + 1) % PLAYBACK_SPEEDS.length;
+		const newSpeed = PLAYBACK_SPEEDS[nextIndex];
+
+		AudioService.setPlaybackSpeed(newSpeed);
+		SettingsService.updatePlaybackSpeed(newSpeed);
+	}
 </script>
 
 <div
@@ -245,6 +259,9 @@
 	onSeek={handleSeek}
 	onFeedClick={handleFeedClick}
 	onClose={() => (showDetailedControls = false)}
+	onStop={handleStop}
+	onSpeedChange={handleSpeedChange}
+	playbackSpeed={settings!.playbackSpeed}
 	isOpen={showDetailedControls}
 />
 

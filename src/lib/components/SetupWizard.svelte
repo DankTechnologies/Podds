@@ -14,7 +14,8 @@
 		syncIntervalMinutes: 15,
 		lastSyncAt: new Date(),
 		isAdvanced: false,
-		logLevel: 'info'
+		logLevel: 'info',
+		playbackSpeed: 1.0
 	});
 
 	let isPwaInstalled = $derived(window.matchMedia('(display-mode: standalone)').matches);
