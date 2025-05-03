@@ -19,7 +19,8 @@
 			lastSyncAt: new Date(),
 			isAdvanced: false,
 			logLevel: 'debug',
-			playbackSpeed: 1.0
+			playbackSpeed: 1.0,
+			visitCount: 0
 		}
 	);
 
@@ -99,6 +100,10 @@
 <div class="settings-content">
 	{#if activeSection === 'general'}
 		<section class="section">
+			<div>
+				<label for="visitCount">Visit Count</label>
+				<input id="visitCount" bind:value={settings.visitCount} disabled />
+			</div>
 			<div>
 				<label for="advancedMode">Advanced Mode</label>
 				<div class="toggle-switch">

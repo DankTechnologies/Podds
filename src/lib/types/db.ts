@@ -67,6 +67,7 @@ export interface Settings {
 	corsHelperUrl: string;
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
+	visitCount: number;
 	isSyncing?: boolean;
 	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';

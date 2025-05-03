@@ -19,6 +19,14 @@ export class SettingsService {
 		}
 	}
 
+	static incrementVisitCount(currentVisitCount: number | undefined): void {
+		if (!currentVisitCount) {
+			currentVisitCount = 0;
+		}
+
+		db.settings.updateOne({ id: '1' }, { $set: { visitCount: currentVisitCount + 1 } });
+	}
+
 	static updateLastSyncAt(): void {
 		db.settings.updateOne({ id: '1' }, { $set: { lastSyncAt: new Date() } });
 	}

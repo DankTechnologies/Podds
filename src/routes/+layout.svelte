@@ -9,6 +9,8 @@
 	import { page } from '$app/state';
 	import SetupWizard from '$lib/components/SetupWizard.svelte';
 	import { trackThemePreference } from '$lib/utils/themePreference.svelte';
+	import { onMount } from 'svelte';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 
 	let feedService = new FeedService();
 
@@ -16,38 +18,46 @@
 
 	let settings = $derived(getSettings());
 	let hasSettings = $derived(settings !== undefined);
+	let isFirstVisit = $derived(settings?.visitCount === undefined || settings.visitCount === 0);
 
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
 
 	trackThemePreference();
 
-	Promise.all([
-		db.feeds.isReady(),
-		db.episodes.isReady(),
-		db.activeEpisodes.isReady(),
-		db.settings.isReady(),
-		db.logs.isReady()
-	]).then(async () => {
-		isDbReady = true;
-		Log.initServiceWorkerLogging();
-		feedService.startPeriodicUpdates();
+	onMount(() => {
+		Promise.all([
+			db.feeds.isReady(),
+			db.episodes.isReady(),
+			db.activeEpisodes.isReady(),
+			db.settings.isReady(),
+			db.logs.isReady()
+		]).then(async () => {
+			isDbReady = true;
+			Log.initServiceWorkerLogging();
+			feedService.startPeriodicUpdates();
 
-		if (navigator.storage && navigator.storage.persist) {
-			const granted = await navigator.storage.persist();
+			if (navigator.storage && navigator.storage.persist) {
+				const granted = await navigator.storage.persist();
 
-			if (!granted) {
-				Log.error('Storage persistence not granted');
+				if (!granted) {
+					Log.error('Storage persistence not granted');
+				}
 			}
-		}
 
-		// share takes care of hiding the loading screen
-		if (!page.url.pathname.startsWith('/share')) {
-			const loadingScreen = document.getElementById('appLoading');
-			if (loadingScreen) {
-				loadingScreen.remove();
+			if (settings) {
+				SettingsService.incrementVisitCount(settings.visitCount);
 			}
-		}
+
+			// share takes care of hiding the loading screen
+			// do this last
+			if (!page.url.pathname.startsWith('/share')) {
+				const loadingScreen = document.getElementById('appLoading');
+				if (loadingScreen) {
+					loadingScreen.remove();
+				}
+			}
+		});
 	});
 
 	let { children } = $props();

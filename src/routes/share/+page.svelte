@@ -54,7 +54,8 @@
 				lastSyncAt: settings?.lastSyncAt ?? new Date(),
 				logLevel: settings?.logLevel ?? 'info',
 				isAdvanced: settings?.isAdvanced ?? false,
-				playbackSpeed: settings?.playbackSpeed ?? 1.0
+				playbackSpeed: settings?.playbackSpeed ?? 1.0,
+				visitCount: settings?.visitCount ?? 0
 			});
 
 			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
