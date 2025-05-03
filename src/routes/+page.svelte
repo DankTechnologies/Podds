@@ -4,10 +4,7 @@
 	import type { Feed } from '$lib/types/db';
 	import type { GridItem } from '$lib/types/grid';
 	import { isShortcut } from '$lib/types/grid';
-	import { RefreshCw, Settings, Share2 } from 'lucide-svelte';
-	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
-	import { getSettings } from '$lib/stores/db.svelte';
-	import { Log } from '$lib/service/LogService';
+	import { RefreshCw, Settings } from 'lucide-svelte';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 
@@ -50,17 +47,9 @@
 			svg: Settings
 		});
 
-		// Insert share button
-		result.splice(shortcutPosition + 1, 0, {
-			type: 'shortcut',
-			id: 'share',
-			action: shareAllFeeds,
-			svg: Share2
-		});
-
 		// Insert update button if needed
 		if (SessionInfo.hasUpdate) {
-			result.splice(shortcutPosition + 2, 0, {
+			result.splice(shortcutPosition + 1, 0, {
 				type: 'shortcut',
 				id: 'update',
 				action: handleUpdate,
@@ -70,20 +59,6 @@
 
 		return result;
 	});
-
-	function shareAllFeeds() {
-		const settings = getSettings();
-		if (!settings) {
-			Log.error('Settings not found, skipping share link');
-			return;
-		}
-
-		// Share the first feed as a simple way to share the app
-		const feeds = getFeeds();
-		if (feeds.length > 0) {
-			shareFeedUtil(feeds[0], settings.podcastIndexKey, settings.podcastIndexSecret);
-		}
-	}
 
 	function handleUpdate() {
 		// Replace body content with the loading screen from app.html

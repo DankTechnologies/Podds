@@ -11,7 +11,7 @@
 		Check,
 		Plus,
 		Trash2,
-		Share2,
+		Gift,
 		AudioLines
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
@@ -295,7 +295,7 @@
 					{/if}
 					{#if !isShare && !isSearch}
 						<button class="episode-controls__button" onclick={() => shareEpisode(episode)}>
-							<Share2 size="16" /> Share
+							<Gift size="16" /> Share
 						</button>
 					{/if}
 					{#if getActiveEpisode(episode)?.isDownloaded}

@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Share2, Trash2, Search } from 'lucide-svelte';
+	import { Gift, Trash2, Search } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
@@ -124,7 +124,7 @@
 				Search
 			</button>
 			<button class="podcast-header__button" onclick={() => shareFeed(feed)}>
-				<Share2 size="14" />
+				<Gift size="14" />
 				Share
 			</button>
 			<button

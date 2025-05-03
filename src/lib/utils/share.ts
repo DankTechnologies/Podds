@@ -53,8 +53,8 @@ export async function shareFeed(feed: Feed, podcastIndexKey: string, podcastInde
     });
 
     const success = await shareWithNative({
-        title: feed.title,
-        text: `Check out this podcast: ${feed.title}`,
+        title: `🎙️ ${feed.title}`,
+        text: `📻 Tune into PODDS + pass it on 🎁`,
         url
     });
 
@@ -72,8 +72,8 @@ export async function shareEpisode(episode: Episode, feed: Feed, podcastIndexKey
     });
 
     const success = await shareWithNative({
-        title: `${feed.title} - ${episode.title}`,
-        text: `Check out this podcast: ${episode.title}`,
+        title: `🎙️ "${episode.title}" on ${feed.title}`,
+        text: `📻 Tune into PODDS + pass it on 🎁`,
         url
     });
 

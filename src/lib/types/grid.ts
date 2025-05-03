@@ -1,12 +1,12 @@
 import type { Feed } from './db';
-import type { Settings, Share2, RefreshCw } from 'lucide-svelte';
+import type { Settings, RefreshCw } from 'lucide-svelte';
 
 export interface GridShortcut {
     type: 'shortcut';
-    id: 'settings' | 'share' | 'update';
+    id: 'settings' | 'update';
     url?: string;
     action?: () => void;
-    svg: typeof Settings | typeof Share2 | typeof RefreshCw;
+    svg: typeof Settings | typeof RefreshCw;
 }
 
 export type GridItem = Feed | GridShortcut;
