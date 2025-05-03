@@ -2,12 +2,25 @@
 	import { goto } from '$app/navigation';
 	import { getFeeds } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
+	import type { GridItem } from '$lib/types/grid';
+	import { isShortcut } from '$lib/types/grid';
 	import { RefreshCw, Settings, Share2 } from 'lucide-svelte';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
+
+	function getShortcutPosition(feeds: Feed[]): number {
+		const numColumns = Math.floor(window.innerWidth / 128);
+		const lastFullRow = Math.floor(window.innerHeight / 128);
+
+		const numRows = Math.floor(feeds.length / numColumns);
+
+		const startOfLastRow = numColumns * lastFullRow - numColumns;
+
+		return numRows > lastFullRow ? startOfLastRow : feeds.length;
+	}
 
 	let feeds = $derived(
 		getFeeds()
@@ -24,6 +37,40 @@
 			})
 	);
 
+	let shortcutPosition = $derived(getShortcutPosition(feeds));
+
+	let feedsAndShortcuts: GridItem[] = $derived.by(() => {
+		let result: GridItem[] = [...feeds];
+
+		// Insert settings button
+		result.splice(shortcutPosition, 0, {
+			type: 'shortcut',
+			id: 'settings',
+			url: '/settings',
+			svg: Settings
+		});
+
+		// Insert share button
+		result.splice(shortcutPosition + 1, 0, {
+			type: 'shortcut',
+			id: 'share',
+			action: shareAllFeeds,
+			svg: Share2
+		});
+
+		// Insert update button if needed
+		if (SessionInfo.hasUpdate) {
+			result.splice(shortcutPosition + 2, 0, {
+				type: 'shortcut',
+				id: 'update',
+				action: handleUpdate,
+				svg: RefreshCw
+			});
+		}
+
+		return result;
+	});
+
 	function shareAllFeeds() {
 		const settings = getSettings();
 		if (!settings) {
@@ -32,6 +79,7 @@
 		}
 
 		// Share the first feed as a simple way to share the app
+		const feeds = getFeeds();
 		if (feeds.length > 0) {
 			shareFeedUtil(feeds[0], settings.podcastIndexKey, settings.podcastIndexSecret);
 		}
@@ -46,33 +94,30 @@
 </script>
 
 <div class="grid">
-	{#each feeds as feed}
-		<div class="grid-item">
-			<button
-				onclick={() => goto(`/podcast/${feed.id}`)}
-				aria-label={`Go to ${feed.title} podcast`}
-			>
-				<img src={`data:${feed.iconData}`} alt={feed.title} />
-			</button>
-		</div>
+	{#each feedsAndShortcuts as x}
+		{#if isShortcut(x)}
+			<div class="subnav-container">
+				<button
+					class="subnav"
+					onclick={() => {
+						if (x.url) {
+							goto(x.url);
+						} else if (x.action) {
+							x.action();
+						}
+					}}
+				>
+					<x.svg size="128" />
+				</button>
+			</div>
+		{:else}
+			<div class="grid-item">
+				<button onclick={() => goto(`/podcast/${x.id}`)} aria-label={`Go to ${x.title} podcast`}>
+					<img src={`data:${x.iconData}`} alt={x.title} />
+				</button>
+			</div>
+		{/if}
 	{/each}
-	<div class="subnav-container">
-		<button class="subnav" onclick={() => goto('/settings')}>
-			<Settings size="128" />
-		</button>
-	</div>
-	<div class="subnav-container">
-		<button class="subnav" onclick={shareAllFeeds}>
-			<Share2 size="128" />
-		</button>
-	</div>
-	{#if SessionInfo.hasUpdate}
-		<div class="subnav-container">
-			<button class="subnav" onclick={handleUpdate}>
-				<RefreshCw size="128" />
-			</button>
-		</div>
-	{/if}
 </div>
 
 <svg width="0" height="0">
