@@ -25,8 +25,8 @@ export class FeedService {
 	}
 
 	async updateAllFeeds() {
-		let settings = getSettings();
-		let feeds = getFeeds();
+		const settings = getSettings();
+		const feeds = getFeeds();
 
 		if (!settings) {
 			Log.warn('Settings not found, skipping update');
@@ -58,7 +58,9 @@ export class FeedService {
 
 		const finderRequest: EpisodeFinderRequest = {
 			feeds,
-			since
+			since,
+			corsHelperUrl: settings.corsHelperUrl,
+			corsHelperBackupUrl: settings.corsHelperBackupUrl
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -126,6 +128,8 @@ export class FeedService {
 	async addFeed(feed: PIApiFeed, iconData: string) {
 		Log.info(`Adding feed: ${feed.title}`);
 
+		const settings = getSettings();
+
 		const newFeed = {
 			id: feed.id.toString(),
 			url: feed.url,
@@ -141,7 +145,9 @@ export class FeedService {
 
 		const finderRequest: EpisodeFinderRequest = {
 			feeds: [newFeed],
-			since: undefined
+			since: undefined,
+			corsHelperUrl: settings!.corsHelperUrl,
+			corsHelperBackupUrl: settings!.corsHelperBackupUrl
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -169,6 +175,8 @@ export class FeedService {
 	async addFeeds(feeds: { feed: PIApiFeed; iconData: string }[]): Promise<void> {
 		if (feeds.length === 0) return;
 
+		const settings = getSettings();
+
 		Log.info(`Adding ${feeds.length} feeds`);
 
 		const newFeeds = feeds.map(({ feed, iconData }): Feed => ({
@@ -187,7 +195,9 @@ export class FeedService {
 
 		const finderRequest: EpisodeFinderRequest = {
 			feeds: newFeeds,
-			since: undefined
+			since: undefined,
+			corsHelperUrl: settings!.corsHelperUrl,
+			corsHelperBackupUrl: settings!.corsHelperBackupUrl
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -331,8 +341,8 @@ export class FeedService {
 	}
 
 	private async resizeImage(feed: PIApiFeed): Promise<string> {
+		const settings = getSettings();
 		const imageUrl = feed.image || feed.artwork;
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
-		return await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelperUrl, settings!.corsHelperBackupUrl);
 	}
 }

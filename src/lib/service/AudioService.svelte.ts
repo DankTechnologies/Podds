@@ -93,28 +93,43 @@ export class AudioService {
 
 		const settings = getSettings();
 
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+		const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 		this.audio.src = corsHelperUrl;
 		this.audio.currentTime = currentTime;
-		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+		this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
 	}
 
 	static async play(url: string, currentTime: number = 0) {
-		this.audio.pause();
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
-		this.audio.src = corsHelperUrl;
-
-		if (this.audio.readyState < 1) {
-			await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
-		}
-
 		const settings = getSettings();
 
-		this.audio.currentTime = currentTime;
-		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+		this.audio.pause();
 
-		this.setupMediaSession();
-		this.audio.play();
+		try {
+			const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+			this.audio.src = corsHelperUrl;
+
+			if (this.audio.readyState < 1) {
+				await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
+			}
+
+			this.audio.currentTime = currentTime;
+			this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
+
+			this.setupMediaSession();
+			this.audio.play();
+		} catch (error) {
+			if (settings!.corsHelperBackupUrl) {
+				const corsHelperBackupUrl = `${settings!.corsHelperBackupUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+
+				this.audio.src = corsHelperBackupUrl;
+				this.audio.currentTime = currentTime;
+				this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
+				this.setupMediaSession();
+				this.audio.play();
+			} else {
+				throw error;
+			}
+		}
 	}
 
 	static addEventListener(event: string, callback: () => void) {

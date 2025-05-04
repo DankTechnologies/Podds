@@ -16,38 +16,56 @@ interface ParseXmlResult {
 export async function parseFeedUrl(
 	feedId: string,
 	url: string,
+	corsHelperUrl: string,
+	corsHelperBackupUrl: string | undefined,
 	since?: number,
 	headers?: Record<string, string>
 ): Promise<ParseFeedResult> {
-	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-	const response = await fetch(corsHelperUrl, { headers });
+	async function fetchFeed(fetchUrl: string): Promise<ParseFeedResult> {
+		const response = await fetch(fetchUrl, { headers });
 
-	if (response.status === 304) {
+		if (response.status === 304) {
+			return {
+				episodes: [],
+				status: 304
+			};
+		}
+
+		if (response.status >= 400) {
+			throw new Error(`Failed to fetch feed: HTTP ${response.status}`);
+		}
+
+		const contentType = response.headers.get('content-type');
+
+		if (!contentType?.includes('xml')) {
+			throw new Error(`Invalid feed format: ${contentType}`);
+		}
+
+		const xmlString = await response.text();
+		const { episodes, ttlMinutes } = await parseEpisodesFromXml(feedId, xmlString, since);
+
 		return {
-			episodes: [],
-			status: 304
+			episodes,
+			status: response.status,
+			lastModified: response.headers.get('last-modified') || undefined,
+			ttlMinutes
 		};
 	}
 
-	if (response.status >= 400) {
-		throw new Error(`Failed to fetch feed: HTTP ${response.status}`);
+	try {
+		const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		return await fetchFeed(primaryUrl);
+	} catch (error) {
+		if (corsHelperBackupUrl) {
+			try {
+				const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				return await fetchFeed(backupUrl);
+			} catch (error) {
+				throw error;
+			}
+		}
+		throw error;
 	}
-
-	const contentType = response.headers.get('content-type');
-
-	if (!contentType?.includes('xml')) {
-		throw new Error(`Invalid feed format: ${contentType}`);
-	}
-
-	const xmlString = await response.text();
-	const { episodes, ttlMinutes } = await parseEpisodesFromXml(feedId, xmlString, since);
-
-	return {
-		episodes,
-		status: response.status,
-		lastModified: response.headers.get('last-modified') || undefined,
-		ttlMinutes
-	};
 }
 
 async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: number): Promise<ParseXmlResult> {
@@ -145,20 +163,32 @@ export function parseOwner(author: string | undefined, ownerName: string | undef
 	return authorLength > ownerNameLength ? author : ownerName;
 }
 
-export async function fetchChapters(url: string): Promise<Chapter[]> {
-	try {
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-		const response = await fetch(corsHelperUrl);
+export async function fetchChapters(url: string, corsHelperUrl: string, corsHelperBackupUrl: string | undefined): Promise<Chapter[]> {
+
+	async function fetchChaptersFromUrl(fetchUrl: string): Promise<Chapter[]> {
+		const response = await fetch(fetchUrl);
 		if (!response.ok) return [];
 
 		const data = await response.json();
-
 		return data.chapters.map((chapter: Chapter) => ({
 			title: chapter.title,
 			startTime: chapter.startTime,
 			endTime: chapter.endTime
 		}));
+	}
+
+	try {
+		const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		return await fetchChaptersFromUrl(primaryUrl);
 	} catch (error) {
+		if (corsHelperBackupUrl) {
+			try {
+				const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				return await fetchChaptersFromUrl(backupUrl);
+			} catch (error) {
+				return [];
+			}
+		}
 		return [];
 	}
 }

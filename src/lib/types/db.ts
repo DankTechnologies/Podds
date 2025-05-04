@@ -65,6 +65,7 @@ export interface Settings {
 	podcastIndexKey: string;
 	podcastIndexSecret: string;
 	corsHelperUrl: string;
+	corsHelperBackupUrl: string
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
 	visitCount: number;

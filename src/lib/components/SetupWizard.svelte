@@ -4,13 +4,14 @@
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { CheckCircle, Download } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
 
 	let settings = $state<Settings>({
 		id: '1',
+		// TODO: remove
 		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
 		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
 		corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL || '',
+		corsHelperBackupUrl: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
 		syncIntervalMinutes: 15,
 		lastSyncAt: new Date(),
 		isAdvanced: false,

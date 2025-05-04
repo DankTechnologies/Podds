@@ -12,7 +12,7 @@
 	let corsTestUrl = $state('https://feeds.publicradio.org/public_feeds/marketplace');
 	let podcastIndexStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let corsStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
-
+	let corsBackupStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let isValid = $derived(podcastIndexStatus === 'success' && corsStatus === 'success');
 
 	async function testPodcastIndex() {
@@ -25,20 +25,37 @@
 		}
 	}
 
-	async function testCorsHelper() {
-		try {
-			const corsUrl = `${settings.corsHelperUrl}?url=${encodeURIComponent(corsTestUrl)}`;
-			const response = await fetch(corsUrl);
-			corsStatus = response.ok ? 'success' : 'error';
-		} catch (error) {
-			corsStatus = 'error';
+	async function testCorsHelpers() {
+		if (settings.corsHelperUrl) {
+			try {
+				const corsUrl = `${settings.corsHelperUrl}?url=${encodeURIComponent(corsTestUrl)}`;
+				const response = await fetch(corsUrl);
+				corsStatus = response.ok ? 'success' : 'error';
+			} catch (error) {
+				corsStatus = 'error';
+			}
+		} else {
+			corsStatus = 'untested';
+		}
+
+		if (settings.corsHelperBackupUrl) {
+			try {
+				const corsBackupUrl = `${settings.corsHelperBackupUrl}?url=${encodeURIComponent(corsTestUrl)}`;
+				const corsBackupResponse = await fetch(corsBackupUrl);
+				corsBackupStatus = corsBackupResponse.ok ? 'success' : 'error';
+			} catch (error) {
+				corsBackupStatus = 'error';
+			}
+		} else {
+			corsBackupStatus = 'untested';
 		}
 	}
 
 	async function handleTest() {
 		podcastIndexStatus = 'testing';
 		corsStatus = 'testing';
-		await Promise.all([testPodcastIndex(), testCorsHelper()]);
+		corsBackupStatus = 'testing';
+		await Promise.all([testPodcastIndex(), testCorsHelpers()]);
 		onTestComplete?.(isValid);
 	}
 </script>
@@ -75,6 +92,16 @@
 			type="text"
 			bind:value={settings.corsHelperUrl}
 			required
+		/>
+	</div>
+	<div>
+		<label for="corsHelperBackupUrl">CORS Helper - Backup</label>
+		<input
+			id="corsHelperBackupUrl"
+			class="api-input"
+			spellcheck="false"
+			type="text"
+			bind:value={settings.corsHelperBackupUrl}
 		/>
 	</div>
 	<div>
@@ -125,6 +152,26 @@
 					{:else if corsStatus === 'testing'}
 						Testing...
 					{:else if corsStatus === 'success'}
+						Connection successful
+					{:else}
+						Connection failed
+					{/if}
+				</div>
+			</div>
+			<div class="status-item">
+				<span class="status-label">CORS Helper - Backup:</span>
+				<div
+					role="status"
+					class="status"
+					class:success={corsBackupStatus === 'success'}
+					class:error={corsBackupStatus === 'error'}
+					class:testing={corsBackupStatus === 'testing'}
+				>
+					{#if corsBackupStatus === 'untested'}
+						Not tested
+					{:else if corsBackupStatus === 'testing'}
+						Testing...
+					{:else if corsBackupStatus === 'success'}
 						Connection successful
 					{:else}
 						Connection failed

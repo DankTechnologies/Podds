@@ -41,6 +41,8 @@
 
 	let activeEpisodes = $derived(getActiveEpisodes());
 
+	let settings = $derived(getSettings());
+
 	let episodes: Episode[] = $derived(
 		episodeResults.map((episode) => ({
 			id: episode.guid, // aligns with feedParser
@@ -108,8 +110,13 @@
 					if (!feed.image) {
 						return;
 					}
-					const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(feed.image)}`;
-					resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT).then((resizedImage) => {
+					resizeBase64Image(
+						feed.image,
+						ICON_MAX_WIDTH,
+						ICON_MAX_HEIGHT,
+						settings!.corsHelperUrl,
+						settings!.corsHelperBackupUrl
+					).then((resizedImage) => {
 						resizedImageById.set(id.toString(), resizedImage);
 					});
 				});

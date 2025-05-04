@@ -35,7 +35,7 @@
 			label: 'Podcasts',
 			icon: Hotel,
 			hasUpdate: () => false,
-			disabled: () => !hasFeeds
+			disabled: () => false
 		},
 		{
 			href: '/new-episodes',

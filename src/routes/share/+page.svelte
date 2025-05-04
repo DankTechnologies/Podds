@@ -49,7 +49,10 @@
 				id: '1',
 				podcastIndexKey: config.podcastIndexKey,
 				podcastIndexSecret: config.podcastIndexSecret,
-				corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL,
+				// TODO: move cors helpers back to sharedata
+				corsHelperUrl: settings?.corsHelperUrl ?? import.meta.env.VITE_CORS_HELPER_URL,
+				corsHelperBackupUrl:
+					settings?.corsHelperBackupUrl ?? import.meta.env.VITE_CORS_HELPER_BACKUP_URL,
 				syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
 				lastSyncAt: settings?.lastSyncAt ?? new Date(),
 				logLevel: settings?.logLevel ?? 'info',
@@ -90,7 +93,9 @@
 	async function getEpisodes(feed: Feed | null): Promise<Episode[]> {
 		const finderRequest = {
 			feeds: feed ? [feed] : [],
-			since: undefined
+			since: undefined,
+			corsHelperUrl: settings!.corsHelperUrl,
+			corsHelperBackupUrl: settings!.corsHelperBackupUrl
 		};
 
 		const finderResponse = await feedService.runEpisodeFinder(finderRequest);
@@ -109,8 +114,13 @@
 
 		// Resize and store icon
 		const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
-		const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(imageUrl)}`;
-		const iconData = await resizeBase64Image(corsHelperUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT);
+		const iconData = await resizeBase64Image(
+			imageUrl,
+			ICON_MAX_WIDTH,
+			ICON_MAX_HEIGHT,
+			settings!.corsHelperUrl,
+			settings!.corsHelperBackupUrl
+		);
 
 		const feed = {
 			id: feedResponse.feed.id.toString(),

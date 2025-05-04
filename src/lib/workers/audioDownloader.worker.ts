@@ -1,36 +1,46 @@
 self.onmessage = (e: MessageEvent) => {
-	const { url } = e.data;
-	const xhr = new XMLHttpRequest();
+	const { url, backupUrl } = e.data;
 
-	// Setup XHR progress tracking
-	xhr.addEventListener('progress', (event) => {
-		if (event.lengthComputable) {
-			const percent = (event.loaded / event.total) * 100;
-			self.postMessage({ type: 'progress', percent });
-		}
-	});
+	function download(downloadUrl: string, onSuccess: (blob: Blob) => void, onError: (err: any) => void) {
+		const xhr = new XMLHttpRequest();
 
-	xhr.addEventListener('load', () => {
-		if (xhr.status === 200) {
-			// Send success message with the blob data
-			const blob = xhr.response;
-			self.postMessage({ type: 'complete', blob });
-		} else {
-			self.postMessage({
-				type: 'error',
-				error: `HTTP ${xhr.status}`
-			});
-		}
-	});
-
-	xhr.addEventListener('error', (e) => {
-		self.postMessage({
-			type: 'error',
-			error: 'Network error occurred'
+		xhr.addEventListener('progress', (event) => {
+			if (event.lengthComputable) {
+				const percent = (event.loaded / event.total) * 100;
+				self.postMessage({ type: 'progress', percent });
+			}
 		});
-	});
 
-	xhr.open('GET', url);
-	xhr.responseType = 'blob';
-	xhr.send();
+		xhr.addEventListener('load', () => {
+			if (xhr.status === 200) {
+				onSuccess(xhr.response);
+			} else {
+				onError(`HTTP ${xhr.status}`);
+			}
+		});
+
+		xhr.addEventListener('error', () => {
+			onError('Network error occurred');
+		});
+
+		xhr.open('GET', downloadUrl);
+		xhr.responseType = 'blob';
+		xhr.send();
+	}
+
+	download(
+		url,
+		(blob) => self.postMessage({ type: 'complete', blob }),
+		(err) => {
+			if (backupUrl) {
+				download(
+					backupUrl,
+					(blob) => self.postMessage({ type: 'complete', blob }),
+					(finalErr) => self.postMessage({ type: 'error', error: finalErr })
+				);
+			} else {
+				self.postMessage({ type: 'error', error: err });
+			}
+		}
+	);
 };

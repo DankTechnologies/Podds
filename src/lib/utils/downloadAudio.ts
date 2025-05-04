@@ -1,3 +1,5 @@
+import { getSettings } from "$lib/stores/db.svelte";
+
 export function downloadAudio(
 	url: string,
 	onComplete?: () => void,
@@ -7,6 +9,8 @@ export function downloadAudio(
 	const worker = new Worker(new URL('../workers/audioDownloader.worker.ts', import.meta.url), {
 		type: 'module'
 	});
+
+	const settings = getSettings();
 
 	worker.onmessage = (e) => {
 		const { type, percent, blob, error } = e.data;
@@ -36,9 +40,13 @@ export function downloadAudio(
 		}
 	};
 
-	const corsHelperUrl = `${import.meta.env.VITE_CORS_HELPER_URL}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+	const primaryUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
-	worker.postMessage({ url: corsHelperUrl });
+	const backupUrl = settings!.corsHelperBackupUrl
+		? `${settings!.corsHelperBackupUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`
+		: undefined;
+
+	worker.postMessage({ url: primaryUrl, backupUrl });
 
 	// Return cleanup function
 	return () => {

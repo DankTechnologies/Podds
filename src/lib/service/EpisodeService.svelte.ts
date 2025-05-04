@@ -1,4 +1,4 @@
-import { db } from '$lib/stores/db.svelte';
+import { db, getSettings } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
@@ -20,11 +20,13 @@ export class EpisodeService {
 	static async addActiveEpisode(episode: Episode, isPlaying: boolean, isDownloaded: boolean): Promise<void> {
 		const feed = db.feeds.findOne({ id: episode.feedId });
 
+		const settings = getSettings();
+
 		let chapters: Chapter[] | undefined = undefined;
 		if (episode.chaptersUrl) {
 			Log.debug(`Fetching chapters for episode ${episode.title}`);
 			try {
-				chapters = await fetchChapters(episode.chaptersUrl);
+				chapters = await fetchChapters(episode.chaptersUrl, settings!.corsHelperUrl, settings!.corsHelperBackupUrl);
 			} catch (error) {
 				Log.error(`Error fetching chapters for episode ${episode.title}: ${error}`);
 			}
