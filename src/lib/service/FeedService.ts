@@ -139,8 +139,6 @@ export class FeedService {
 			categories: Object.values(feed.categories || {})
 		};
 
-		db.feeds.insert(newFeed);
-
 		const finderRequest: EpisodeFinderRequest = {
 			feeds: [newFeed],
 			since: undefined
@@ -150,20 +148,20 @@ export class FeedService {
 
 		finderResponse.errors.forEach((x) => Log.error(x));
 
-		db.episodes.insertMany(finderResponse.episodes);
+		const feedWithTimestamps = {
+			...newFeed,
+			lastCheckedAt: finderResponse.feeds[0].lastCheckedAt,
+			lastSyncedAt: finderResponse.feeds[0].lastSyncedAt,
+			lastModified: finderResponse.feeds[0].lastModified,
+			ttlMinutes: finderResponse.feeds[0].ttlMinutes
+		};
 
-		db.feeds.batch(() => {
-			finderResponse.feeds.forEach((x) => {
-				db.feeds.updateOne({ id: x.id }, {
-					$set: {
-						lastCheckedAt: x.lastCheckedAt,
-						lastSyncedAt: x.lastSyncedAt,
-						lastModified: x.lastModified,
-						ttlMinutes: x.ttlMinutes
-					}
-				});
-			});
-		});
+		db.feeds.insert(feedWithTimestamps);
+
+		// feeds can be retried from feed page 
+		if (finderResponse.episodes.length > 0) {
+			db.episodes.insertMany(finderResponse.episodes);
+		}
 
 		Log.info(`Finished adding ${feed.title}`);
 	}

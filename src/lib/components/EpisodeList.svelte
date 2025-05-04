@@ -9,10 +9,10 @@
 		ArrowUp,
 		Download,
 		Check,
-		Plus,
 		Trash2,
 		Gift,
-		AudioLines
+		AudioLines,
+		Frown
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
@@ -105,20 +105,13 @@
 		EpisodeService.removeActiveEpisode(episode.id, episode.url);
 	}
 
-	function addFeed(feedId: string) {
-		if (feeds.find((x) => x.id === feedId)) {
-			return;
-		}
-
-		feedService.addFeedById(feedId, feedIconsById?.get(feedId) ?? '');
-	}
-
 	function handleDownloadComplete(episode: Episode) {
 		EpisodeService.markDownloaded(episode);
 		downloadProgress.delete(episode.id);
 	}
 
 	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
+		downloadProgress.set(episodeId, -1);
 		EpisodeService.clearDownloaded(episodeId);
 		Log.error(`Download failed for episode ${episodeId}: ${err.message ?? err.toString()}`);
 	}
@@ -240,9 +233,13 @@
 								<div>
 									<Download size="14" />
 								</div>
-							{:else if downloadProgress.has(episode.id)}
+							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) !== -1}
 								<div class="download-progress">
 									{Math.round(downloadProgress.get(episode.id) ?? 0)}%
+								</div>
+							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) === -1}
+								<div class="download-progress error">
+									<Frown size="14" />
 								</div>
 							{/if}
 							<div>
@@ -467,6 +464,12 @@
 		font-size: var(--text-small);
 		min-width: 3ch;
 		padding-right: 0.5rem;
+	}
+
+	.download-progress.error {
+		color: var(--error);
+		min-width: 2.5ch;
+		padding-right: 0;
 	}
 
 	.episode-controls {
