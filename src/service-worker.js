@@ -100,6 +100,17 @@ const handleRequest = async ({ request }) => {
 
 	// MP3 caching logic
 	if (url.href.endsWith('cacheAudio=true')) {
+		// Replace CORS helper domain with fixed dummy domain
+		// This decouples the cached MP3 from the CORS helper that helped download
+		const cacheKey = new Request(`https://mp3-cache${url.search}`);
+
+		// Check if we already have this in cache
+		const cachedResponse = await caches.match(cacheKey);
+		if (cachedResponse) {
+			log('debug', 'Serving MP3 from cache: ' + cacheKey.url);
+			return cachedResponse;
+		}
+
 		log('debug', 'Fetching MP3 resource: ' + request.url);
 
 		// don't await the fetch, as that blocks playback until the full MP3 downloaded
@@ -107,10 +118,8 @@ const handleRequest = async ({ request }) => {
 		const networkResponse = fetch(request);
 
 		networkResponse.then((response) => {
-			// use just the url as the cache key to align with cache-checking logic above
-			const cacheKey = new Request(url.href);
 			putInCache(MP3_CACHE, cacheKey, response.clone()).catch((err) =>
-				log('error', 'Failed to cache MP3 resource: ' + url.href + ', ' + err)
+				log('error', 'Failed to cache MP3 resource: ' + cacheKey.url + ', ' + err)
 			);
 		});
 

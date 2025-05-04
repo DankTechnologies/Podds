@@ -94,42 +94,31 @@ export class AudioService {
 		const settings = getSettings();
 
 		const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+
 		this.audio.src = corsHelperUrl;
 		this.audio.currentTime = currentTime;
-		this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
+		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
 	}
 
 	static async play(url: string, currentTime: number = 0) {
+		this.audio.pause();
 		const settings = getSettings();
 
-		this.audio.pause();
+		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
+		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
+		const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
-		try {
-			const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
-			this.audio.src = corsHelperUrl;
+		this.audio.src = corsHelperUrl;
 
-			if (this.audio.readyState < 1) {
-				await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
-			}
-
-			this.audio.currentTime = currentTime;
-			this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
-
-			this.setupMediaSession();
-			this.audio.play();
-		} catch (error) {
-			if (settings!.corsHelperBackupUrl) {
-				const corsHelperBackupUrl = `${settings!.corsHelperBackupUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
-
-				this.audio.src = corsHelperBackupUrl;
-				this.audio.currentTime = currentTime;
-				this.audio.playbackRate = settings!.playbackSpeed ?? 1.0;
-				this.setupMediaSession();
-				this.audio.play();
-			} else {
-				throw error;
-			}
+		if (this.audio.readyState < 1) {
+			await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));
 		}
+
+		this.audio.currentTime = currentTime;
+		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+
+		this.setupMediaSession();
+		this.audio.play();
 	}
 
 	static addEventListener(event: string, callback: () => void) {
@@ -175,3 +164,4 @@ export class AudioService {
 		this.audio.playbackRate = speed;
 	}
 }
+
