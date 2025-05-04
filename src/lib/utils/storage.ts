@@ -1,8 +1,20 @@
+import { Log } from "$lib/service/LogService";
+
 export interface StorageInfo {
     cacheSize: number;
     dbSize: number;
     quota: number;
     usage: number;
+}
+
+export async function requestStoragePersistence(): Promise<void> {
+    if (navigator.storage && navigator.storage.persist) {
+        const granted = await navigator.storage.persist();
+
+        if (!granted) {
+            Log.error('Storage persistence not granted');
+        }
+    }
 }
 
 export function formatBytes(bytes: number): string {

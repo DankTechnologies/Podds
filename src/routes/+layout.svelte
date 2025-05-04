@@ -11,6 +11,7 @@
 	import { trackThemePreference } from '$lib/utils/themePreference.svelte';
 	import { onMount } from 'svelte';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { requestStoragePersistence } from '$lib/utils/storage';
 
 	let feedService = new FeedService();
 
@@ -23,6 +24,7 @@
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
 
+	requestStoragePersistence();
 	trackThemePreference();
 
 	onMount(() => {
@@ -36,14 +38,6 @@
 			isDbReady = true;
 			Log.initServiceWorkerLogging();
 			feedService.startPeriodicUpdates();
-
-			if (navigator.storage && navigator.storage.persist) {
-				const granted = await navigator.storage.persist();
-
-				if (!granted) {
-					Log.error('Storage persistence not granted');
-				}
-			}
 
 			if (settings) {
 				SettingsService.incrementVisitCount(settings.visitCount);
