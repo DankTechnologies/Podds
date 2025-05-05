@@ -3,8 +3,9 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
-	import { Check, History, List, Plus, Trash2 } from 'lucide-svelte';
+	import { Check, History, List, Plus, Loader2, Antenna, ArrowUpLeft } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
+	import { goto } from '$app/navigation';
 
 	let {
 		feeds,
@@ -18,9 +19,12 @@
 
 	let focusedFeedId = $state<string | null>(null);
 	let feedService = new FeedService();
+	let feedStates = $state(new SvelteMap<string, 'adding' | 'success' | 'failure'>());
 
-	function addFeed(feed: PIApiFeed) {
-		feedService.addFeed(feed, feedIconsById.get(feed.id.toString()) ?? '');
+	async function addFeed(feed: PIApiFeed) {
+		feedStates.set(feed.id.toString(), 'adding');
+		const success = await feedService.addFeed(feed, feedIconsById.get(feed.id.toString()) ?? '');
+		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 
 	function deleteFeed(feedId: string) {
@@ -71,7 +75,7 @@
 					<div class="feed-card__image-container">
 						{#if !feedIconsById.has(feed.id.toString())}
 							<div class="skeleton"></div>
-						{:else if feedIconsById.get(feed.id.toString()) !== null}
+						{:else if feedIconsById.get(feed.id.toString())?.startsWith('data:')}
 							<img
 								src={feedIconsById.get(feed.id.toString())}
 								alt={feed.title}
@@ -113,9 +117,16 @@
 					<div class="feed-controls__description">{@html feed.description}</div>
 				</div>
 				<div class="feed-controls__buttons">
-					{#if currentFeeds?.some((f) => f.id === feed.id.toString())}
-						<button class="feed-controls__button" onclick={() => deleteFeed(feed.id.toString())}>
-							<Trash2 size="16" /> Delete Feed
+					{#if feedStates.get(feed.id.toString()) === 'adding'}
+						<button class="feed-controls__button" disabled>
+							<Loader2 size="16" class="spinner" /> Adding Feed...
+						</button>
+					{:else if currentFeeds?.some((f) => f.id === feed.id.toString())}
+						<button
+							class="feed-controls__button success"
+							onclick={() => goto(`/podcast/${feed.id}`)}
+						>
+							<Antenna size="16" /> Go to {parseTitle(feed.title)}
 						</button>
 					{:else}
 						<button class="feed-controls__button" onclick={() => addFeed(feed)}>
@@ -123,6 +134,11 @@
 						</button>
 					{/if}
 				</div>
+				{#if feedStates.get(feed.id.toString()) === 'failure'}
+					<div class="feed-controls__error-message">
+						couldn't get episodes <ArrowUpLeft size="16" /> try later
+					</div>
+				{/if}
 			</div>
 		</li>
 	{/each}
@@ -330,5 +346,33 @@
 		:global(p) {
 			margin: 0;
 		}
+	}
+
+	.feed-controls__button :global(.spinner) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.feed-controls__button:disabled {
+		opacity: 0.7;
+	}
+
+	.feed-controls__error-message {
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+		gap: 0.5rem;
+		opacity: 0.8;
+		font-size: var(--text-small);
+		font-family: monospace;
+		color: var(--error);
 	}
 </style>

@@ -119,7 +119,8 @@
 			ICON_MAX_WIDTH,
 			ICON_MAX_HEIGHT,
 			settings!.corsHelperUrl,
-			settings!.corsHelperBackupUrl
+			settings!.corsHelperBackupUrl,
+			feedResponse.feed.title
 		);
 
 		const feed = {

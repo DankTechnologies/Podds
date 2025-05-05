@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Gift, Trash2, Search } from 'lucide-svelte';
+	import { Gift, Trash2, Search, Sprout, Loader2, ArrowUpLeft } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
@@ -22,7 +22,7 @@
 	let feedService = new FeedService();
 	let isDeleting = $state(false);
 	let isAdding = $state(false);
-	let isUpdating = $state(false);
+	let retryState = $state<'none' | 'updating' | 'success' | 'failure'>('none');
 
 	let episodes = $derived(
 		getEpisodes()
@@ -68,6 +68,12 @@
 
 	function loadMoreEpisodes() {
 		limit += ITEMS_PER_PAGE;
+	}
+
+	async function updateFeed() {
+		if (!feed) return;
+		retryState = 'updating';
+		retryState = (await feedService.updateEmptyFeed(feed)) ? 'success' : 'failure';
 	}
 
 	function deleteFeed(feed: Feed) {
@@ -157,7 +163,22 @@
 		{:else if searchQuery}
 			<div class="message">No episodes found matching "{searchQuery}"</div>
 		{:else}
-			<div class="message">No episodes found</div>
+			<div class="message">
+				{#if retryState === 'updating'}
+					<button class="retry-button" disabled>
+						<Loader2 size="24" class="spinner" /> OK, trying again...
+					</button>
+				{:else}
+					<button class="retry-button" onclick={updateFeed}>
+						<Sprout size="24" /> Try the episodes again
+					</button>
+				{/if}
+				{#if retryState === 'failure'}
+					<div class="error-message">
+						couldn't get episodes <ArrowUpLeft size="16" /> try later
+					</div>
+				{/if}
+			</div>
 		{/if}
 	</section>
 {/if}
@@ -228,7 +249,6 @@
 
 	.podcast-header__button--delete {
 		margin-left: auto;
-
 		color: var(--error);
 		opacity: 0.7;
 	}
@@ -270,5 +290,47 @@
 		text-align: center;
 		padding: 2rem;
 		color: var(--text);
+	}
+
+	.retry-button {
+		display: flex;
+		font-size: var(--text-small);
+		font-weight: 600;
+		align-items: center;
+		gap: 0.5rem;
+		border: none;
+		padding: 0.5rem;
+		cursor: pointer;
+		border-radius: 0.25rem;
+		background: var(--bg);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+	}
+
+	.retry-button:disabled {
+		opacity: 0.7;
+	}
+
+	.retry-button :global(.spinner) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.error-message {
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+		gap: 0.5rem;
+		opacity: 0.8;
+		font-size: var(--text-small);
+		font-family: monospace;
+		color: var(--error);
 	}
 </style>

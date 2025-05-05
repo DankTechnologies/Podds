@@ -102,16 +102,31 @@ export class PodcastIndexClient {
 
 		return response.items
 			.reduce((acc, episode) => {
-				const existingEpisode = acc.find((e) => e.title === episode.title);
-				if (!existingEpisode || episode.feedId > existingEpisode.feedId) {
-					// If no existing episode with this title, or this episode has a higher feedId
-					// Remove the old one if it exists and add the new one
-					if (existingEpisode) {
-						const index = acc.indexOf(existingEpisode);
+				const existingEpisodeByTitle = acc.find((e) => e.title === episode.title);
+				const existingEpisodeByUrl = acc.find((e) => e.enclosureUrl === episode.enclosureUrl);
+
+				// If we have a duplicate by URL, keep the most recently published one
+				if (existingEpisodeByUrl) {
+					if (episode.datePublished > existingEpisodeByUrl.datePublished) {
+						const index = acc.indexOf(existingEpisodeByUrl);
 						acc.splice(index, 1);
+						acc.push(episode);
 					}
-					acc.push(episode);
+					return acc;
 				}
+
+				// If we have a duplicate by title, keep the one with higher feedId
+				if (existingEpisodeByTitle) {
+					if (episode.feedId > existingEpisodeByTitle.feedId) {
+						const index = acc.indexOf(existingEpisodeByTitle);
+						acc.splice(index, 1);
+						acc.push(episode);
+					}
+					return acc;
+				}
+
+				// No duplicates found, add the episode
+				acc.push(episode);
 				return acc;
 			}, [] as PIApiEpisodeBase[]);
 	}

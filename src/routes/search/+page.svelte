@@ -89,20 +89,20 @@
 
 			// TODO: This is a hack to get the images to load after the results are loaded
 			setTimeout(() => {
-				type FeedImage = { image: string | undefined };
+				type FeedImage = { image: string | undefined; title: string };
 				const uniqueFeeds = new Map<number, FeedImage>();
 
 				// Process feed results first (they have more complete data)
 				feedResults.forEach((feed) => {
 					if (!uniqueFeeds.has(feed.id)) {
-						uniqueFeeds.set(feed.id, { image: feed.image || feed.artwork });
+						uniqueFeeds.set(feed.id, { image: feed.image || feed.artwork, title: feed.title });
 					}
 				});
 
 				// Then process episode results only for feeds we haven't seen
 				episodeResults.forEach((episode) => {
 					if (!uniqueFeeds.has(episode.feedId)) {
-						uniqueFeeds.set(episode.feedId, { image: episode.feedImage });
+						uniqueFeeds.set(episode.feedId, { image: episode.feedImage, title: episode.feedTitle });
 					}
 				});
 
@@ -115,7 +115,8 @@
 						ICON_MAX_WIDTH,
 						ICON_MAX_HEIGHT,
 						settings!.corsHelperUrl,
-						settings!.corsHelperBackupUrl
+						settings!.corsHelperBackupUrl,
+						feed.title
 					).then((resizedImage) => {
 						resizedImageById.set(id.toString(), resizedImage);
 					});
@@ -213,6 +214,25 @@
 		padding: 0.75rem;
 		border: 1px solid var(--primary-less);
 		border-radius: 0.25rem;
+	}
+
+	input[type='search']::-webkit-search-cancel-button {
+		-webkit-appearance: none;
+		height: 1.2em;
+		width: 1.2em;
+		border-radius: 50%;
+		background: light-dark(var(--grey-500), var(--grey-700));
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>");
+		background-size: 1em;
+		background-position: center;
+		background-repeat: no-repeat;
+		cursor: pointer;
+		opacity: 0.7;
+		transition: opacity 0.2s ease;
+	}
+
+	input[type='search']::-webkit-search-cancel-button:hover {
+		opacity: 1;
 	}
 
 	.search-button {

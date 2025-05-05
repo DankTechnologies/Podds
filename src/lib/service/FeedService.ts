@@ -24,6 +24,34 @@ export class FeedService {
 		}
 	}
 
+	async updateEmptyFeed(feed: Feed): Promise<boolean> {
+		const settings = getSettings();
+
+		try {
+			const finderRequest: EpisodeFinderRequest = {
+				feeds: [feed],
+				since: undefined,
+				corsHelperUrl: settings!.corsHelperUrl,
+				corsHelperBackupUrl: settings!.corsHelperBackupUrl
+			};
+
+			const finderResponse = await this.runEpisodeFinder(finderRequest);
+
+			if (finderResponse.episodes.length > 0) {
+				db.episodes.insertMany(finderResponse.episodes);
+				finderResponse.errors.forEach((x) => Log.debug(x));
+				return true;
+			}
+
+			Log.error(`Failed to add episodes for ${feed.title}`);
+			finderResponse.errors.forEach((x) => Log.error(x));
+			return false;
+		} catch (e) {
+			Log.error(`Error updating feed ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			return false;
+		}
+	}
+
 	async updateAllFeeds() {
 		const settings = getSettings();
 		const feeds = getFeeds();
@@ -125,51 +153,62 @@ export class FeedService {
 		Log.info(`Finished adding ${feed.title}`);
 	}
 
-	async addFeed(feed: PIApiFeed, iconData: string) {
+	async addFeed(feed: PIApiFeed, iconData: string): Promise<boolean> {
 		Log.info(`Adding feed: ${feed.title}`);
 
 		const settings = getSettings();
 
-		const newFeed = {
-			id: feed.id.toString(),
-			url: feed.url,
-			title: feed.title,
-			description: feed.description,
-			author: feed.author,
-			ownerName: feed.ownerName,
-			link: feed.link,
-			iconData: iconData,
-			lastUpdatedAt: new Date(),
-			categories: Object.values(feed.categories || {})
-		};
+		try {
+			const newFeed = {
+				id: feed.id.toString(),
+				url: feed.url,
+				title: feed.title,
+				description: feed.description,
+				author: feed.author,
+				ownerName: feed.ownerName,
+				link: feed.link,
+				iconData: iconData,
+				lastUpdatedAt: new Date(),
+				categories: Object.values(feed.categories || {})
+			};
 
-		const finderRequest: EpisodeFinderRequest = {
-			feeds: [newFeed],
-			since: undefined,
-			corsHelperUrl: settings!.corsHelperUrl,
-			corsHelperBackupUrl: settings!.corsHelperBackupUrl
-		};
+			const finderRequest: EpisodeFinderRequest = {
+				feeds: [newFeed],
+				since: undefined,
+				corsHelperUrl: settings!.corsHelperUrl,
+				corsHelperBackupUrl: settings!.corsHelperBackupUrl
+			};
 
-		const finderResponse = await this.runEpisodeFinder(finderRequest);
+			const finderResponse = await this.runEpisodeFinder(finderRequest);
 
-		finderResponse.errors.forEach((x) => Log.error(x));
+			const feedWithTimestamps = {
+				...newFeed,
+				lastCheckedAt: finderResponse.feeds[0].lastCheckedAt,
+				lastSyncedAt: finderResponse.feeds[0].lastSyncedAt,
+				lastModified: finderResponse.feeds[0].lastModified,
+				ttlMinutes: finderResponse.feeds[0].ttlMinutes
+			};
 
-		const feedWithTimestamps = {
-			...newFeed,
-			lastCheckedAt: finderResponse.feeds[0].lastCheckedAt,
-			lastSyncedAt: finderResponse.feeds[0].lastSyncedAt,
-			lastModified: finderResponse.feeds[0].lastModified,
-			ttlMinutes: finderResponse.feeds[0].ttlMinutes
-		};
+			db.feeds.insert(feedWithTimestamps);
 
-		db.feeds.insert(feedWithTimestamps);
+			// feeds can be retried from feed page 
+			if (finderResponse.episodes.length > 0) {
+				db.episodes.insertMany(finderResponse.episodes);
 
-		// feeds can be retried from feed page 
-		if (finderResponse.episodes.length > 0) {
-			db.episodes.insertMany(finderResponse.episodes);
+				finderResponse.errors.forEach((x) => Log.debug(x));
+
+				Log.info(`Finished adding ${feed.title}`);
+				return true;
+			}
+
+			Log.error(`Failed to add episodes for ${feed.title}`);
+			finderResponse.errors.forEach((x) => Log.error(x));
+			return false;
 		}
-
-		Log.info(`Finished adding ${feed.title}`);
+		catch (e) {
+			Log.error(`Error adding feed ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			return false;
+		}
 	}
 
 	async addFeeds(feeds: { feed: PIApiFeed; iconData: string }[]): Promise<void> {
@@ -343,6 +382,6 @@ export class FeedService {
 	private async resizeImage(feed: PIApiFeed): Promise<string> {
 		const settings = getSettings();
 		const imageUrl = feed.image || feed.artwork;
-		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelperUrl, settings!.corsHelperBackupUrl);
+		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelperUrl, settings!.corsHelperBackupUrl, feed.title);
 	}
 }

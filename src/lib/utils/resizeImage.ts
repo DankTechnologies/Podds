@@ -1,13 +1,60 @@
 import { Log } from "$lib/service/LogService";
 
-export function resizeBase64Image(
+function createFallbackImageImage(title: string, maxWidth: number, maxHeight: number): string {
+	const canvas = document.createElement('canvas');
+	canvas.width = maxWidth;
+	canvas.height = maxHeight;
+	const ctx = canvas.getContext('2d')!;
+
+	// White background
+	ctx.fillStyle = '#FFFFFF';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	// Grey text
+	const fontSize = 36;
+	ctx.fillStyle = '#666666';
+	ctx.font = `bold ${fontSize}px system-ui`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+
+	// Word wrap
+	const words = title.split(' ');
+	const lines: string[] = [];
+	let currentLine = words[0];
+
+	for (let i = 1; i < words.length; i++) {
+		const testLine = currentLine + ' ' + words[i];
+		const { width } = ctx.measureText(testLine);
+		if (width < maxWidth - 40) { // 20px padding each side
+			currentLine = testLine;
+		} else {
+			lines.push(currentLine);
+			currentLine = words[i];
+		}
+	}
+	lines.push(currentLine);
+
+	// Vertically center lines
+	const lineHeight = fontSize * 1.3;
+	const totalHeight = lines.length * lineHeight;
+	const startY = (canvas.height - totalHeight) / 2 + lineHeight / 2;
+
+	lines.forEach((line, i) => {
+		ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+	});
+
+	return canvas.toDataURL('image/png');
+}
+
+export async function resizeBase64Image(
 	url: string,
 	maxWidth: number,
 	maxHeight: number,
 	corsHelperUrl: string,
-	corsHelperBackupUrl: string | undefined
+	corsHelperBackupUrl: string | undefined,
+	title: string
 ): Promise<string> {
-	function loadImage(imageUrl: string): Promise<string> {
+	async function loadImage(imageUrl: string): Promise<string> {
 		return new Promise((resolve) => {
 			const img = new Image();
 			img.crossOrigin = 'anonymous';
@@ -49,12 +96,12 @@ export function resizeBase64Image(
 	}
 
 	const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-	return loadImage(primaryUrl).then(result => {
-		if (result) return result;
-		if (corsHelperBackupUrl) {
-			const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-			return loadImage(backupUrl);
-		}
-		return '';
-	});
+	const result = await loadImage(primaryUrl);
+	if (result) return result;
+	if (corsHelperBackupUrl) {
+		const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const backupResult = await loadImage(backupUrl);
+		if (backupResult) return backupResult;
+	}
+	return createFallbackImageImage(title, maxWidth, maxHeight);
 }
