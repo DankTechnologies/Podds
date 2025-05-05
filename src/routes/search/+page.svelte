@@ -218,21 +218,19 @@
 
 	input[type='search']::-webkit-search-cancel-button {
 		-webkit-appearance: none;
-		height: 1.2em;
-		width: 1.2em;
+		appearance: none;
+		-webkit-tap-highlight-color: transparent;
+		height: 1.5rem;
+		width: 1.5rem;
 		border-radius: 50%;
-		background: light-dark(var(--grey-500), var(--grey-700));
-		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg>");
+		background: light-dark(var(--grey-500), var(--grey-600));
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
 		background-size: 1em;
 		background-position: center;
 		background-repeat: no-repeat;
 		cursor: pointer;
 		opacity: 0.7;
 		transition: opacity 0.2s ease;
-	}
-
-	input[type='search']::-webkit-search-cancel-button:hover {
-		opacity: 1;
 	}
 
 	.search-button {
