@@ -226,10 +226,6 @@ svg {
 	html::-webkit-scrollbar {
 		display: none;
 	}
-
-	body {
-		overscroll-behavior-y: none;
-	}
 }
 
 /* List Reset Styles */
