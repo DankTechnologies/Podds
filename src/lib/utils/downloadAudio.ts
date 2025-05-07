@@ -1,5 +1,4 @@
 import { getSettings } from "$lib/stores/db.svelte";
-import { getHelperUrl } from "$lib/utils/corsHelper";
 
 export function downloadAudio(
 	url: string,
@@ -8,9 +7,9 @@ export function downloadAudio(
 	onProgress?: (percent: number) => void
 ) {
 	const settings = getSettings();
-	const primaryUrl = `${getHelperUrl(settings!.corsHelper)}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+	const primaryUrl = `${settings!.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 	const backupUrl = settings!.corsHelper2
-		? `${getHelperUrl(settings!.corsHelper2)}?url=${encodeURIComponent(url)}&cacheAudio=true`
+		? `${settings!.corsHelper2}?url=${encodeURIComponent(url)}&cacheAudio=true`
 		: undefined;
 
 	function download(downloadUrl: string, onSuccess: (blob: Blob) => void, onError: (err: any) => void) {

@@ -1,6 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { Chapter, Episode } from '$lib/types/db';
-import { getHelperUrl } from './corsHelper';
 
 interface ParseFeedResult {
 	episodes: Episode[];
@@ -54,12 +53,12 @@ export async function parseFeedUrl(
 	}
 
 	try {
-		const primaryUrl = `${getHelperUrl(corsHelper)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const primaryUrl = `${corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 		return await fetchFeed(primaryUrl);
 	} catch (error) {
 		if (corsHelper2) {
 			try {
-				const backupUrl = `${getHelperUrl(corsHelper2)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				const backupUrl = `${corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 				return await fetchFeed(backupUrl);
 			} catch (error) {
 				throw error;
@@ -179,12 +178,12 @@ export async function fetchChapters(url: string, corsHelper: string, corsHelper2
 	}
 
 	try {
-		const primaryUrl = `${getHelperUrl(corsHelper)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const primaryUrl = `${corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 		return await fetchChaptersFromUrl(primaryUrl);
 	} catch (error) {
 		if (corsHelper2) {
 			try {
-				const backupUrl = `${getHelperUrl(corsHelper2)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				const backupUrl = `${corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 				return await fetchChaptersFromUrl(backupUrl);
 			} catch (error) {
 				return [];

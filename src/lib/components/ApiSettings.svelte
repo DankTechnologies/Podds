@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Settings } from '$lib/types/db';
 	import PodcastIndexClient from '$lib/api/podcast-index';
-	import { getHelperUrl } from '$lib/utils/corsHelper';
+
 	let {
 		settings = $bindable<Settings>(),
 		onTestComplete
@@ -29,7 +29,7 @@
 	async function testCorsHelpers() {
 		if (settings.corsHelper) {
 			try {
-				const corsUrl = `${getHelperUrl(settings.corsHelper)}?url=${encodeURIComponent(corsTestUrl)}`;
+				const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(corsTestUrl)}`;
 				const response = await fetch(corsUrl);
 				corsStatus = response.ok ? 'success' : 'error';
 			} catch (error) {
@@ -41,7 +41,7 @@
 
 		if (settings.corsHelper2) {
 			try {
-				const corsUrl2 = `${getHelperUrl(settings.corsHelper2)}?url=${encodeURIComponent(corsTestUrl)}`;
+				const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(corsTestUrl)}`;
 				const corsResponse2 = await fetch(corsUrl2);
 				corsStatus2 = corsResponse2.ok ? 'success' : 'error';
 			} catch (error) {
