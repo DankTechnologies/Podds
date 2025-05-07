@@ -1,57 +1,88 @@
 import { getSettings } from "$lib/stores/db.svelte";
 import { getHelperUrl } from "$lib/utils/corsHelper";
+
 export function downloadAudio(
 	url: string,
 	onComplete?: () => void,
 	onError?: (error: ErrorEvent) => void,
 	onProgress?: (percent: number) => void
-): () => void {
-	const worker = new Worker(new URL('../workers/audioDownloader.worker.ts', import.meta.url), {
-		type: 'module'
-	});
-
+) {
 	const settings = getSettings();
-
-	worker.onmessage = (e) => {
-		const { type, percent, blob, error } = e.data;
-
-		switch (type) {
-			case 'progress':
-				if (onProgress) onProgress(percent);
-				break;
-			case 'complete':
-				const audio = new Audio(URL.createObjectURL(blob));
-				audio.addEventListener(
-					'loadedmetadata',
-					() => {
-						if (onComplete) onComplete();
-					},
-					{ once: true }
-				);
-				break;
-			case 'error':
-				// Clear cache before calling error handler
-				deleteCachedAudio(url).then(() => {
-					if (onError) {
-						onError(new ErrorEvent('error', { error: new Error(error) }));
-					}
-				});
-				break;
-		}
-	};
-
 	const primaryUrl = `${getHelperUrl(settings!.corsHelper)}?url=${encodeURIComponent(url)}&cacheAudio=true`;
-
 	const backupUrl = settings!.corsHelper2
 		? `${getHelperUrl(settings!.corsHelper2)}?url=${encodeURIComponent(url)}&cacheAudio=true`
 		: undefined;
 
-	worker.postMessage({ url: primaryUrl, backupUrl });
+	function download(downloadUrl: string, onSuccess: (blob: Blob) => void, onError: (err: any) => void) {
+		const xhr = new XMLHttpRequest();
 
-	// Return cleanup function
-	return () => {
-		worker.terminate();
-	};
+		xhr.addEventListener('progress', (event) => {
+			if (event.lengthComputable) {
+				const percent = (event.loaded / event.total) * 100;
+				if (onProgress) onProgress(percent);
+			}
+		});
+
+		xhr.addEventListener('load', () => {
+			if (xhr.status === 200) {
+				onSuccess(xhr.response);
+			} else {
+				onError(`HTTP ${xhr.status}`);
+			}
+		});
+
+		xhr.addEventListener('error', () => {
+			onError('Network error occurred');
+		});
+
+		xhr.open('GET', downloadUrl);
+		xhr.responseType = 'blob';
+		xhr.send();
+	}
+
+	download(
+		primaryUrl,
+		(blob) => {
+			const audio = new Audio(URL.createObjectURL(blob));
+			audio.addEventListener(
+				'loadedmetadata',
+				() => {
+					if (onComplete) onComplete();
+				},
+				{ once: true }
+			);
+		},
+		(err) => {
+			if (backupUrl) {
+				download(
+					backupUrl,
+					(blob) => {
+						const audio = new Audio(URL.createObjectURL(blob));
+						audio.addEventListener(
+							'loadedmetadata',
+							() => {
+								if (onComplete) onComplete();
+							},
+							{ once: true }
+						);
+					},
+					(finalErr) => {
+						deleteCachedAudio(url).then(() => {
+							if (onError) {
+								onError(new ErrorEvent('error', { error: new Error(finalErr) }));
+							}
+						});
+					}
+				);
+			} else {
+				deleteCachedAudio(url).then(() => {
+					if (onError) {
+						onError(new ErrorEvent('error', { error: new Error(err) }));
+					}
+				});
+			}
+		}
+	);
 }
 
 async function deleteCachedAudio(url: string) {
