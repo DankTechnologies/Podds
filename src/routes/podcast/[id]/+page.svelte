@@ -91,7 +91,13 @@
 			return;
 		}
 
-		shareFeedUtil(feed, settings.podcastIndexKey, settings.podcastIndexSecret);
+		shareFeedUtil(
+			feed,
+			settings.podcastIndexKey,
+			settings.podcastIndexSecret,
+			settings.corsHelper,
+			settings.corsHelper2
+		);
 	}
 </script>
 

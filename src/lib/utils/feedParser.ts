@@ -1,5 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { Chapter, Episode } from '$lib/types/db';
+import { getHelperUrl } from './corsHelper';
 
 interface ParseFeedResult {
 	episodes: Episode[];
@@ -16,8 +17,8 @@ interface ParseXmlResult {
 export async function parseFeedUrl(
 	feedId: string,
 	url: string,
-	corsHelperUrl: string,
-	corsHelperBackupUrl: string | undefined,
+	corsHelper: string,
+	corsHelper2: string | undefined,
 	since?: number,
 	headers?: Record<string, string>
 ): Promise<ParseFeedResult> {
@@ -53,12 +54,12 @@ export async function parseFeedUrl(
 	}
 
 	try {
-		const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const primaryUrl = `${getHelperUrl(corsHelper)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 		return await fetchFeed(primaryUrl);
 	} catch (error) {
-		if (corsHelperBackupUrl) {
+		if (corsHelper2) {
 			try {
-				const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				const backupUrl = `${getHelperUrl(corsHelper2)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 				return await fetchFeed(backupUrl);
 			} catch (error) {
 				throw error;
@@ -163,7 +164,7 @@ export function parseOwner(author: string | undefined, ownerName: string | undef
 	return authorLength > ownerNameLength ? author : ownerName;
 }
 
-export async function fetchChapters(url: string, corsHelperUrl: string, corsHelperBackupUrl: string | undefined): Promise<Chapter[]> {
+export async function fetchChapters(url: string, corsHelper: string, corsHelper2: string | undefined): Promise<Chapter[]> {
 
 	async function fetchChaptersFromUrl(fetchUrl: string): Promise<Chapter[]> {
 		const response = await fetch(fetchUrl);
@@ -178,12 +179,12 @@ export async function fetchChapters(url: string, corsHelperUrl: string, corsHelp
 	}
 
 	try {
-		const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+		const primaryUrl = `${getHelperUrl(corsHelper)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 		return await fetchChaptersFromUrl(primaryUrl);
 	} catch (error) {
-		if (corsHelperBackupUrl) {
+		if (corsHelper2) {
 			try {
-				const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+				const backupUrl = `${getHelperUrl(corsHelper2)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 				return await fetchChaptersFromUrl(backupUrl);
 			} catch (error) {
 				return [];

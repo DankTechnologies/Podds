@@ -26,7 +26,7 @@ export class EpisodeService {
 		if (episode.chaptersUrl) {
 			Log.debug(`Fetching chapters for episode ${episode.title}`);
 			try {
-				chapters = await fetchChapters(episode.chaptersUrl, settings!.corsHelperUrl, settings!.corsHelperBackupUrl);
+				chapters = await fetchChapters(episode.chaptersUrl, settings!.corsHelper, settings!.corsHelper2);
 			} catch (error) {
 				Log.error(`Error fetching chapters for episode ${episode.title}: ${error}`);
 			}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Settings } from '$lib/types/db';
 	import PodcastIndexClient from '$lib/api/podcast-index';
+	import { getHelperUrl } from '$lib/utils/corsHelper';
 	let {
 		settings = $bindable<Settings>(),
 		onTestComplete
@@ -12,7 +13,7 @@
 	let corsTestUrl = $state('https://feeds.publicradio.org/public_feeds/marketplace');
 	let podcastIndexStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let corsStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
-	let corsBackupStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
+	let corsStatus2 = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let isValid = $derived(podcastIndexStatus === 'success' && corsStatus === 'success');
 
 	async function testPodcastIndex() {
@@ -26,9 +27,9 @@
 	}
 
 	async function testCorsHelpers() {
-		if (settings.corsHelperUrl) {
+		if (settings.corsHelper) {
 			try {
-				const corsUrl = `${settings.corsHelperUrl}?url=${encodeURIComponent(corsTestUrl)}`;
+				const corsUrl = `${getHelperUrl(settings.corsHelper)}?url=${encodeURIComponent(corsTestUrl)}`;
 				const response = await fetch(corsUrl);
 				corsStatus = response.ok ? 'success' : 'error';
 			} catch (error) {
@@ -38,23 +39,23 @@
 			corsStatus = 'untested';
 		}
 
-		if (settings.corsHelperBackupUrl) {
+		if (settings.corsHelper2) {
 			try {
-				const corsBackupUrl = `${settings.corsHelperBackupUrl}?url=${encodeURIComponent(corsTestUrl)}`;
-				const corsBackupResponse = await fetch(corsBackupUrl);
-				corsBackupStatus = corsBackupResponse.ok ? 'success' : 'error';
+				const corsUrl2 = `${getHelperUrl(settings.corsHelper2)}?url=${encodeURIComponent(corsTestUrl)}`;
+				const corsResponse2 = await fetch(corsUrl2);
+				corsStatus2 = corsResponse2.ok ? 'success' : 'error';
 			} catch (error) {
-				corsBackupStatus = 'error';
+				corsStatus2 = 'error';
 			}
 		} else {
-			corsBackupStatus = 'untested';
+			corsStatus2 = 'untested';
 		}
 	}
 
 	async function handleTest() {
 		podcastIndexStatus = 'testing';
 		corsStatus = 'testing';
-		corsBackupStatus = 'testing';
+		corsStatus2 = 'testing';
 		await Promise.all([testPodcastIndex(), testCorsHelpers()]);
 		onTestComplete?.(isValid);
 	}
@@ -84,24 +85,24 @@
 		/>
 	</div>
 	<div>
-		<label for="corsHelperUrl">CORS Helper</label>
+		<label for="corsHelper">CORS Helper</label>
 		<input
-			id="corsHelperUrl"
+			id="corsHelper"
 			class="api-input"
 			spellcheck="false"
 			type="text"
-			bind:value={settings.corsHelperUrl}
+			bind:value={settings.corsHelper}
 			required
 		/>
 	</div>
 	<div>
-		<label for="corsHelperBackupUrl">CORS Helper - Backup</label>
+		<label for="corsHelper2">CORS Helper 2</label>
 		<input
-			id="corsHelperBackupUrl"
+			id="corsHelper2"
 			class="api-input"
 			spellcheck="false"
 			type="text"
-			bind:value={settings.corsHelperBackupUrl}
+			bind:value={settings.corsHelper2}
 		/>
 	</div>
 	<div>
@@ -159,19 +160,19 @@
 				</div>
 			</div>
 			<div class="status-item">
-				<span class="status-label">CORS Helper - Backup:</span>
+				<span class="status-label">CORS Helper 2:</span>
 				<div
 					role="status"
 					class="status"
-					class:success={corsBackupStatus === 'success'}
-					class:error={corsBackupStatus === 'error'}
-					class:testing={corsBackupStatus === 'testing'}
+					class:success={corsStatus2 === 'success'}
+					class:error={corsStatus2 === 'error'}
+					class:testing={corsStatus2 === 'testing'}
 				>
-					{#if corsBackupStatus === 'untested'}
+					{#if corsStatus2 === 'untested'}
 						Not tested
-					{:else if corsBackupStatus === 'testing'}
+					{:else if corsStatus2 === 'testing'}
 						Testing...
-					{:else if corsBackupStatus === 'success'}
+					{:else if corsStatus2 === 'success'}
 						Connection successful
 					{:else}
 						Connection failed

@@ -31,8 +31,8 @@ export class FeedService {
 			const finderRequest: EpisodeFinderRequest = {
 				feeds: [feed],
 				since: undefined,
-				corsHelperUrl: settings!.corsHelperUrl,
-				corsHelperBackupUrl: settings!.corsHelperBackupUrl
+				corsHelper: settings!.corsHelper,
+				corsHelper2: settings!.corsHelper2
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -87,8 +87,8 @@ export class FeedService {
 		const finderRequest: EpisodeFinderRequest = {
 			feeds,
 			since,
-			corsHelperUrl: settings.corsHelperUrl,
-			corsHelperBackupUrl: settings.corsHelperBackupUrl
+			corsHelper: settings.corsHelper,
+			corsHelper2: settings.corsHelper2
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -175,8 +175,8 @@ export class FeedService {
 			const finderRequest: EpisodeFinderRequest = {
 				feeds: [newFeed],
 				since: undefined,
-				corsHelperUrl: settings!.corsHelperUrl,
-				corsHelperBackupUrl: settings!.corsHelperBackupUrl
+				corsHelper: settings!.corsHelper,
+				corsHelper2: settings!.corsHelper2
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -235,8 +235,8 @@ export class FeedService {
 		const finderRequest: EpisodeFinderRequest = {
 			feeds: newFeeds,
 			since: undefined,
-			corsHelperUrl: settings!.corsHelperUrl,
-			corsHelperBackupUrl: settings!.corsHelperBackupUrl
+			corsHelper: settings!.corsHelper,
+			corsHelper2: settings!.corsHelper2
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -382,6 +382,6 @@ export class FeedService {
 	private async resizeImage(feed: PIApiFeed): Promise<string> {
 		const settings = getSettings();
 		const imageUrl = feed.image || feed.artwork;
-		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelperUrl, settings!.corsHelperBackupUrl, feed.title);
+		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelper, settings!.corsHelper2, feed.title);
 	}
 }

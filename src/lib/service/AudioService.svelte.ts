@@ -1,4 +1,5 @@
 import { getSettings } from "$lib/stores/db.svelte";
+import { getHelperUrl } from "$lib/utils/corsHelper";
 
 export class AudioService {
 	private static audio = new Audio();
@@ -93,9 +94,11 @@ export class AudioService {
 
 		const settings = getSettings();
 
-		const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
+		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
+		const corsHelper = `${getHelperUrl(settings!.corsHelper)}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
-		this.audio.src = corsHelperUrl;
+		this.audio.src = corsHelper;
 		this.audio.currentTime = currentTime;
 		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
 	}
@@ -106,9 +109,9 @@ export class AudioService {
 
 		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
 		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
-		const corsHelperUrl = `${settings!.corsHelperUrl}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+		const corsHelper = `${getHelperUrl(settings!.corsHelper)}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
-		this.audio.src = corsHelperUrl;
+		this.audio.src = corsHelper;
 
 		if (this.audio.readyState < 1) {
 			await new Promise((r) => this.audio.addEventListener('loadedmetadata', r, { once: true }));

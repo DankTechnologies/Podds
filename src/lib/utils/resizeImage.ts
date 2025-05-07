@@ -1,4 +1,5 @@
 import { Log } from "$lib/service/LogService";
+import { getHelperUrl } from "./corsHelper";
 
 function createFallbackImageImage(title: string, maxWidth: number, maxHeight: number): string {
 	const canvas = document.createElement('canvas');
@@ -50,8 +51,8 @@ export async function resizeBase64Image(
 	url: string,
 	maxWidth: number,
 	maxHeight: number,
-	corsHelperUrl: string,
-	corsHelperBackupUrl: string | undefined,
+	corsHelper: string,
+	corsHelper2: string | undefined,
 	title: string
 ): Promise<string> {
 	async function loadImage(imageUrl: string): Promise<string> {
@@ -95,11 +96,11 @@ export async function resizeBase64Image(
 		});
 	}
 
-	const primaryUrl = `${corsHelperUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+	const primaryUrl = `${getHelperUrl(corsHelper)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 	const result = await loadImage(primaryUrl);
 	if (result) return result;
-	if (corsHelperBackupUrl) {
-		const backupUrl = `${corsHelperBackupUrl}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+	if (corsHelper2) {
+		const backupUrl = `${getHelperUrl(corsHelper2)}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
 		const backupResult = await loadImage(backupUrl);
 		if (backupResult) return backupResult;
 	}

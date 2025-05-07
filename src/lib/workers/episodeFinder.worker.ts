@@ -11,7 +11,7 @@ self.onerror = (error) => {
 
 self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
-		const { feeds, since, corsHelperUrl, corsHelperBackupUrl } = e.data;
+		const { feeds, since, corsHelper, corsHelper2 } = e.data;
 
 		// Validate required inputs
 		if (!feeds) {
@@ -20,7 +20,7 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 
 		// Fetch all feeds concurrently
 		const results = await Promise.all(
-			feeds.map(feed => fetchFeedWithTimeout(feed, corsHelperUrl, corsHelperBackupUrl, since))
+			feeds.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
 		);
 
 		const response: EpisodeFinderResponse = {
@@ -39,7 +39,7 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	}
 };
 
-async function fetchFeedWithTimeout(feed: Feed, corsHelperUrl: string, corsHelperBackupUrl: string | undefined, since?: number): Promise<{
+async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number): Promise<{
 	episodes: Episode[];
 	feed: Feed;
 	errors: string[];
@@ -71,7 +71,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelperUrl: string, corsHelpe
 			headers['If-Modified-Since'] = feed.lastModified.toUTCString();
 		}
 
-		const resultPromise = parseFeedUrl(feed.id, feed.url, corsHelperUrl, corsHelperBackupUrl, since, headers).then(
+		const resultPromise = parseFeedUrl(feed.id, feed.url, corsHelper, corsHelper2, since, headers).then(
 			(result) => {
 
 				if (result.status === 200) {

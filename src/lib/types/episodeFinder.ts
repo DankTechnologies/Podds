@@ -3,8 +3,8 @@ import type { Episode, Feed } from './db';
 export interface EpisodeFinderRequest {
 	feeds: Feed[];
 	since?: number;
-	corsHelperUrl: string;
-	corsHelperBackupUrl: string | undefined;
+	corsHelper: string;
+	corsHelper2: string | undefined;
 }
 
 export interface EpisodeFinderResponse {

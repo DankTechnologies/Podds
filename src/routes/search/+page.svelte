@@ -114,8 +114,8 @@
 						feed.image,
 						ICON_MAX_WIDTH,
 						ICON_MAX_HEIGHT,
-						settings!.corsHelperUrl,
-						settings!.corsHelperBackupUrl,
+						settings!.corsHelper,
+						settings!.corsHelper2,
 						feed.title
 					).then((resizedImage) => {
 						resizedImageById.set(id.toString(), resizedImage);

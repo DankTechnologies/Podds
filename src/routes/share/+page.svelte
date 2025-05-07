@@ -48,22 +48,23 @@
 
 			config = decodeShareLink(shareData);
 
-			// Update settings with shared config
-			SettingsService.saveSettings({
-				id: '1',
-				podcastIndexKey: config!.podcastIndexKey,
-				podcastIndexSecret: config!.podcastIndexSecret,
-				// TODO: move cors helpers back to sharedata
-				corsHelperUrl: settings?.corsHelperUrl ?? import.meta.env.VITE_CORS_HELPER_URL,
-				corsHelperBackupUrl:
-					settings?.corsHelperBackupUrl ?? import.meta.env.VITE_CORS_HELPER_BACKUP_URL,
-				syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
-				lastSyncAt: settings?.lastSyncAt ?? new Date(),
-				logLevel: settings?.logLevel ?? 'info',
-				isAdvanced: settings?.isAdvanced ?? false,
-				playbackSpeed: settings?.playbackSpeed ?? 1.0,
-				isPwaInstalled: settings?.isPwaInstalled ?? isPwa
-			});
+			// iOS safari and PWA are isolated and iOS sends all links to safari even when PWA installed
+			// thus, avoid steps in safari that make the app feel installed.  it's just a showroom...
+			if (!isAppleWeb) {
+				SettingsService.saveSettings({
+					id: '1',
+					podcastIndexKey: config!.podcastIndexKey,
+					podcastIndexSecret: config!.podcastIndexSecret,
+					corsHelper: config!.corsHelper,
+					corsHelper2: config?.corsHelper2,
+					syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
+					lastSyncAt: settings?.lastSyncAt ?? new Date(),
+					logLevel: settings?.logLevel ?? 'info',
+					isAdvanced: settings?.isAdvanced ?? false,
+					playbackSpeed: settings?.playbackSpeed ?? 1.0,
+					isPwaInstalled: settings?.isPwaInstalled ?? isPwa
+				});
+			}
 
 			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
 			feedExists = feed !== null;
@@ -76,7 +77,7 @@
 				iconData = newIconData;
 			}
 
-			episodes = await getEpisodes(feed);
+			episodes = await getEpisodes(feed!);
 
 			const loadingScreen = document.getElementById('appLoading');
 			if (loadingScreen) {
@@ -94,12 +95,12 @@
 		goto(`/podcast/${feed.id}`);
 	}
 
-	async function getEpisodes(feed: Feed | null): Promise<Episode[]> {
+	async function getEpisodes(feed: Feed): Promise<Episode[]> {
 		const finderRequest = {
-			feeds: feed ? [feed] : [],
+			feeds: [feed],
 			since: undefined,
-			corsHelperUrl: settings!.corsHelperUrl,
-			corsHelperBackupUrl: settings!.corsHelperBackupUrl
+			corsHelper: config!.corsHelper,
+			corsHelper2: config?.corsHelper2
 		};
 
 		const finderResponse = await feedService.runEpisodeFinder(finderRequest);
@@ -107,10 +108,8 @@
 	}
 
 	async function getFeedFromPodcastIndex(): Promise<{ feed: Feed; iconData: string }> {
-		// Initialize API client
 		const api = new PodcastIndexClient(config!.podcastIndexKey, config!.podcastIndexSecret);
 
-		// Get feed details
 		const feedResponse = await api.podcastById(Number(config!.feedId));
 		if (!feedResponse) {
 			throw new Error('Feed not found');
@@ -122,8 +121,8 @@
 			imageUrl,
 			ICON_MAX_WIDTH,
 			ICON_MAX_HEIGHT,
-			settings!.corsHelperUrl,
-			settings!.corsHelperBackupUrl,
+			config!.corsHelper,
+			config!.corsHelper2,
 			feedResponse.feed.title
 		);
 

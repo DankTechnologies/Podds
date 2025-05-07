@@ -186,7 +186,14 @@
 			return;
 		}
 
-		shareEpisodeUtil(episode, feed, settings.podcastIndexKey, settings.podcastIndexSecret);
+		shareEpisodeUtil(
+			episode,
+			feed,
+			settings.podcastIndexKey,
+			settings.podcastIndexSecret,
+			settings.corsHelper,
+			settings.corsHelper2
+		);
 	}
 </script>
 

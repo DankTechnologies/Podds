@@ -64,8 +64,8 @@ export interface Settings {
 	id: string;
 	podcastIndexKey: string;
 	podcastIndexSecret: string;
-	corsHelperUrl: string;
-	corsHelperBackupUrl: string
+	corsHelper: string;
+	corsHelper2?: string;
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
 	isPwaInstalled: boolean;

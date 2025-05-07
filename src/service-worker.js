@@ -117,10 +117,27 @@ const handleRequest = async ({ request }) => {
 		// without await, playback is immediate AND the mp3 downloads to the cache
 		const networkResponse = fetch(request);
 
-		networkResponse.then((response) => {
-			putInCache(MP3_CACHE, cacheKey, response.clone()).catch((err) =>
-				log('error', 'Failed to cache MP3 resource: ' + cacheKey.url + ', ' + err)
-			);
+		networkResponse.then(async (response) => {
+			if (
+				response.ok &&
+				response.headers.get('Content-Type')?.startsWith('audio/')
+			) {
+				putInCache(MP3_CACHE, cacheKey, response.clone()).catch((err) =>
+					log('error', 'Failed to cache MP3 resource: ' + cacheKey.url + ', ' + err)
+				);
+			} else {
+				// Try to read the error body as text
+				let errorBody = '';
+				try {
+					errorBody = await response.text();
+				} catch (e) {
+					errorBody = '[Could not read error body]';
+				}
+				log(
+					'warn',
+					`Not caching MP3: status=${response.status}, body=${errorBody.slice(0, 500)}`
+				);
+			}
 		});
 
 		return networkResponse;
