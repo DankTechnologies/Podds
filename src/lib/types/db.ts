@@ -68,7 +68,7 @@ export interface Settings {
 	corsHelperBackupUrl: string
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
-	visitCount: number;
+	isPwaInstalled: boolean;
 	isSyncing?: boolean;
 	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';

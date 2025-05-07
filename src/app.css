@@ -114,6 +114,7 @@ body {
 	color: var(--text);
 	font-family: var(--font-sans);
 	line-height: var(--line-height-normal);
+	overscroll-behavior-y: none;
 }
 
 input:focus, select:focus {

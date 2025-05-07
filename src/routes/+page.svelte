@@ -4,20 +4,12 @@
 	import type { Feed } from '$lib/types/db';
 	import type { GridItem } from '$lib/types/grid';
 	import { isShortcut } from '$lib/types/grid';
-	import { RefreshCw, Settings } from 'lucide-svelte';
+	import { PackageOpen, RefreshCw, Settings } from 'lucide-svelte';
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
+	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 
-	function getShortcutPosition(feeds: Feed[]): number {
-		const numColumns = Math.floor(window.innerWidth / 128);
-		const lastFullRow = Math.floor(window.innerHeight / 128);
-
-		const numRows = Math.floor(feeds.length / numColumns);
-
-		const startOfLastRow = numColumns * lastFullRow - numColumns;
-
-		return numRows > lastFullRow ? startOfLastRow : feeds.length;
-	}
+	let isApplePwa = $derived(isAppleDevice && isPwa);
 
 	let feeds = $derived(
 		getFeeds()
@@ -47,9 +39,19 @@
 			svg: Settings
 		});
 
+		if (isApplePwa) {
+			result.splice(shortcutPosition + 1, 0, {
+				type: 'shortcut',
+				id: 'share',
+				action: handleShare,
+				svg: PackageOpen
+			});
+		}
+
 		// Insert update button if needed
 		if (SessionInfo.hasUpdate) {
-			result.splice(shortcutPosition + 1, 0, {
+			const position = isApplePwa ? shortcutPosition + 2 : shortcutPosition + 1;
+			result.splice(position, 0, {
 				type: 'shortcut',
 				id: 'update',
 				action: handleUpdate,
@@ -65,6 +67,26 @@
 		document.body.innerHTML =
 			'<div id="appLoading"><img src="/podds.svg" alt="Loading..." /></div>';
 		applyUpdate();
+	}
+
+	async function handleShare() {
+		try {
+			const shareData = await navigator.clipboard.readText();
+			goto(`/share#${shareData}`);
+		} catch (err) {
+			alert('Failed to read clipboard');
+		}
+	}
+
+	function getShortcutPosition(feeds: Feed[]): number {
+		const numColumns = Math.floor(window.innerWidth / 128);
+		const lastFullRow = Math.floor(window.innerHeight / 128);
+
+		const numRows = Math.floor(feeds.length / numColumns);
+
+		const startOfLastRow = numColumns * lastFullRow - numColumns;
+
+		return numRows > lastFullRow ? startOfLastRow : feeds.length;
 	}
 </script>
 

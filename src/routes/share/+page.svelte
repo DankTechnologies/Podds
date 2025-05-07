@@ -8,14 +8,16 @@
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
-	import { List, Podcast, Play, Download, Dot } from 'lucide-svelte';
+	import { Podcast, Play, Download, Dot, Package, PackageCheck, PackageOpen } from 'lucide-svelte';
 	import { decodeShareLink, type ShareConfig } from '$lib/utils/share';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { parseOwner } from '$lib/utils/feedParser';
+	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 
+	let shareDataCopied = $state(false);
 	let feedExists = $state(false);
 	let config = $state<ShareConfig | null>(null);
 	let error = $state<string | null>(null);
@@ -23,7 +25,7 @@
 	let episodes = $state<Episode[]>([]);
 	let iconData = $state<string | null>(null);
 	let feedService = new FeedService();
-	let downloadProgress = $state<number>(0);
+	let downloadProgress = $state<number>(-1);
 	let feeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 	let settings = $derived(getSettings());
@@ -34,6 +36,8 @@
 
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
+
+	let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
 	onMount(async () => {
 		try {
@@ -47,8 +51,8 @@
 			// Update settings with shared config
 			SettingsService.saveSettings({
 				id: '1',
-				podcastIndexKey: config.podcastIndexKey,
-				podcastIndexSecret: config.podcastIndexSecret,
+				podcastIndexKey: config!.podcastIndexKey,
+				podcastIndexSecret: config!.podcastIndexSecret,
 				// TODO: move cors helpers back to sharedata
 				corsHelperUrl: settings?.corsHelperUrl ?? import.meta.env.VITE_CORS_HELPER_URL,
 				corsHelperBackupUrl:
@@ -58,7 +62,7 @@
 				logLevel: settings?.logLevel ?? 'info',
 				isAdvanced: settings?.isAdvanced ?? false,
 				playbackSpeed: settings?.playbackSpeed ?? 1.0,
-				visitCount: settings?.visitCount ?? 0
+				isPwaInstalled: settings?.isPwaInstalled ?? isPwa
 			});
 
 			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
@@ -166,10 +170,7 @@
 
 		downloadAudio(
 			episode.url,
-			() => {
-				EpisodeService.markDownloaded(episode);
-				goto('/playlist');
-			},
+			() => EpisodeService.markDownloaded(episode),
 			() => alert('failed to download episode'),
 			(progress) => (downloadProgress = progress)
 		);
@@ -178,6 +179,12 @@
 	function getShareData(): string | null {
 		const url = new URL(window.location.href);
 		return url.hash.slice(1) ?? null;
+	}
+
+	function copyShareData() {
+		const shareData = getShareData();
+		navigator.clipboard.writeText(shareData!);
+		shareDataCopied = true;
 	}
 </script>
 
@@ -198,7 +205,7 @@
 		{#if targetEpisode}
 			<div class="podcast-episode-container">
 				<time class="podcast-episode-meta">
-					{#if downloadProgress > 0 && downloadProgress < 100}
+					{#if downloadProgress >= 0 && downloadProgress < 100}
 						<div class="download-progress">
 							{Math.round(downloadProgress)}%
 						</div>
@@ -218,24 +225,60 @@
 					</div>
 				</time>
 				<h2 class="podcast-episode-title">{targetEpisode.title}</h2>
+				<div class="action-buttons">
+					{#if isAppleWeb}
+						<button
+							class="action-button"
+							class:copied={shareDataCopied}
+							disabled={shareDataCopied}
+							onclick={copyShareData}
+						>
+							{#if shareDataCopied}
+								<PackageCheck size="24" />
+							{:else}
+								<Package size="24" />
+							{/if}
+							Share with app
+						</button>
+					{:else}
+						<button class="action-button" onclick={() => playEpisode(feed!, targetEpisode)}>
+							<Play size="24" />
+							Play Now
+						</button>
+						<button
+							class="action-button action-button--secondary"
+							onclick={() => downloadEpisode(feed!, targetEpisode)}
+						>
+							<Download size="24" />
+							Play Later
+						</button>
+					{/if}
+				</div>
+				{#if shareDataCopied}
+					<div class="share-data-copied">
+						Open <img src="/podds.svg" alt="Podds" class="share-data-icon" /> app and tap the
+						<span class="share-data-icon"><PackageOpen size="24" /></span> button
+					</div>
+				{/if}
 				<p class="podcast-episode-description">{@html targetEpisode.content}</p>
-			</div>
-			<div class="action-buttons">
-				<button class="action-button" onclick={() => playEpisode(feed!, targetEpisode)}>
-					<Play size="24" />
-					Play Now
-				</button>
-				<button
-					class="action-button action-button--secondary"
-					onclick={() => downloadEpisode(feed!, targetEpisode)}
-				>
-					<Download size="24" />
-					Play Later
-				</button>
 			</div>
 		{:else}
 			<div class="action-buttons">
-				{#if feedExists}
+				{#if isAppleWeb}
+					<button
+						class="action-button"
+						class:copied={shareDataCopied}
+						disabled={shareDataCopied}
+						onclick={copyShareData}
+					>
+						{#if shareDataCopied}
+							<PackageCheck size="24" />
+						{:else}
+							<Package size="24" />
+						{/if}
+						Share with app
+					</button>
+				{:else if feedExists}
 					<button class="action-button" onclick={() => goto(`/podcast/${config?.feedId}`)}>
 						<Podcast size="24" />
 						Go to podcast
@@ -247,6 +290,12 @@
 					</button>
 				{/if}
 			</div>
+			{#if shareDataCopied}
+				<div class="share-data-copied">
+					Open <img src="/podds.svg" alt="Podds" class="share-data-icon" /> app and tap the
+					<span class="share-data-icon"><PackageOpen size="24" /></span> button
+				</div>
+			{/if}
 			<EpisodeList {episodes} {activeEpisodes} isShare={true} />
 		{/if}
 	{/if}
@@ -307,6 +356,10 @@
 		padding: 1rem;
 	}
 
+	.podcast-episode-container .action-buttons {
+		padding: 1rem 0;
+	}
+
 	.action-button {
 		display: flex;
 		align-items: center;
@@ -329,6 +382,28 @@
 		background: light-dark(var(--grey-100), var(--grey-850));
 		color: light-dark(var(--grey-700), var(--neutral));
 		box-shadow: 0 0 0 1px light-dark(var(--grey-500), var(--grey-700));
+	}
+
+	.action-button.copied {
+		opacity: 0.5;
+	}
+
+	.share-data-copied {
+		padding: 0 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--text-large);
+	}
+
+	.share-data-icon {
+		height: 1.5rem;
+		border: 1px solid light-dark(var(--grey), var(--grey-700));
+		padding: 0.25rem;
+		margin: 0 0.25rem;
+		border-radius: 0.25rem;
+		vertical-align: middle;
+		background: light-dark(var(--grey-100), var(--grey-850));
 	}
 
 	.podcast-episode-container {

@@ -19,12 +19,8 @@ export class SettingsService {
 		}
 	}
 
-	static incrementVisitCount(currentVisitCount: number | undefined): void {
-		if (!currentVisitCount) {
-			currentVisitCount = 0;
-		}
-
-		db.settings.updateOne({ id: '1' }, { $set: { visitCount: currentVisitCount + 1 } });
+	static markPwaInstalled(): void {
+		db.settings.updateOne({ id: '1' }, { $set: { isPwaInstalled: true } });
 	}
 
 	static updateLastSyncAt(): void {

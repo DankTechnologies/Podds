@@ -7,6 +7,7 @@
 	import { FeedService } from '$lib/service/FeedService';
 	import { calculateStorageUsage, formatBytes, type StorageInfo } from '$lib/utils/storage';
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
+	import { isPwa } from '$lib/utils/osCheck';
 	let feedService = new FeedService();
 
 	let settings = $state<Settings>(
@@ -21,7 +22,7 @@
 			isAdvanced: false,
 			logLevel: 'debug',
 			playbackSpeed: 1.0,
-			visitCount: 0
+			isPwaInstalled: isPwa
 		}
 	);
 
@@ -101,10 +102,6 @@
 <div class="settings-content">
 	{#if activeSection === 'general'}
 		<section class="section">
-			<div>
-				<label for="visitCount">Visit Count</label>
-				<input id="visitCount" bind:value={settings.visitCount} disabled />
-			</div>
 			<div>
 				<label for="advancedMode">Advanced Mode</label>
 				<div class="toggle-switch">

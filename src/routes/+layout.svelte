@@ -10,16 +10,16 @@
 	import SetupWizard from '$lib/components/SetupWizard.svelte';
 	import { trackThemePreference } from '$lib/utils/themePreference.svelte';
 	import { onMount } from 'svelte';
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { requestStoragePersistence } from '$lib/utils/storage';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { isPwa } from '$lib/utils/osCheck';
 
 	let feedService = new FeedService();
 
-	let isDbReady = $state(false);
-
 	let settings = $derived(getSettings());
-	let hasSettings = $derived(settings !== undefined);
-	let isFirstVisit = $derived(settings?.visitCount === undefined || settings.visitCount === 0);
+	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
+
+	let isDbReady = $state(false);
 
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
@@ -39,8 +39,8 @@
 			Log.initServiceWorkerLogging();
 			feedService.startPeriodicUpdates();
 
-			if (settings) {
-				SettingsService.incrementVisitCount(settings.visitCount);
+			if (isPwa && !isPwaConfigured) {
+				SettingsService.markPwaInstalled();
 			}
 
 			// share takes care of hiding the loading screen
@@ -59,15 +59,12 @@
 
 <main>
 	{#if isDbReady}
-		{#if hasSettings || page.url.pathname.startsWith('/share')}
-			{@render children()}
-			{#if activeEpisode}
-				<Player episode={activeEpisode} {feedIconsById} />
-			{/if}
-			<BottomNavBar episode={activeEpisode} />
-		{:else}
-			<SetupWizard />
+		<SetupWizard />
+		{@render children()}
+		{#if activeEpisode}
+			<Player episode={activeEpisode} {feedIconsById} />
 		{/if}
+		<BottomNavBar episode={activeEpisode} />
 	{/if}
 </main>
 

@@ -1,179 +1,253 @@
 <script lang="ts">
-	import type { Settings } from '$lib/types/db';
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import ApiSettings from '$lib/components/ApiSettings.svelte';
-	import { isAppleDevice } from '$lib/utils/osCheck';
-	import { CheckCircle, Download } from 'lucide-svelte';
+	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
+	import { LandPlot, Rocket, Loader2, X } from 'lucide-svelte';
+	import { getSettings } from '$lib/stores/db.svelte';
 
-	let settings = $state<Settings>({
-		id: '1',
-		// TODO: remove
-		podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
-		podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
-		corsHelperUrl: import.meta.env.VITE_CORS_HELPER_URL || '',
-		corsHelperBackupUrl: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
-		syncIntervalMinutes: 15,
-		lastSyncAt: new Date(),
-		isAdvanced: false,
-		logLevel: 'info',
-		playbackSpeed: 1.0,
-		visitCount: 0
-	});
+	let settings = $derived(getSettings());
+	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
 
-	let isPwaInstalled = $derived(window.matchMedia('(display-mode: standalone)').matches);
-	let isConfigValid = $state(false);
+	// @ts-ignore
+	let showAndroidInstallButton = $state(window.deferredInstallPrompt !== undefined);
+	let showAndroidLaunchButton = $state(false);
+	let isInstalling = $state(false);
+	let isAndroidWeb = $derived(!isAppleDevice && !isPwa);
+	let showAndroidInstructions = $state(false);
 
-	function onTestComplete(isValid: boolean) {
-		isConfigValid = isValid;
+	let showIosInstructions = $state(false);
+	let isAppleWeb = $derived(isAppleDevice && !isPwa);
+
+	async function onInstall() {
+		isInstalling = true;
+
+		// @ts-ignore
+		window.deferredInstallPrompt.prompt();
+
+		// @ts-ignore
+		const { outcome } = await window.deferredInstallPrompt.userChoice;
+		if (outcome === 'accepted') {
+			window.addEventListener('appinstalled', () => {
+				showAndroidInstallButton = false;
+				showAndroidLaunchButton = true;
+			});
+		}
+		// @ts-ignore
+		window.deferredInstallPrompt = null;
 	}
 
-	function onFinish() {
-		SettingsService.saveSettings(settings);
+	function onLaunch() {
+		window.open(window.location.href, '_blank');
+	}
+
+	function onAndroidInstall() {
+		showAndroidInstructions = true;
+	}
+
+	function closeAndroidInstructions() {
+		showAndroidInstructions = false;
+	}
+
+	function onIosInstall() {
+		showIosInstructions = true;
+	}
+
+	function closeIosInstructions() {
+		showIosInstructions = false;
 	}
 </script>
 
-<div class="setup-wizard">
-	<div class="header">
-		<img src="/podds.svg" alt="Podds" class="logo" />
-		<h1>Podds Setup</h1>
-	</div>
-
-	<div class="content">
-		{#if !isPwaInstalled}
-			<div class="step-content">
-				<h2>Install Podds</h2>
-				<div class="status-item">
-					<span class="status-icon"><Download size={20} /></span>
-					<span class="status-text">Install as PWA</span>
-					{#if isAppleDevice}
-						<div class="install-instructions">
-							<p>To install Podds on your iOS device:</p>
-							<ol>
-								<li>Tap the Share button <span class="icon">📤</span> in Safari</li>
-								<li>Scroll down and tap "Add to Home Screen"</li>
-								<li>Tap "Add" in the top right corner</li>
-							</ol>
-						</div>
+{#if !isPwaConfigured}
+	<div class="setup-wizard" class:is-pwa={isPwa}>
+		<div class="logo-container">
+			<img src="/podds.svg" alt="Podds" class="logo" />
+			<div class="logo-text">podds</div>
+		</div>
+		{#if isAndroidWeb}
+			{#if showAndroidInstallButton}
+				<button class="install-button" onclick={onInstall} disabled={isInstalling}>
+					{#if isInstalling}
+						<Loader2 class="spinner" size="16" />
 					{:else}
-						<div class="install-instructions">
-							<p>To install Podds on your Android device:</p>
-							<ol>
-								<li>Tap the three dots menu <span class="icon">⋮</span> in Chrome</li>
-								<li>Select "Install app" or "Add to Home screen"</li>
-								<li>Tap "Install" to confirm</li>
-							</ol>
-						</div>
+						<LandPlot size="16" />
 					{/if}
+					Install podds
+				</button>
+			{:else if showAndroidLaunchButton}
+				<button class="install-button" onclick={onLaunch}><Rocket size="16" /> Launch podds</button>
+			{:else}
+				<button class="install-button" onclick={onAndroidInstall}>
+					<LandPlot size="16" />
+					Install podds
+				</button>
+			{/if}
+		{/if}
+		{#if isAppleWeb}
+			<button class="install-button" onclick={onIosInstall}>
+				<LandPlot size="16" />
+				Install podds
+			</button>
+		{/if}
+
+		{#if showIosInstructions}
+			<dialog class="instructions" open>
+				<div class="instructions-header">
+					<div class="instructions-header-title">Install podds app</div>
+					<button class="instructions-close-button" onclick={closeIosInstructions}
+						><X size="24" /></button
+					>
 				</div>
-			</div>
-		{:else}
-			<div class="step-content">
-				<ApiSettings bind:settings {onTestComplete} />
-				<div class="actions">
-					<button class="finish-button" onclick={onFinish} disabled={!isConfigValid}>
-						<CheckCircle size={20} />
-						Complete Setup
-					</button>
+				<div class="instructions-install-text">You only need to do this once</div>
+				<ol class="instructions-list">
+					<li>
+						Tap the <img src="/ios-share.svg" alt="Share button" class="icon" /> button
+					</li>
+					<li>
+						Tap <img src="/ios-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
+						<div class="instructions-list-item-text">scroll down to find it</div>
+					</li>
+					<li>
+						Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
+						<div class="instructions-list-item-text">on your home screen</div>
+					</li>
+				</ol>
+			</dialog>
+		{/if}
+		{#if showAndroidInstructions}
+			<dialog class="instructions" open>
+				<div class="instructions-header">
+					<div class="instructions-header-title">Install podds app</div>
+					<button class="instructions-close-button" onclick={closeAndroidInstructions}
+						><X size="24" /></button
+					>
 				</div>
-			</div>
+				<div class="instructions-install-text">You only need to do this once</div>
+				<ol class="instructions-list">
+					<li>
+						Tap the <img src="/android-more.svg" alt="Share button" class="icon" /> button
+					</li>
+					<li>
+						Tap <img src="/android-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
+					</li>
+					<li>
+						Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
+						<div class="instructions-list-item-text">on your home screen</div>
+					</li>
+				</ol>
+			</dialog>
 		{/if}
 	</div>
-</div>
+{/if}
 
 <style>
 	.setup-wizard {
+		background: var(--primary);
 		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-		margin: 0 auto;
-		padding: 2rem;
+		justify-content: space-between;
+		padding: 0.25rem 1rem 0.25rem 0.25rem;
+		align-items: center;
 	}
 
-	.header {
+	.setup-wizard.is-pwa {
+		background: light-dark(var(--grey-700), var(--grey-900));
+	}
+
+	.logo-container {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.5rem;
 	}
 
 	.logo {
 		height: 3rem;
 	}
 
-	h1 {
+	.logo-text {
 		font-size: var(--text-2xl);
+		letter-spacing: 0.15em;
+		font-weight: bold;
+		color: var(--grey-100);
+		transform: rotate(-3deg);
+	}
+
+	.install-button {
+		display: flex;
 		font-weight: 600;
-		margin: 0;
-	}
-
-	.content {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-	}
-
-	.step-content {
-		background: var(--bg-less);
-		padding: 2rem;
-		border-radius: 0.5rem;
-	}
-
-	.status-item {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.status-icon {
-		width: 2rem;
-		height: 2rem;
-		border-radius: 50%;
-		background: var(--bg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.install-instructions {
-		margin-left: auto;
-		text-align: right;
-		font-size: var(--text-small);
-	}
-
-	.install-instructions ol {
-		margin: 0.5rem 0;
-		padding-left: 1.5rem;
-		text-align: left;
-	}
-
-	.install-instructions .icon {
-		font-size: 1.2em;
-		vertical-align: middle;
-	}
-
-	.actions {
-		display: flex;
-		justify-content: center;
-		margin-top: 2rem;
-	}
-
-	.finish-button {
-		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.75rem 2rem;
-		background: var(--success);
-		color: white;
 		border: none;
+		padding: 0.5rem;
+		cursor: pointer;
 		border-radius: 0.25rem;
-		font-size: var(--text-large);
-		font-weight: 600;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
-	.finish-button:disabled {
-		opacity: 0.3;
-		color: var(--neutral);
+	.install-button:disabled {
+		opacity: 0.7;
 		cursor: not-allowed;
-		background: var(--primary);
+	}
+
+	.install-button :global(.spinner) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.instructions {
+		border: none;
+		width: 60vw;
+		padding: 1rem 0.5rem 1rem 1rem;
+		z-index: 1000;
+		border-radius: 0.25rem;
+		position: fixed;
+		top: 4rem;
+	}
+
+	.instructions-install-text {
+		font-size: var(--text-xs);
+	}
+
+	.instructions-list {
+		line-height: 3.5;
+		padding-left: 1.5rem;
+	}
+
+	.instructions-list-item-text {
+		font-size: var(--text-xs);
+		margin-top: -1rem;
+	}
+
+	.icon {
+		height: 1.5rem;
+		border: 1px solid light-dark(var(--grey), var(--grey-700));
+		padding: 0.25rem;
+		margin: 0 0.25rem;
+		border-radius: 0.25rem;
+		vertical-align: middle;
+		background: var(--grey-100);
+	}
+
+	.instructions-close-button {
+		background: none;
+		border: none;
+		color: var(--text);
+	}
+
+	.instructions-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.instructions-header-title {
+		font-size: var(--text-xl);
+		font-weight: bold;
 	}
 </style>

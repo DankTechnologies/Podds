@@ -62,4 +62,11 @@
 	<div style="display: contents">%sveltekit.body%</div>
 </body>
 
+<script>
+	window.addEventListener('beforeinstallprompt', event => {
+		event.preventDefault()
+		window.deferredInstallPrompt = event;
+	})
+</script>
+
 </html>
