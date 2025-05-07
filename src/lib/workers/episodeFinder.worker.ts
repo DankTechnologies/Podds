@@ -6,17 +6,16 @@ const FEED_TIMEOUT_MS = 10000; // 10 seconds per feed
 
 // Add error handling for the worker itself
 self.onerror = (error) => {
-	console.error('Worker error:', error);
+	self.postMessage({
+		episodes: [],
+		feeds: [],
+		errors: [`Worker fatal error: ${error instanceof Error ? error.message : String(error)}`]
+	});
 };
 
 self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
 		const { feeds, since, corsHelper, corsHelper2 } = e.data;
-
-		// Validate required inputs
-		if (!feeds) {
-			throw new Error('Missing required parameters: feeds');
-		}
 
 		// Fetch all feeds concurrently
 		const results = await Promise.all(
@@ -34,9 +33,20 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 		console.error('Worker message handler error:', error);
 		self.postMessage({
 			episodes: [],
-			errors: [`Worker error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+			feeds: [],
+			errors: [`Worker error: ${error instanceof Error ? error.message : String(error)}`]
 		});
 	}
+};
+
+// Add unhandled rejection handler
+self.onunhandledrejection = (event) => {
+	console.error('Unhandled promise rejection:', event.reason);
+	self.postMessage({
+		episodes: [],
+		feeds: [],
+		errors: [`Unhandled promise rejection: ${event.reason instanceof Error ? event.reason.message : String(event.reason)}`]
+	} as EpisodeFinderResponse);
 };
 
 async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number): Promise<{
