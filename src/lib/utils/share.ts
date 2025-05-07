@@ -25,7 +25,7 @@ function shortenUrl(url: string): string {
             // Case 1: Cloudflare workers
             const subdomain = urlObj.hostname.replace('.workers.dev', '');
             return `@${subdomain}`;
-        } else if (urlObj.hostname.endsWith(currentHost) && urlObj.hostname !== currentHost) {
+        } else if (urlObj.hostname.endsWith(currentHost)) {
             // Case 2: Subdomain of current host
             const subdomain = urlObj.hostname.replace(`.${currentHost}`, '');
             return `#${subdomain}`;
