@@ -1,9 +1,0 @@
-services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: podds
-    ports:
-      - '4416:4416'
-    restart: unless-stopped
