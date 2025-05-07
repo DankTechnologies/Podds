@@ -16,13 +16,46 @@ interface ShareOptions {
     url: string;
 }
 
+function shortenUrl(url: string): string {
+    try {
+        const urlObj = new URL(url);
+        const currentHost = window.location.hostname;
+
+        if (urlObj.hostname.endsWith('.workers.dev')) {
+            // Case 1: Cloudflare workers
+            const subdomain = urlObj.hostname.replace('.workers.dev', '');
+            return `@${subdomain}`;
+        } else if (urlObj.hostname.endsWith(currentHost) && urlObj.hostname !== currentHost) {
+            // Case 2: Subdomain of current host
+            const subdomain = urlObj.hostname.replace(`.${currentHost}`, '');
+            return `#${subdomain}`;
+        }
+
+        return url;
+    } catch {
+        return url;
+    }
+}
+
+function expandUrl(shortUrl: string): string {
+    if (shortUrl.startsWith('@')) {
+        // Case 1: Cloudflare worker
+        return `https://${shortUrl.slice(1)}.workers.dev`;
+    } else if (shortUrl.startsWith('#')) {
+        // Case 2: Subdomain of current host
+        return `https://${shortUrl.slice(1)}.${window.location.hostname}`;
+    }
+
+    return shortUrl;
+}
+
 export function encodeShareLink(config: ShareConfig): string {
     const parts = [
         config.podcastIndexKey,
         config.podcastIndexSecret,
         config.corsHelper2
-            ? `${config.corsHelper}|||${config.corsHelper2}`
-            : config.corsHelper,
+            ? `${shortenUrl(config.corsHelper)}|||${shortenUrl(config.corsHelper2)}`
+            : shortenUrl(config.corsHelper),
         config.feedId
     ];
 
@@ -40,8 +73,8 @@ export function decodeShareLink(hash: string): ShareConfig {
         const parts = decodeURIComponent(hash).split(' ');
 
         const corsHelpers = parts[2].split('|||');
-        const corsHelper = corsHelpers[0];
-        const corsHelper2 = corsHelpers.length > 1 ? corsHelpers[1] : undefined;
+        const corsHelper = expandUrl(corsHelpers[0]);
+        const corsHelper2 = corsHelpers.length > 1 ? expandUrl(corsHelpers[1]) : undefined;
 
         return {
             podcastIndexKey: parts[0],
