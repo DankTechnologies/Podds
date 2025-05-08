@@ -18,7 +18,10 @@
 	});
 
 	let hasFeeds = $derived(getFeeds().length > 0);
-	let hasSettings = $derived(getSettings() !== undefined);
+	let settings = $derived(getSettings());
+	let canSearch = $derived(
+		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
+	);
 
 	let isActive = $derived((href: string) => {
 		if (href === '/') {
@@ -56,7 +59,7 @@
 			label: 'Search',
 			icon: Radar,
 			hasUpdate: () => false,
-			disabled: () => !hasSettings,
+			disabled: () => !canSearch,
 			hidden: () => false
 		}
 	];

@@ -22,6 +22,10 @@ export class PodcastIndexClient {
 		return this.fetchJSON('/podcasts/byfeedid', { id });
 	}
 
+	public async podcastByFeedUrl(url: string): Promise<PodcastResponse> {
+		return this.fetchJSON('/podcasts/byfeedurl', { url });
+	}
+
 	public async episodeByGuid(feedId: string, guid: string): Promise<PIApiEpisodeBase> {
 		return this.fetchJSON('/episodes/byguid', { guid, feedid: feedId });
 	}

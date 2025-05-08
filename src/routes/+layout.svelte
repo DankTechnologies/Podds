@@ -13,7 +13,7 @@
 	import { requestStoragePersistence } from '$lib/utils/storage';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { isPwa } from '$lib/utils/osCheck';
-
+	import { registerServiceWorker } from '$lib/utils/storage';
 	let feedService = new FeedService();
 
 	let settings = $derived(getSettings());
@@ -24,6 +24,7 @@
 	let feedIconsById = $derived(getFeedIconsById());
 	let activeEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
 
+	registerServiceWorker();
 	requestStoragePersistence();
 	trackThemePreference();
 

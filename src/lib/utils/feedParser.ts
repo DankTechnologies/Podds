@@ -133,7 +133,7 @@ async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: n
 	return { episodes, ttlMinutes };
 }
 
-function decodeHtmlEntities(text: string): string {
+export function decodeHtmlEntities(text: string): string {
 	return text
 		.replace(/&quot;/g, '"')
 		.replace(/&apos;/g, "'")
@@ -142,6 +142,19 @@ function decodeHtmlEntities(text: string): string {
 		.replace(/&amp;/g, '&')
 		.replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
 		.replace(/&#x([0-9A-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+export function encodeHtmlEntities(text: string): string {
+	return text
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;')
+		.replace(/[^\x20-\x7E]/g, char => {
+			const code = char.charCodeAt(0);
+			return code < 256 ? `&#${code};` : `&#x${code.toString(16).toUpperCase()};`;
+		});
 }
 
 export function parseTitle(title: string | undefined): string {

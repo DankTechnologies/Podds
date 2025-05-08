@@ -4,6 +4,7 @@ import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import type { PIApiFeed } from '$lib/types/podcast-index';
 import { resizeBase64Image } from '$lib/utils/resizeImage';
+import { decodeHtmlEntities, encodeHtmlEntities } from '$lib/utils/feedParser';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
 
@@ -11,6 +12,7 @@ const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
+const FEED_TIMEOUT_MS = 10000; // Added for the new importFeeds method
 
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
@@ -243,7 +245,12 @@ export class FeedService {
 
 		finderResponse.errors.forEach((x) => Log.error(x));
 
-		db.episodes.insertMany(finderResponse.episodes);
+		// avoids 'item with id already exists' error during large imports
+		for (let i = 0; i < finderResponse.episodes.length; i += 1000) {
+			Log.debug(`Inserting episodes - batch ${i}`);
+			const batch = finderResponse.episodes.slice(i, i + 1000);
+			db.episodes.insertMany(batch);
+		}
 
 		db.feeds.batch(() => {
 			finderResponse.feeds.forEach((x) => {
@@ -269,31 +276,77 @@ export class FeedService {
 		Log.info(`Finished deletion of feed ${feedId}`);
 	}
 
-	exportFeeds(): string {
+	exportFeeds(): void {
 		const feeds = db.feeds.find({}).fetch();
-		return feeds.map((feed) => feed.id).join(',');
+		const opml = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<opml version="1.0">
+  <head>
+    <title>Podds (podds.io)</title>
+  </head>
+  <body>
+    <outline text="feeds">
+${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.title)}" xmlUrl="${encodeHtmlEntities(feed.url)}" />`).join('\n')}
+    </outline>
+  </body>
+</opml>`;
+
+		const blob = new Blob([opml], { type: 'application/xml' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		const date = new Date().toISOString().split('T')[0];
+		a.href = url;
+		a.download = `podds-${date}-opml.txt`;		// safari no like .opml...
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
 	}
 
-	async importFeeds(feedIds: string): Promise<void> {
+	async importFeeds(opmlContent: string): Promise<void> {
 		try {
 			this.isUpdating = true;
-
 			await this.initialize();
 
-			const ids = feedIds.split(',').map((id) => id.trim());
-			const FEED_TIMEOUT_MS = 10000; // 10 seconds per feed
+			const existingFeeds = db.feeds.find({}).fetch();
+
+			const parser = new DOMParser();
+			const doc = parser.parseFromString(opmlContent, 'text/xml');
+			// Get all outlines that are direct children of the parent outline
+			const outlines = doc.querySelectorAll('outline[type="rss"]');
+
 			const validFeeds: { feed: PIApiFeed; iconData: string }[] = [];
 			let processedCount = 0;
+			const totalFeeds = outlines.length;
+			const processedUrls = new Set<string>(); // Track unique URLs
 
-			Log.info(`Starting import of ${ids.length} feeds`);
+			Log.info(`Starting import of ${totalFeeds} feeds`);
 
-			for (const id of ids) {
+			for (const outline of outlines) {
 				try {
 					processedCount++;
-					Log.info(`Processing feed ${processedCount}/${ids.length}: ${id}`);
+					let url = outline.getAttribute('xmlUrl');
+					const title = outline.getAttribute('text');
+					if (!url) continue;
+
+					url = decodeHtmlEntities(url);
+
+					// Skip if we've already processed this URL
+					if (processedUrls.has(url)) {
+						Log.warn(`${title} is a duplicate, skipping`);
+						continue;
+					}
+					processedUrls.add(url);
+
+					if (existingFeeds.find(f => f.url === url || f.title?.toLowerCase() === title?.toLowerCase())) {
+						Log.warn(`${title} already exists, skipping`);
+						continue;
+					}
+
+
+					Log.info(`Processing feed ${processedCount}/${totalFeeds}: ${url}`);
 
 					const processFeed = async () => {
-						const response = await this.api!.podcastById(Number(id));
+						const response = await this.api!.podcastByFeedUrl(url);
 						const iconData = await this.resizeImage(response.feed);
 						return { feed: response.feed, iconData };
 					};
@@ -305,17 +358,16 @@ export class FeedService {
 					const result = await Promise.race([processFeed(), timeoutPromise]);
 					validFeeds.push(result as { feed: PIApiFeed; iconData: string });
 
-					Log.info(`Successfully processed feed ${id}`);
+					Log.info(`Successfully processed feed ${url}`);
 				} catch (error) {
-					Log.error(`Error processing feed ${id}: ${error instanceof Error ? error.message : String(error)}`);
-					continue; // Continue with next feed even if this one failed
+					Log.error(`Error processing feed ${outline.getAttribute('title')}: ${error instanceof Error ? error.message : String(error)}`);
+					continue;
 				}
 			}
 
 			if (validFeeds.length > 0) {
-				Log.info(`Successfully processed ${validFeeds.length}/${ids.length} feeds`);
+				Log.info(`Successfully processed ${validFeeds.length}/${totalFeeds} feeds`);
 				await this.addFeeds(validFeeds);
-
 				SettingsService.updateLastSyncAt();
 			} else {
 				Log.warn('No valid feeds were processed');

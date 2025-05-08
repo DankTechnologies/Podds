@@ -1,4 +1,6 @@
 import { Log } from "$lib/service/LogService";
+import { isAppleDevice } from "./osCheck";
+import { isPwa } from "./osCheck";
 
 export interface StorageInfo {
     cacheSize: number;
@@ -14,6 +16,12 @@ export async function requestStoragePersistence(): Promise<void> {
         if (!granted) {
             Log.error('Storage persistence not granted');
         }
+    }
+}
+
+export function registerServiceWorker() {
+    if ('serviceWorker' in navigator && !(isAppleDevice && !isPwa)) {
+        navigator.serviceWorker.register('/service-worker.js');
     }
 }
 

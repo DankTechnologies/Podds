@@ -36,6 +36,22 @@ describe('PodcastIndexClient', () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});
 
+	it.only('should get podcast by feed url', async () => {
+		const feedUrls = [
+			'https://feeds.feedburner.com/dotnetrocks_AAC',
+			'https://feeds.npr.org/344098539/podcast.xml',
+			'https://feeds.transistor.fm/the-circuit',
+			'https://feed.syntax.fm/rss',
+			'https://feeds.buzzsprout.com/276133.rss'
+		];
+
+		for (const feedUrl of feedUrls) {
+			const result = await client.podcastByFeedUrl(feedUrl);
+			console.log(result);
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+	});
+
 	it('should get feed episodes', async () => {
 		const result = await client.episodesByFeedIds(
 			'1052374,1074603,1077200,1329334,165630,2138618,214340,223113,309699,318113,3240656,3745116,436511,480976,522613,522889,5320480,542376,548735,555339,561997,577105,5775917,5928182,637281,6574779,6596894,6660056,6752757,7164285,743229,853158,910728',
@@ -49,7 +65,7 @@ describe('PodcastIndexClient', () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 	});
 
-	it.only('should get episode by guid', async () => {
+	it('should get episode by guid', async () => {
 		const feedId = '5199634';
 		const episodeGuid = '31adae5a-6193-11ef-9da0-c3f909ee5a87';
 		const result = await client.episodeByGuid(feedId, episodeGuid);

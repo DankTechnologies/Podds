@@ -22,6 +22,8 @@
 			"program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
 			"args": [
 				"run",
+				"--mode",
+				"development",
 				"${relativeFile}"
 			],
 			"smartStep": true,
