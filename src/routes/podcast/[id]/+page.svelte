@@ -292,6 +292,10 @@
 		border-radius: 0.25rem;
 	}
 
+	input::placeholder {
+		opacity: 0.5;
+	}
+
 	.message {
 		text-align: center;
 		padding: 2rem;
