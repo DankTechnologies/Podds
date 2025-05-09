@@ -37,7 +37,7 @@ export async function parseFeedUrl(
 
 		const contentType = response.headers.get('content-type');
 
-		if (!contentType?.includes('xml')) {
+		if (!contentType?.includes('xml') && !contentType?.includes('html')) {
 			throw new Error(`Invalid feed format: ${contentType}`);
 		}
 

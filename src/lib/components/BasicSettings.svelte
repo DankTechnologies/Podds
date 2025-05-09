@@ -57,8 +57,9 @@
 	<div>
 		<label for="importFeeds">Import / Export Podcasts</label>
 		<div class="section-help-text">
-			<Signpost size="24" /> Bring your podcasts with you to your app of choice. Most podcast apps have
-			this feature; look in the settings for Backup / Restore / OPML
+			<Signpost size="24" /> Most podcast apps have a Backup/Export setting that writes your podcasts
+			to a file. You can <b>import</b> that file here, to move over all your podcasts.
+			<b>Export</b> helps you move in the other direction
 		</div>
 		<div class="actions">
 			<input

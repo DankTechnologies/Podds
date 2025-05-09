@@ -12,7 +12,9 @@
 		Trash2,
 		Gift,
 		AudioLines,
-		Frown
+		Frown,
+		AudioWaveform,
+		CirclePlay
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
@@ -235,8 +237,11 @@
 								<div>
 									<Check size="14" />
 								</div>
-							{/if}
-							{#if getActiveEpisode(episode)?.isDownloaded}
+							{:else if (getActiveEpisode(episode)?.playbackPosition ?? 0) > 0 || getActiveEpisode(episode)?.isPlaying}
+								<div>
+									<Play size="14" />
+								</div>
+							{:else if getActiveEpisode(episode)?.isDownloaded}
 								<div>
 									<Download size="14" />
 								</div>

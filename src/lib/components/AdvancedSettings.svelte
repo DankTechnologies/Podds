@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import { db, getSettings } from '$lib/stores/db.svelte';
+	import { db } from '$lib/stores/db.svelte';
 	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
 	import { calculateStorageUsage, formatBytes, type StorageInfo } from '$lib/utils/storage';
 	import { onMount } from 'svelte';
+	import { fade, fly } from 'svelte/transition';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -13,6 +13,8 @@
 		settings: Settings;
 		onSave: () => void;
 	} = $props();
+
+	let storageLoaded = $state(false);
 
 	let storageInfo = $state<StorageInfo>({
 		cacheSize: 0,
@@ -37,6 +39,7 @@
 
 	onMount(async () => {
 		storageInfo = await calculateStorageUsage();
+		storageLoaded = true;
 	});
 </script>
 
@@ -53,14 +56,29 @@
 	<div>
 		<h4>Storage</h4>
 		<div class="storage-stats">
-			Audio Files:&nbsp;&nbsp;{formatBytes(storageInfo.cacheSize)}
+			Audio Files:&nbsp;&nbsp;
+			{#if storageLoaded}
+				<span in:fly={{ y: 10, duration: 300 }}>{formatBytes(storageInfo.cacheSize)}</span>
+			{:else}
+				<span class="loading-dots" in:fade={{ duration: 200 }}>...</span>
+			{/if}
 			<br />
-			Database:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{formatBytes(storageInfo.dbSize)}
+			Database:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			{#if storageLoaded}
+				<span in:fly={{ y: 10, duration: 300 }}>{formatBytes(storageInfo.dbSize)}</span>
+			{:else}
+				<span class="loading-dots" in:fade={{ duration: 200 }}>...</span>
+			{/if}
 			<br />
 			<br />
-			Free:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{formatBytes(
-				storageInfo.quota - storageInfo.usage
-			)}
+			Free:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			{#if storageLoaded}
+				<span in:fly={{ y: 10, duration: 300 }}
+					>{formatBytes(storageInfo.quota - storageInfo.usage)}</span
+				>
+			{:else}
+				<span class="loading-dots" in:fade={{ duration: 200 }}>...</span>
+			{/if}
 		</div>
 	</div>
 	<div>
@@ -116,5 +134,22 @@
 		font-size: var(--text-smallish);
 		line-height: var(--line-height-slack);
 		padding: 1rem;
+	}
+
+	.loading-dots {
+		display: inline-block;
+		animation: loading 1.5s infinite;
+	}
+
+	@keyframes loading {
+		0% {
+			opacity: 0.2;
+		}
+		50% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0.2;
+		}
 	}
 </style>
