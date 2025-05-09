@@ -78,11 +78,21 @@ export interface Settings {
 	corsHelper2?: string;
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
+	searchTermSyncIntervalHours: number;
 	isPwaInstalled: boolean;
 	isSyncing?: boolean;
 	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';
 	playbackSpeed: number;
+}
+
+export interface SearchHistory {
+	id: string;
+	term: string;
+	executedAt: Date;
+	latestEpisodePublishedAt: Date;
+	monitored: boolean;
+	hasNewResults: boolean;
 }
 
 // Helper type for creating new records without an ID

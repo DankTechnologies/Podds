@@ -4,10 +4,11 @@
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { CassetteTape, Hotel, ListMusic, Radar } from 'lucide-svelte';
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
-	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds, getSearchHistory, getSettings } from '$lib/stores/db.svelte';
 	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
 	import type { ActiveEpisode } from '$lib/types/db';
 	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -29,6 +30,8 @@
 		}
 		return page.url.pathname === href;
 	});
+
+	let hasNewResults = $derived(getSearchHistory().some((search) => search.hasNewResults));
 
 	let showBorderTop = $derived(!episode && getIsLightMode());
 
@@ -58,7 +61,7 @@
 			href: '/search',
 			label: 'Search',
 			icon: Radar,
-			hasUpdate: () => false,
+			hasUpdate: () => hasNewResults,
 			disabled: () => !canSearch,
 			hidden: () => false
 		}
@@ -75,7 +78,12 @@
 		aria-label={label}
 		{disabled}
 	>
-		<Icon size={ICON_SIZE} strokeWidth={isActive(href) ? 2.25 : 1.5} />
+		<div class="nav-item__icon-wrapper">
+			<Icon size={ICON_SIZE} strokeWidth={isActive(href) ? 2.25 : 1.5} />
+			{#if hasUpdate}
+				<div class="update-dot" class:search-update={href === '/search'}></div>
+			{/if}
+		</div>
 		<div class="nav-item__label" class:active={isActive(href)}>{label}</div>
 	</button>
 {/snippet}
@@ -140,5 +148,34 @@
 	.nav-border {
 		border-top: 0.15rem solid var(--primary-less);
 		transition: all 1s ease-in-out;
+	}
+
+	.nav-item__icon-wrapper {
+		position: relative;
+		display: flex;
+	}
+
+	.update-dot {
+		position: absolute;
+		top: 6px;
+		right: 25px;
+		width: 4px;
+		height: 4px;
+		background-color: var(--success);
+		border-radius: 50%;
+	}
+
+	.update-dot.search-update {
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			transform: scale(1.25);
+		}
+		50% {
+			transform: scale(1);
+		}
 	}
 </style>

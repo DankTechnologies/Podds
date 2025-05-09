@@ -18,6 +18,7 @@
 			corsHelper: import.meta.env.VITE_CORS_HELPER_URL || '',
 			corsHelper2: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
 			syncIntervalMinutes: 15,
+			searchTermSyncIntervalHours: 24,
 			lastSyncAt: new Date(),
 			isAdvanced: false,
 			logLevel: 'debug',

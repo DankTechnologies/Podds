@@ -108,6 +108,7 @@ export class PodcastIndexClient {
 			.reduce((acc, episode) => {
 				const existingEpisodeByTitle = acc.find((e) => e.title === episode.title);
 				const existingEpisodeByUrl = acc.find((e) => e.enclosureUrl === episode.enclosureUrl);
+				const existingEpisodeByGuid = acc.find((e) => e.guid === episode.guid);
 
 				// If we have a duplicate by URL, keep the most recently published one
 				if (existingEpisodeByUrl) {
@@ -123,6 +124,16 @@ export class PodcastIndexClient {
 				if (existingEpisodeByTitle) {
 					if (episode.feedId > existingEpisodeByTitle.feedId) {
 						const index = acc.indexOf(existingEpisodeByTitle);
+						acc.splice(index, 1);
+						acc.push(episode);
+					}
+					return acc;
+				}
+
+				// If we have a duplicate by guid, keep the one with the highest feedId
+				if (existingEpisodeByGuid) {
+					if (episode.feedId > existingEpisodeByGuid.feedId) {
+						const index = acc.indexOf(existingEpisodeByGuid);
 						acc.splice(index, 1);
 						acc.push(episode);
 					}

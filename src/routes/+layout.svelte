@@ -14,7 +14,10 @@
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { isPwa } from '$lib/utils/osCheck';
 	import { registerServiceWorker } from '$lib/utils/storage';
+	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+
 	let feedService = new FeedService();
+	let searchHistoryService = new SearchHistoryService();
 
 	let settings = $derived(getSettings());
 	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
@@ -34,11 +37,13 @@
 			db.episodes.isReady(),
 			db.activeEpisodes.isReady(),
 			db.settings.isReady(),
-			db.logs.isReady()
+			db.logs.isReady(),
+			db.searchHistory.isReady()
 		]).then(async () => {
 			isDbReady = true;
 			Log.initServiceWorkerLogging();
 			feedService.startPeriodicUpdates();
+			searchHistoryService.startPeriodicUpdates();
 
 			if (isPwa && !isPwaConfigured) {
 				SettingsService.markPwaInstalled();

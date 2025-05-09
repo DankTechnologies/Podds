@@ -58,6 +58,7 @@
 					corsHelper: config!.corsHelper,
 					corsHelper2: config?.corsHelper2,
 					syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
+					searchTermSyncIntervalHours: settings?.searchTermSyncIntervalHours ?? 24,
 					lastSyncAt: settings?.lastSyncAt ?? new Date(),
 					logLevel: settings?.logLevel ?? 'info',
 					isAdvanced: settings?.isAdvanced ?? false,

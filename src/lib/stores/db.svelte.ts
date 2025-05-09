@@ -1,4 +1,4 @@
-import type { ActiveEpisode, CompletedEpisode, Episode, Feed, LogEntry, Settings } from '$lib/types/db';
+import type { ActiveEpisode, CompletedEpisode, Episode, Feed, LogEntry, Settings, SearchHistory } from '$lib/types/db';
 import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
 import { SvelteMap } from 'svelte/reactivity';
@@ -48,6 +48,11 @@ export const db = {
 		name: 'settings',
 		reactivity: reactivityConfig,
 		persistence: createIndexedDBAdapter('settings.json')
+	}),
+	searchHistory: new Collection<SearchHistory>({
+		name: 'searchHistory',
+		reactivity: reactivityConfig,
+		persistence: createIndexedDBAdapter('searchHistory.json')
 	})
 };
 
@@ -57,6 +62,7 @@ let feeds = $state.raw<Feed[]>([]);
 let episodes = $state.raw<Episode[]>([]);
 let activeEpisodes = $state.raw<ActiveEpisode[]>([]);
 let settings = $state.raw<Settings>();
+let searchHistory = $state.raw<SearchHistory[]>([]);
 
 $effect.root(() => {
 	$effect(() => {
@@ -89,6 +95,15 @@ $effect.root(() => {
 	$effect(() => {
 		settings = db.settings.findOne({ id: '1' });
 	});
+
+	$effect(() => {
+		const searchHistoryCursor = db.searchHistory.find();
+		searchHistory = searchHistoryCursor.fetch();
+
+		return () => {
+			searchHistoryCursor.cleanup();
+		};
+	});
 });
 
 function getFeeds() {
@@ -111,4 +126,8 @@ function getSettings() {
 	return settings;
 }
 
-export { getFeeds, getFeedIconsById, getSettings, getEpisodes, getActiveEpisodes };
+function getSearchHistory() {
+	return searchHistory;
+}
+
+export { getFeeds, getFeedIconsById, getSettings, getEpisodes, getActiveEpisodes, getSearchHistory };
