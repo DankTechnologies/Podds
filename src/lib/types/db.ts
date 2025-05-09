@@ -48,6 +48,15 @@ export interface ActiveEpisode {
 	sortOrder?: number; // explicitly set when user reorders
 }
 
+export interface CompletedEpisode {
+	id: string;
+	feedId: string;
+	publishedAt: Date;
+	completedAt: Date;
+	feedTitle: string;
+	title: string;
+}
+
 export interface Chapter {
 	title: string;
 	startTime: number;
