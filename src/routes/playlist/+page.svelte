@@ -1,10 +1,14 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
+	import type { Episode } from '$lib/types/db';
 
 	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
-			.filter((episode) => episode.playbackPosition > 0 || episode.isPlaying)
+			.filter(
+				(episode) => (episode.playbackPosition > 0 || episode.isPlaying) && !episode.wasAddedNext
+			)
 			.sort((a, b) => b.lastUpdatedAt.getTime() - a.lastUpdatedAt.getTime())
 			.slice(0, 10)
 	);
@@ -24,7 +28,9 @@
 	let upNextActiveEpisodes = $derived(
 		getActiveEpisodes()
 			.filter(
-				(episode) => (episode.playbackPosition === 0 || episode.isPlaying) && episode.isDownloaded
+				(episode) =>
+					(episode.playbackPosition === 0 || episode.isPlaying || episode.wasAddedNext) &&
+					episode.isDownloaded
 			)
 			.sort((a, b) => {
 				if (a.isPlaying && !b.isPlaying) return -1;
@@ -52,6 +58,20 @@
 	let previousListenedToCount = $state(-1);
 	let wiggleUpNext = $state(false);
 	let wiggleListenedTo = $state(false);
+
+	function handlePlayNext(episode: Episode) {
+		const episodeIds = upNextEpisodes.map((e) => e.id);
+
+		if (episodeIds.includes(episode.id)) {
+			const targetIndex = episodeIds.indexOf(episode.id);
+			episodeIds.splice(targetIndex, 1);
+		} else {
+			EpisodeService.markAddedNext(episode.id);
+		}
+
+		episodeIds.unshift(episode.id);
+		EpisodeService.reorderEpisodes(episodeIds);
+	}
 
 	$effect(() => {
 		// avoid wiggle on page load
@@ -107,6 +127,8 @@
 					episodes={listenedToEpisodes}
 					activeEpisodes={listenedToActiveEpisodes}
 					{feedIconsById}
+					isPlaylist={true}
+					onPlayNext={handlePlayNext}
 				/>
 			</div>
 		{/if}
@@ -121,6 +143,7 @@
 					activeEpisodes={upNextActiveEpisodes}
 					{feedIconsById}
 					isPlaylist={true}
+					onPlayNext={handlePlayNext}
 				/>
 			</div>
 		{/if}

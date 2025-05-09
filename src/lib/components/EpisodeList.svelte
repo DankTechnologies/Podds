@@ -12,9 +12,7 @@
 		Trash2,
 		Gift,
 		AudioLines,
-		Frown,
-		AudioWaveform,
-		CirclePlay
+		Frown
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
@@ -29,7 +27,8 @@
 		feedIconsById,
 		isPlaylist = false,
 		isSearch = false,
-		isShare = false
+		isShare = false,
+		onPlayNext = undefined
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
@@ -37,6 +36,7 @@
 		isPlaylist?: boolean;
 		isSearch?: boolean;
 		isShare?: boolean;
+		onPlayNext?: (episode: Episode) => void;
 	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
@@ -152,19 +152,13 @@
 
 	function handlePlayNext(episode: Episode) {
 		isReordering = true;
-		const episodeIds = episodes.map((e) => e.id);
-
-		const targetIndex = episodeIds.indexOf(episode.id);
-		episodeIds.splice(targetIndex, 1);
-		episodeIds.splice(0, 0, episode.id);
 
 		toggleEpisodeFocus(episode);
-		EpisodeService.reorderEpisodes(episodeIds);
+		if (onPlayNext) {
+			onPlayNext(episode);
+		}
 
-		// Reset after a short delay to allow the reorder to complete
-		setTimeout(() => {
-			isReordering = false;
-		}, 50);
+		isReordering = false;
 	}
 
 	function getEpisodeDurationDisplay(episode: Episode): string {
@@ -297,7 +291,7 @@
 							<Download size="16" /> Later
 						</button>
 					{/if}
-					{#if isPlaylist && index > 0}
+					{#if isPlaylist && (index > 0 || (getActiveEpisode(episode)?.playbackPosition ?? 0) > 0)}
 						<button class="episode-controls__button" onclick={() => handlePlayNext(episode)}>
 							<ArrowUp size="16" /> Next
 						</button>
@@ -535,6 +529,7 @@
 		color: var(--error);
 		opacity: 0.7;
 	}
+
 	.episode-controls--no-transition {
 		transition: none !important;
 	}

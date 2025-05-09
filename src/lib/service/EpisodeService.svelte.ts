@@ -9,7 +9,7 @@ export class EpisodeService {
 
 		// set episode as playing, add if needed
 		if (this.findActiveEpisode(episode.id)) {
-			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1, lastUpdatedAt: new Date(), isCompleted: 0 } });
+			db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isPlaying: 1, lastUpdatedAt: new Date(), isCompleted: 0, wasAddedNext: 0 } });
 		} else {
 			this.addActiveEpisode(episode as Episode, true, false).catch((error) => {
 				Log.error(`Error adding episode ${episode.title}: ${error}`);
@@ -41,6 +41,7 @@ export class EpisodeService {
 			durationMin: episode.durationMin,
 			minutesLeft: episode.durationMin,
 			isCompleted: 0,
+			wasAddedNext: 0,
 			isDownloaded: isDownloaded ? 1 : 0,
 			isPlaying: isPlaying ? 1 : 0,
 			url: episode.url,
@@ -66,7 +67,14 @@ export class EpisodeService {
 
 	static findUpNextEpisode(): ActiveEpisode | undefined {
 		return db.activeEpisodes.findOne(
-			{ isPlaying: 0, isDownloaded: 1, playbackPosition: 0 },
+			{
+				isPlaying: 0,
+				isDownloaded: 1,
+				$or: [
+					{ playbackPosition: 0 },
+					{ wasAddedNext: 1 }
+				]
+			},
 			{
 				sort: { sortOrder: 1 }
 			}
@@ -113,6 +121,14 @@ export class EpisodeService {
 
 	static markCompleted(episodeId: string): void {
 		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isCompleted: 1 } });
+	}
+
+	static markAddedNext(episodeId: string): void {
+		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { wasAddedNext: 1 } });
+	}
+
+	static clearAddedNext(episodeId: string): void {
+		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { wasAddedNext: 0 } });
 	}
 
 	static reorderEpisodes(episodeIds: string[]): void {

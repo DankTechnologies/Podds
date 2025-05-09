@@ -43,6 +43,7 @@ export interface ActiveEpisode {
 	isCompleted: 0 | 1;
 	isDownloaded: 0 | 1;
 	isPlaying: 0 | 1;
+	wasAddedNext: 0 | 1;
 	// queue management
 	sortOrder?: number; // explicitly set when user reorders
 }
