@@ -7,6 +7,7 @@ import { resizeBase64Image } from '$lib/utils/resizeImage';
 import { decodeHtmlEntities, encodeHtmlEntities } from '$lib/utils/feedParser';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
+import type { ImportProgress } from '$lib/types/ImportProgress';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -276,7 +277,7 @@ export class FeedService {
 		Log.info(`Finished deletion of feed ${feedId}`);
 	}
 
-	exportFeeds(): void {
+	exportFeeds(): string {
 		const feeds = db.feeds.find({}).fetch();
 		const opml = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <opml version="1.0">
@@ -294,15 +295,17 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		const date = new Date().toISOString().split('T')[0];
+		const filename = `podds-${date}-opml.txt`;		// safari no like .opml...
 		a.href = url;
-		a.download = `podds-${date}-opml.txt`;		// safari no like .opml...
+		a.download = filename;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
+		return filename;
 	}
 
-	async importFeeds(opmlContent: string): Promise<void> {
+	async importFeeds(opmlContent: string, onProgress?: (progress: ImportProgress) => void): Promise<void> {
 		try {
 			this.isUpdating = true;
 			await this.initialize();
@@ -314,18 +317,28 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			// Get all outlines that are direct children of the parent outline
 			const outlines = doc.querySelectorAll('outline[type="rss"]');
 
+			if (outlines.length === 0) {
+				onProgress?.({ current: '', success: 0, total: 0, failed: [], skipped: 0 });
+				return;
+			}
+
 			const validFeeds: { feed: PIApiFeed; iconData: string }[] = [];
 			let processedCount = 0;
 			const totalFeeds = outlines.length;
 			const processedUrls = new Set<string>(); // Track unique URLs
+			const failedFeeds: string[] = [];
+			let skippedCount = 0;
 
 			Log.info(`Starting import of ${totalFeeds} feeds`);
 
 			for (const outline of outlines) {
+				let url: string | null = null;
+				let title: string | null = null;
+
 				try {
 					processedCount++;
-					let url = outline.getAttribute('xmlUrl');
-					const title = outline.getAttribute('text');
+					url = outline.getAttribute('xmlUrl');
+					title = outline.getAttribute('text');
 					if (!url) continue;
 
 					url = decodeHtmlEntities(url);
@@ -333,20 +346,29 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					// Skip if we've already processed this URL
 					if (processedUrls.has(url)) {
 						Log.warn(`${title} is a duplicate, skipping`);
+						skippedCount++;
 						continue;
 					}
 					processedUrls.add(url);
 
 					if (existingFeeds.find(f => f.url === url || f.title?.toLowerCase() === title?.toLowerCase())) {
 						Log.warn(`${title} already exists, skipping`);
+						skippedCount++;
 						continue;
 					}
 
+					onProgress?.({
+						current: title || url,
+						success: validFeeds.length,
+						total: totalFeeds,
+						failed: failedFeeds,
+						skipped: skippedCount
+					});
 
 					Log.info(`Processing feed ${processedCount}/${totalFeeds}: ${url}`);
 
 					const processFeed = async () => {
-						const response = await this.api!.podcastByFeedUrl(url);
+						const response = await this.api!.podcastByFeedUrl(url!);
 						const iconData = await this.resizeImage(response.feed);
 						return { feed: response.feed, iconData };
 					};
@@ -360,7 +382,8 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 					Log.info(`Successfully processed feed ${url}`);
 				} catch (error) {
-					Log.error(`Error processing feed ${outline.getAttribute('title')}: ${error instanceof Error ? error.message : String(error)}`);
+					Log.error(`Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
+					failedFeeds.push(title || 'Unknown');
 					continue;
 				}
 			}
@@ -372,8 +395,17 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			} else {
 				Log.warn('No valid feeds were processed');
 			}
+
+			onProgress?.({
+				current: '',
+				success: validFeeds.length,
+				total: totalFeeds,
+				failed: failedFeeds,
+				skipped: skippedCount
+			});
 		} catch (error) {
 			Log.error(`Error importing feeds: ${error instanceof Error ? error.message : String(error)}`);
+			onProgress?.({ current: '', success: 0, total: 0, failed: [], skipped: 0 });
 		} finally {
 			this.isUpdating = false;
 		}

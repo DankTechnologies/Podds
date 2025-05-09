@@ -2,6 +2,7 @@
 	import { FeedService } from '$lib/service/FeedService';
 	import { Download, Upload, Loader2, Signpost } from 'lucide-svelte';
 	import type { Settings } from '$lib/types/db';
+	import type { ImportProgress } from '$lib/types/ImportProgress';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -13,22 +14,30 @@
 
 	let feedService = new FeedService();
 	let isImporting = $state(false);
+	let importProgress = $state<ImportProgress | null>(null);
+	let exportMessage = $state<string | null>(null);
 
 	async function onImportFeeds(e: Event) {
 		const target = e.target as HTMLInputElement;
 		const file = target.files?.[0];
+
 		if (file) {
 			isImporting = true;
+			importProgress = null;
+			exportMessage = null;
 			const text = await file.text();
-			await feedService.importFeeds(text);
+			await feedService.importFeeds(text, (progress) => {
+				importProgress = progress;
+			});
 			isImporting = false;
-			// Reset the input so the same file can be selected again
-			target.value = '';
 		}
 	}
 
 	function onExportFeeds() {
-		feedService.exportFeeds();
+		importProgress = null;
+		exportMessage = null;
+		const filename = feedService.exportFeeds();
+		exportMessage = `Podcasts saved in ${filename}`;
 	}
 </script>
 
@@ -74,6 +83,36 @@
 				<Download size="16" /> Export
 			</button>
 		</div>
+		{#if importProgress}
+			<div class="import-progress">
+				{#if importProgress.total > 0}
+					Added {importProgress.success} of {importProgress.total} podcasts
+					<br />
+					{#if importProgress.skipped > 0}
+						({importProgress.skipped} already exist)
+						<br />
+					{/if}
+				{:else}
+					No podcasts detected
+					<br />
+				{/if}
+				{#if importProgress.current}
+					Processing: {importProgress.current}
+					<br />
+				{/if}
+				{#if importProgress.failed.length > 0}
+					Failed podcasts:
+					{#each importProgress.failed as feed}
+						<br /> * {feed}
+					{/each}
+				{/if}
+			</div>
+		{/if}
+		{#if exportMessage}
+			<div class="import-progress">
+				{exportMessage}
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -196,5 +235,12 @@
 			margin-right: 0.5rem;
 			color: light-dark(var(--primary), var(--primary-more));
 		}
+	}
+
+	.import-progress {
+		font-family: monospace;
+		font-size: var(--text-smallish);
+		padding: 1rem;
+		background-color: var(--bg-less);
 	}
 </style>
