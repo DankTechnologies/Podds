@@ -4,7 +4,7 @@
 	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
 	import { Gift, Trash2, Search, Sprout, Loader2, ArrowUpLeft } from 'lucide-svelte';
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
 	import { parseOwner } from '$lib/utils/feedParser';

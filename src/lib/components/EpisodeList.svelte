@@ -17,7 +17,7 @@
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 

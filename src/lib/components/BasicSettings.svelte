@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import {
 		Download,
 		Upload,
@@ -73,7 +73,7 @@
 		<div class="control-group" aria-labelledby="playbackControlsLabel">
 			<div class="control-row">
 				<label for="skipBackwardButtonSeconds">
-					<RotateCcw size={16} /> Back Button
+					<RotateCcw class="icon" size={16} /> Back Button
 				</label>
 				<input
 					type="number"
@@ -88,7 +88,7 @@
 			</div>
 			<div class="control-row">
 				<label for="skipForwardButtonSeconds">
-					<RotateCw size={16} /> Forward Button
+					<RotateCw class="icon" size={16} /> Forward Button
 				</label>
 				<input
 					type="number"
@@ -103,7 +103,7 @@
 			</div>
 			<div class="control-row">
 				<label for="goBackOnResumeSeconds">
-					<Route size={16} /> Go Back on Resume
+					<Route class="icon" size={16} /> Go Back on Resume
 				</label>
 				<input
 					type="number"
@@ -122,7 +122,9 @@
 		<label id="retentionLabel" for="completedEpisodeRetentionDays">Retention</label>
 		<div class="control-group" aria-labelledby="retentionLabel">
 			<div class="control-row">
-				<label for="completedEpisodeRetentionDays"><Check size={16} /> Completed episodes</label>
+				<label for="completedEpisodeRetentionDays"
+					><Check class="icon" size={16} /> Completed episodes</label
+				>
 				<input
 					type="number"
 					id="completedEpisodeRetentionDays"
@@ -135,7 +137,9 @@
 				<span>days</span>
 			</div>
 			<div class="control-row">
-				<label for="inProgressEpisodeRetentionDays"><Play size={16} /> In-Progress episodes</label>
+				<label for="inProgressEpisodeRetentionDays"
+					><Play class="icon" size={16} /> In-Progress episodes</label
+				>
 				<input
 					type="number"
 					id="inProgressEpisodeRetentionDays"
@@ -214,16 +218,27 @@
 
 <style>
 	.section {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+
 		& > div {
-			padding-bottom: 2rem;
 			display: flex;
 			flex-direction: column;
+			gap: 1rem;
+		}
+
+		& > div > label {
+			background-color: light-dark(var(--grey-200), var(--grey-800));
+			color: light-dark(var(--primary-grey-dark), var(--text));
+			padding: 0.25rem 0.75rem;
+			border-radius: 0.25rem;
+			letter-spacing: 0.05em;
 		}
 
 		label {
 			font-weight: 600;
 			font-size: var(--text-large);
-			padding-bottom: 1rem;
 		}
 
 		input {
@@ -360,6 +375,11 @@
 			display: flex;
 			align-items: center;
 			gap: 0.5rem;
+
+			:global(.icon) {
+				color: var(--primary);
+				transition: color 0.2s ease;
+			}
 		}
 
 		.small-input {
@@ -368,6 +388,11 @@
 
 		span {
 			color: var(--grey-550);
+		}
+
+		&:has(.small-input:focus) :global(.icon),
+		&:has(.small-input:focus-visible) :global(.icon) {
+			color: var(--primary-more);
 		}
 	}
 

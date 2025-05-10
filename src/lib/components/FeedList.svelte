@@ -4,7 +4,7 @@
 	import { parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
 	import { Check, History, List, Plus, Loader2, Antenna, ArrowUpLeft } from 'lucide-svelte';
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
 
 	let {

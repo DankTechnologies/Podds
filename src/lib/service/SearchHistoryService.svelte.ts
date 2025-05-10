@@ -8,7 +8,6 @@ const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 export class SearchHistoryService {
     private api: PodcastIndexClient | null = null;
-    private isUpdating = false;
 
     static addSearchHistory(term: string, latestEpisodePublishedAt: Date): void {
         const existingSearch = this.findSearchHistory(term);
@@ -145,19 +144,34 @@ export class SearchHistoryService {
     startPeriodicUpdates() {
         Log.debug('Starting registering periodic monitored search updates');
 
+        let isUpdating = false;
+        let lastCheckTime = 0;
+
         const sync = async () => {
-            if (this.isUpdating) {
+            if (isUpdating) {
                 Log.warn('Skipping search updates due to active update');
                 return;
             }
 
             try {
-                this.isUpdating = true;
+                isUpdating = true;
                 await this.updateMonitoredSearches();
+                lastCheckTime = Date.now();
             } finally {
-                this.isUpdating = false;
+                isUpdating = false;
             }
         };
+
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                // If it's been more than 30 minutes since last check, run it now
+                if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
+                    Log.debug('App became visible, running search updates');
+                    sync();
+                }
+            }
+        });
 
         // Delay first sync by 5 seconds, defer to feed sync
         setTimeout(sync, 5000);

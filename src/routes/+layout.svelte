@@ -3,7 +3,7 @@
 	import '../app.css';
 	import Player from '$lib/components/Player.svelte';
 	import BottomNavBar from '$lib/components/BottomNavBar.svelte';
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { db, getActiveEpisodes, getFeedIconsById, getSettings } from '$lib/stores/db.svelte';
 	import { Log } from '$lib/service/LogService';
 	import { page } from '$app/state';
@@ -15,6 +15,7 @@
 	import { isPwa } from '$lib/utils/osCheck';
 	import { registerServiceWorker } from '$lib/utils/storage';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 
 	let feedService = new FeedService();
 	let searchHistoryService = new SearchHistoryService();
@@ -44,6 +45,7 @@
 			Log.initServiceWorkerLogging();
 			feedService.startPeriodicUpdates();
 			searchHistoryService.startPeriodicUpdates();
+			EpisodeService.startPeriodicUpdates();
 
 			if (isPwa && !isPwaConfigured) {
 				SettingsService.markPwaInstalled();

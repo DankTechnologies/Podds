@@ -193,4 +193,89 @@ export class EpisodeService {
 			worker.terminate();
 		}
 	}
+
+	private static findEpisodesForRetention(): { completed: ActiveEpisode[]; inProgress: ActiveEpisode[] } {
+		const settings = getSettings();
+		if (!settings) {
+			Log.warn('Settings not found, skipping retention check');
+			return { completed: [], inProgress: [] };
+		}
+
+		const now = new Date();
+		const completedRetentionDays = settings.completedEpisodeRetentionDays ?? 7;
+		const inProgressRetentionDays = settings.inProgressEpisodeRetentionDays ?? 14;
+
+		// Find completed episodes older than retention period
+		const completedEpisodes = db.activeEpisodes.find({
+			isCompleted: 1,
+			lastUpdatedAt: { $lt: new Date(now.getTime() - completedRetentionDays * 24 * 60 * 60 * 1000) }
+		}).fetch();
+
+		// Find in-progress episodes older than retention period
+		const inProgressEpisodes = db.activeEpisodes.find({
+			playbackPosition: { $gt: 0 },
+			isCompleted: 0,
+			lastUpdatedAt: { $lt: new Date(now.getTime() - inProgressRetentionDays * 24 * 60 * 60 * 1000) }
+		}).fetch();
+
+		return { completed: completedEpisodes, inProgress: inProgressEpisodes };
+	}
+
+	private static async applyRetentionPolicy(): Promise<void> {
+		const { completed, inProgress } = this.findEpisodesForRetention();
+
+		// Remove completed episodes
+		for (const episode of completed) {
+			Log.info(`Removing completed episode due to retention policy: ${episode.title}`);
+			this.removeActiveEpisode(episode.id, episode.url);
+		}
+
+		// Remove in-progress episodes
+		for (const episode of inProgress) {
+			Log.info(`Removing in-progress episode due to retention policy: ${episode.title}`);
+			this.removeActiveEpisode(episode.id, episode.url);
+		}
+	}
+
+	static startPeriodicUpdates() {
+		Log.debug('Starting periodic retention policy updates');
+
+		const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+		let isUpdating = false;
+		let lastCheckTime = 0;
+
+		const sync = async () => {
+			if (isUpdating) {
+				Log.warn('Skipping retention check due to active update');
+				return;
+			}
+
+			try {
+				isUpdating = true;
+				await EpisodeService.applyRetentionPolicy();
+				lastCheckTime = Date.now();
+			} catch (error) {
+				Log.error(`Error applying retention policy: ${error instanceof Error ? error.message : String(error)}`);
+			} finally {
+				isUpdating = false;
+			}
+		};
+
+		// Handle visibility changes
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') {
+				// If it's been more than 30 minutes since last check, run it now
+				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
+					Log.debug('App became visible, running retention policy check');
+					sync();
+				}
+			}
+		});
+
+		// Run first check after 5 seconds
+		setTimeout(sync, 5000);
+
+		// Register periodic updates
+		setInterval(sync, CHECK_INTERVAL_MS);
+	}
 }

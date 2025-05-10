@@ -18,7 +18,7 @@ const FEED_TIMEOUT_MS = 10000; // Added for the new importFeeds method
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
 	private initialized = false;
-	private isUpdating = false;
+	isUpdating = $state(false);
 
 	constructor(apiKey?: string, apiSecret?: string) {
 		if (apiKey && apiSecret) {
@@ -77,7 +77,7 @@ export class FeedService {
 		if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
 			const minutes = Math.floor(lastSyncAtSeconds / 60);
 			const seconds = lastSyncAtSeconds % 60;
-			Log.debug(`Last sync was ${minutes}m${seconds}s ago, skipping update`);
+			Log.debug(`Last feed sync was ${minutes}m${seconds}s ago, skipping update`);
 			return;
 		}
 
@@ -412,7 +412,9 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 	}
 
 	startPeriodicUpdates() {
-		Log.debug('Starting registering periodic updates');
+		Log.debug('Starting registering periodic feed updates');
+		let lastCheckTime = 0;
+
 		const sync = async () => {
 			if (this.isUpdating) {
 				Log.warn('Skipping updates due to active update');
@@ -422,10 +424,22 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			try {
 				this.isUpdating = true;
 				await this.updateAllFeeds();
+				lastCheckTime = Date.now();
 			} finally {
 				this.isUpdating = false;
 			}
 		};
+
+		// Handle visibility changes
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') {
+				// If it's been more than 1 minute since last check, run it now
+				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
+					Log.debug('App became visible, running feed update');
+					sync();
+				}
+			}
+		});
 
 		// Delay first sync by 1 second
 		setTimeout(sync, 1000);

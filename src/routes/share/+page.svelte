@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PodcastIndexClient } from '$lib/api/podcast-index';
 	import { resizeBase64Image } from '$lib/utils/resizeImage';
-	import { FeedService } from '$lib/service/FeedService';
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
