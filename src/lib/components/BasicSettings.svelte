@@ -53,15 +53,19 @@
 
 <section class="section">
 	<div>
-		<label for="advancedMode">Advanced Mode</label>
-		<div class="toggle-switch">
-			<input
-				type="checkbox"
-				id="advancedMode"
-				bind:checked={settings.isAdvanced}
-				onchange={onSave}
-			/>
-			<label for="advancedMode" class="slider"></label>
+		<div class="control-row">
+			<label for="advancedMode">Advanced Mode</label>
+			<div class="toggle-switch-wrapper">
+				<div class="toggle-switch">
+					<input
+						type="checkbox"
+						id="advancedMode"
+						bind:checked={settings.isAdvanced}
+						onchange={onSave}
+					/>
+					<label for="advancedMode" class="slider"></label>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div>
@@ -364,6 +368,17 @@
 
 		span {
 			color: var(--grey-550);
+		}
+	}
+
+	.control-row:has(.toggle-switch) {
+		label {
+			font-weight: 600;
+			font-size: var(--text-large);
+		}
+
+		.toggle-switch-wrapper {
+			flex: 1;
 		}
 	}
 </style>
