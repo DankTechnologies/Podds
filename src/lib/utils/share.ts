@@ -31,7 +31,8 @@ function shortenUrl(url: string): string {
             return `#${subdomain}`;
         }
 
-        return url;
+        // Case 3: Regular URL - remove https:// prefix
+        return url.replace(/^https:\/\//, '');
     } catch {
         return url;
     }
@@ -46,7 +47,8 @@ function expandUrl(shortUrl: string): string {
         return `https://${shortUrl.slice(1)}.${window.location.hostname}`;
     }
 
-    return shortUrl;
+    // Case 3: Regular URL - add https:// prefix
+    return `https://${shortUrl}`;
 }
 
 export function encodeShareLink(config: ShareConfig): string {
