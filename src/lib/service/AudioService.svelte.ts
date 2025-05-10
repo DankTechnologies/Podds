@@ -1,9 +1,10 @@
 import { getSettings } from "$lib/stores/db.svelte";
+import type { Settings } from "$lib/types/db";
 
 export class AudioService {
 	private static audio = new Audio();
 
-	private static setupMediaSession() {
+	private static setupMediaSession(settings: Settings) {
 		if (!('mediaSession' in navigator)) return;
 
 		navigator.mediaSession.setActionHandler('play', () => {
@@ -22,10 +23,10 @@ export class AudioService {
 		});
 
 		navigator.mediaSession.setActionHandler('previoustrack', () => {
-			this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+			this.audio.currentTime = Math.max(0, this.audio.currentTime - (settings?.skipBackwardButtonSeconds ?? 10));
 		});
 		navigator.mediaSession.setActionHandler('nexttrack', () => {
-			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + 30);
+			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + (settings?.skipForwardButtonSeconds ?? 30));
 		});
 
 		navigator.mediaSession.setActionHandler('stop', () => {
@@ -119,7 +120,7 @@ export class AudioService {
 		this.audio.currentTime = currentTime;
 		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
 
-		this.setupMediaSession();
+		this.setupMediaSession(settings!);
 		this.audio.play();
 	}
 

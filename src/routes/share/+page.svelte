@@ -63,6 +63,11 @@
 					logLevel: settings?.logLevel ?? 'info',
 					isAdvanced: settings?.isAdvanced ?? false,
 					playbackSpeed: settings?.playbackSpeed ?? 1.0,
+					skipForwardButtonSeconds: settings?.skipForwardButtonSeconds ?? 30,
+					skipBackwardButtonSeconds: settings?.skipBackwardButtonSeconds ?? 10,
+					completedEpisodeRetentionDays: settings?.completedEpisodeRetentionDays ?? 7,
+					inProgressEpisodeRetentionDays: settings?.inProgressEpisodeRetentionDays ?? 14,
+					goBackOnResumeSeconds: settings?.goBackOnResumeSeconds ?? 10,
 					isPwaInstalled: settings?.isPwaInstalled ?? isPwa
 				});
 			}

@@ -1,6 +1,16 @@
 <script lang="ts">
 	import { FeedService } from '$lib/service/FeedService';
-	import { Download, Upload, Loader2, Signpost } from 'lucide-svelte';
+	import {
+		Download,
+		Upload,
+		Loader2,
+		Signpost,
+		RotateCw,
+		RotateCcw,
+		Route,
+		Play,
+		Check
+	} from 'lucide-svelte';
 	import type { Settings } from '$lib/types/db';
 	import type { ImportProgress } from '$lib/types/ImportProgress';
 
@@ -52,6 +62,87 @@
 				onchange={onSave}
 			/>
 			<label for="advancedMode" class="slider"></label>
+		</div>
+	</div>
+	<div>
+		<label id="playbackControlsLabel" for="skipBackwardButtonSeconds">Playback Controls</label>
+		<div class="control-group" aria-labelledby="playbackControlsLabel">
+			<div class="control-row">
+				<label for="skipBackwardButtonSeconds">
+					<RotateCcw size={16} /> Back Button
+				</label>
+				<input
+					type="number"
+					id="skipBackwardButtonSeconds"
+					bind:value={settings.skipBackwardButtonSeconds}
+					onchange={onSave}
+					min="5"
+					max="99"
+					class="small-input"
+				/>
+				<span>seconds</span>
+			</div>
+			<div class="control-row">
+				<label for="skipForwardButtonSeconds">
+					<RotateCw size={16} /> Forward Button
+				</label>
+				<input
+					type="number"
+					id="skipForwardButtonSeconds"
+					bind:value={settings.skipForwardButtonSeconds}
+					onchange={onSave}
+					min="5"
+					max="99"
+					class="small-input"
+				/>
+				<span>seconds</span>
+			</div>
+			<div class="control-row">
+				<label for="goBackOnResumeSeconds">
+					<Route size={16} /> Go Back on Resume
+				</label>
+				<input
+					type="number"
+					id="goBackOnResumeSeconds"
+					bind:value={settings.goBackOnResumeSeconds}
+					onchange={onSave}
+					min="0"
+					max="99"
+					class="small-input"
+				/>
+				<span>seconds</span>
+			</div>
+		</div>
+	</div>
+	<div>
+		<label id="retentionLabel" for="completedEpisodeRetentionDays">Retention</label>
+		<div class="control-group" aria-labelledby="retentionLabel">
+			<div class="control-row">
+				<label for="completedEpisodeRetentionDays"><Check size={16} /> Completed episodes</label>
+				<input
+					type="number"
+					id="completedEpisodeRetentionDays"
+					bind:value={settings.completedEpisodeRetentionDays}
+					onchange={onSave}
+					min="1"
+					max="365"
+					class="small-input"
+				/>
+				<span>days</span>
+			</div>
+			<div class="control-row">
+				<label for="inProgressEpisodeRetentionDays"><Play size={16} /> In-Progress episodes</label>
+				<input
+					type="number"
+					id="inProgressEpisodeRetentionDays"
+					bind:value={settings.inProgressEpisodeRetentionDays}
+					onchange={onSave}
+					min="1"
+					max="365"
+					class="small-input"
+				/>
+				<span>days</span>
+			</div>
 		</div>
 	</div>
 	<div>
@@ -243,5 +334,36 @@
 		font-size: var(--text-smallish);
 		padding: 1rem;
 		background-color: var(--bg-less);
+	}
+
+	.control-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+	}
+
+	.control-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+
+		label {
+			flex: 1;
+			font-size: var(--text-smallish);
+			font-weight: normal;
+			padding-bottom: 0;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.small-input {
+			width: 3rem;
+		}
+
+		span {
+			color: var(--grey-550);
+		}
 	}
 </style>

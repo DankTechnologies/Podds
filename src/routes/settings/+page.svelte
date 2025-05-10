@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import { onMount } from 'svelte';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import type { Settings } from '$lib/types/db';
 	import { isPwa } from '$lib/utils/osCheck';
@@ -23,7 +22,12 @@
 			isAdvanced: false,
 			logLevel: 'debug',
 			playbackSpeed: 1.0,
-			isPwaInstalled: isPwa
+			isPwaInstalled: isPwa,
+			skipForwardButtonSeconds: 30,
+			skipBackwardButtonSeconds: 10,
+			completedEpisodeRetentionDays: 7,
+			inProgressEpisodeRetentionDays: 14,
+			goBackOnResumeSeconds: 10
 		}
 	);
 

@@ -21,7 +21,9 @@
 		isOpen,
 		currentChapter,
 		onSpeedChange,
-		playbackSpeed
+		playbackSpeed,
+		skipForwardButtonSeconds,
+		skipBackwardButtonSeconds
 	} = $props<{
 		episode: ActiveEpisode;
 		onBack: (e: Event) => void;
@@ -39,6 +41,8 @@
 		currentChapter: Chapter | null;
 		onSpeedChange: (e: Event) => void;
 		playbackSpeed: number;
+		skipForwardButtonSeconds?: number;
+		skipBackwardButtonSeconds?: number;
 	}>();
 
 	let previousChapterTitle = $state<string>('');
@@ -166,7 +170,7 @@
 										<div>
 											<RotateCcw size="2.5rem" />
 										</div>
-										<div class="time-text">10</div>
+										<div class="time-text">{skipBackwardButtonSeconds ?? 10}</div>
 									</div>
 								</button>
 								<button class="button play-pause" onclick={onPlayPause}>
@@ -189,7 +193,7 @@
 										<div>
 											<RotateCw size="2.5rem" />
 										</div>
-										<div class="time-text">30</div>
+										<div class="time-text">{skipForwardButtonSeconds ?? 30}</div>
 									</div>
 								</button>
 								<button class="button stop" onclick={handleStop}>

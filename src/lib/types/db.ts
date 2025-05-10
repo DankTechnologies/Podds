@@ -84,6 +84,12 @@ export interface Settings {
 	isAdvanced: boolean;
 	logLevel: 'debug' | 'info' | 'warn' | 'error';
 	playbackSpeed: number;
+	skipForwardButtonSeconds?: number;
+	skipBackwardButtonSeconds?: number;
+	completedEpisodeRetentionDays?: number;
+	inProgressEpisodeRetentionDays?: number;
+	goBackOnResumeSeconds?: number;
+	primaryColor?: string;
 }
 
 export interface SearchHistory {

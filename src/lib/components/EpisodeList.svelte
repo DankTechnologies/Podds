@@ -45,6 +45,7 @@
 	let feedService = new FeedService();
 
 	let feeds = $derived(getFeeds());
+	let settings = $derived(getSettings());
 
 	function getActiveEpisode(episode: Episode): ActiveEpisode | undefined {
 		return activeEpisodes.find((x) => x.id === episode.id);
@@ -65,7 +66,14 @@
 				? 0
 				: (activeEpisode.playbackPosition ?? 0);
 
-			AudioService.play(episode.url, playbackPosition);
+			if (settings?.goBackOnResumeSeconds) {
+				AudioService.play(
+					episode.url,
+					Math.max(0, playbackPosition - settings?.goBackOnResumeSeconds)
+				);
+			} else {
+				AudioService.play(episode.url, playbackPosition);
+			}
 		} else {
 			downloadProgress.set(episode.id, 0);
 			downloadAudio(
