@@ -5,10 +5,12 @@
 
 	let {
 		settings = $bindable<Settings>(),
-		onTestComplete
+		onTestComplete,
+		onSave
 	}: {
 		settings: Settings;
 		onTestComplete?: (isValid: boolean) => void;
+		onSave?: () => void;
 	} = $props();
 
 	let corsTestUrl = $state('https://feeds.publicradio.org/public_feeds/marketplace');
@@ -71,6 +73,7 @@
 			type="text"
 			spellcheck="false"
 			bind:value={settings.podcastIndexKey}
+			onchange={onSave}
 			required
 		/>
 	</div>
@@ -82,6 +85,7 @@
 			type="text"
 			spellcheck="false"
 			bind:value={settings.podcastIndexSecret}
+			onchange={onSave}
 			required
 		/>
 	</div>
@@ -93,6 +97,7 @@
 			spellcheck="false"
 			type="text"
 			bind:value={settings.corsHelper}
+			onchange={onSave}
 			required
 		/>
 	</div>
@@ -104,6 +109,8 @@
 			spellcheck="false"
 			type="text"
 			bind:value={settings.corsHelper2}
+			onchange={onSave}
+			required
 		/>
 	</div>
 	<div>

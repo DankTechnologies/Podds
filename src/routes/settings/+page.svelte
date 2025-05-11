@@ -79,7 +79,7 @@
 	{/if}
 
 	{#if activeSection === 'api'}
-		<ApiSettings bind:settings />
+		<ApiSettings bind:settings {onSave} />
 	{/if}
 
 	{#if activeSection === 'advanced'}
