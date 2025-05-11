@@ -5,7 +5,7 @@
 	import { isPwa } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import BasicSettings from '$lib/components/BasicSettings.svelte';
+	import GeneralSettings from '$lib/components/GeneralSettings.svelte';
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	import AdvancedSettings from '$lib/components/AdvancedSettings.svelte';
 
@@ -31,8 +31,8 @@
 		}
 	);
 
-	// Default to 'basic', will be updated in onMount from URL
-	let activeSection = $state<'basic' | 'api' | 'advanced'>('basic');
+	// Default to 'general', will be updated in onMount from URL
+	let activeSection = $state<'general' | 'api' | 'advanced'>('general');
 
 	// Update active section when page URL changes
 	$effect(() => {
@@ -40,11 +40,11 @@
 		if (section === 'api' || section === 'advanced') {
 			activeSection = section;
 		} else {
-			activeSection = 'basic';
+			activeSection = 'general';
 		}
 	});
 
-	function setActiveSection(section: 'basic' | 'api' | 'advanced') {
+	function setActiveSection(section: 'general' | 'api' | 'advanced') {
 		goto(`?section=${section}`, { replaceState: true });
 	}
 
@@ -56,8 +56,8 @@
 <nav class="settings-nav">
 	<button
 		class="nav-item"
-		class:active={activeSection === 'basic'}
-		onclick={() => setActiveSection('basic')}>Basic</button
+		class:active={activeSection === 'general'}
+		onclick={() => setActiveSection('general')}>General</button
 	>
 	{#if settings.isAdvanced}
 		<button
@@ -74,8 +74,8 @@
 </nav>
 
 <div class="settings-content">
-	{#if activeSection === 'basic'}
-		<BasicSettings bind:settings {onSave} />
+	{#if activeSection === 'general'}
+		<GeneralSettings bind:settings {onSave} />
 	{/if}
 
 	{#if activeSection === 'api'}

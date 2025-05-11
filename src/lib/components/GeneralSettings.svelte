@@ -53,22 +53,6 @@
 
 <section class="section">
 	<div>
-		<div class="control-row">
-			<label for="advancedMode">Advanced Mode</label>
-			<div class="toggle-switch-wrapper">
-				<div class="toggle-switch">
-					<input
-						type="checkbox"
-						id="advancedMode"
-						bind:checked={settings.isAdvanced}
-						onchange={onSave}
-					/>
-					<label for="advancedMode" class="slider"></label>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div>
 		<label id="playbackControlsLabel" for="skipBackwardButtonSeconds">Playback Controls</label>
 		<div class="control-group" aria-labelledby="playbackControlsLabel">
 			<div class="control-row">
@@ -213,6 +197,22 @@
 				{exportMessage}
 			</div>
 		{/if}
+	</div>
+	<div>
+		<div class="control-row">
+			<label for="advancedMode">Advanced Mode</label>
+			<div class="toggle-switch-wrapper">
+				<div class="toggle-switch">
+					<input
+						type="checkbox"
+						id="advancedMode"
+						bind:checked={settings.isAdvanced}
+						onchange={onSave}
+					/>
+					<label for="advancedMode" class="slider"></label>
+				</div>
+			</div>
+		</div>
 	</div>
 </section>
 
