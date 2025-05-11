@@ -15,10 +15,15 @@ const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 const FEED_TIMEOUT_MS = 10000; // Added for the new importFeeds method
 
+export const EpisodeUpdate = $state({
+	isUpdating: false,
+	hasNewEpisodes: false
+});
+
+
 export class FeedService {
 	private api: PodcastIndexClient | null = null;
 	private initialized = false;
-	isUpdating = $state(false);
 
 	constructor(apiKey?: string, apiSecret?: string) {
 		if (apiKey && apiSecret) {
@@ -109,6 +114,10 @@ export class FeedService {
 				if (!match) {
 					Log.info(`Adding ${x.title}`);
 					db.episodes.insert(x);
+
+					if (window.location.pathname !== '/new-episodes') {
+						EpisodeUpdate.hasNewEpisodes = true;
+					}
 				}
 			} catch (error) {
 				Log.error(`Error adding episode ${x.title}: ${error instanceof Error ? error.message : String(error)}`);
@@ -307,7 +316,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 	async importFeeds(opmlContent: string, onProgress?: (progress: ImportProgress) => void): Promise<void> {
 		try {
-			this.isUpdating = true;
+			EpisodeUpdate.isUpdating = true;
 			await this.initialize();
 
 			const existingFeeds = db.feeds.find({}).fetch();
@@ -407,7 +416,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			Log.error(`Error importing feeds: ${error instanceof Error ? error.message : String(error)}`);
 			onProgress?.({ current: '', success: 0, total: 0, failed: [], skipped: 0 });
 		} finally {
-			this.isUpdating = false;
+			EpisodeUpdate.isUpdating = false;
 		}
 	}
 
@@ -416,17 +425,17 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		let lastCheckTime = 0;
 
 		const sync = async () => {
-			if (this.isUpdating) {
-				Log.warn('Skipping updates due to active update');
+			if (EpisodeUpdate.isUpdating) {
+				Log.warn('Skipping feed updates due to active update');
 				return;
 			}
 
 			try {
-				this.isUpdating = true;
+				EpisodeUpdate.isUpdating = true;
 				await this.updateAllFeeds();
 				lastCheckTime = Date.now();
 			} finally {
-				this.isUpdating = false;
+				EpisodeUpdate.isUpdating = false;
 			}
 		};
 

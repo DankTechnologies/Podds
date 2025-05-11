@@ -2,6 +2,7 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { onMount } from 'svelte';
 	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import { EpisodeUpdate } from '$lib/service/FeedService.svelte';
 
 	const ITEMS_PER_PAGE = 20;
 	const FEED_LIMIT = 3;
@@ -27,6 +28,7 @@
 	}
 
 	onMount(() => {
+		EpisodeUpdate.hasNewEpisodes = false;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {

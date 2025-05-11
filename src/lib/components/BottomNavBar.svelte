@@ -8,7 +8,7 @@
 	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
 	import type { ActiveEpisode } from '$lib/types/db';
 	import { isAppleDevice } from '$lib/utils/osCheck';
-	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { EpisodeUpdate } from '$lib/service/FeedService.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -40,6 +40,7 @@
 			href: '/',
 			label: 'Podcasts',
 			icon: Hotel,
+			isUpdating: () => false,
 			hasUpdate: () => false,
 			disabled: () => false
 		},
@@ -47,13 +48,15 @@
 			href: '/new-episodes',
 			label: 'Episodes',
 			icon: CassetteTape,
-			hasUpdate: () => false,
+			isUpdating: () => EpisodeUpdate.isUpdating,
+			hasUpdate: () => EpisodeUpdate.hasNewEpisodes,
 			disabled: () => !hasFeeds
 		},
 		{
 			href: '/playlist',
 			label: 'Playlist',
 			icon: ListMusic,
+			isUpdating: () => false,
 			hasUpdate: () => false,
 			disabled: () => !hasFeeds
 		},
@@ -61,6 +64,7 @@
 			href: '/search',
 			label: 'Search',
 			icon: Radar,
+			isUpdating: () => false,
 			hasUpdate: () => hasNewResults,
 			disabled: () => !canSearch,
 			hidden: () => false
@@ -68,29 +72,35 @@
 	];
 </script>
 
-{#snippet NavButton(href: string, label: string, icon: any, hasUpdate: boolean, disabled: boolean)}
+{#snippet NavButton(
+	href: string,
+	label: string,
+	icon: any,
+	isUpdating: boolean,
+	hasUpdate: boolean,
+	disabled: boolean
+)}
 	{@const Icon = icon}
 	<button
 		class="nav-item"
 		class:active={isActive(href)}
 		class:has-update={hasUpdate}
+		class:is-updating={isUpdating}
+		data-nav={href}
 		onclick={() => goto(href)}
 		aria-label={label}
 		{disabled}
 	>
 		<div class="nav-item__icon-wrapper">
 			<Icon size={ICON_SIZE} strokeWidth={isActive(href) ? 2.25 : 1.5} />
-			{#if hasUpdate}
-				<div class="update-dot" class:search-update={href === '/search'}></div>
-			{/if}
 		</div>
 		<div class="nav-item__label" class:active={isActive(href)}>{label}</div>
 	</button>
 {/snippet}
 
 <nav class:nav-border={showBorderTop} class:is-apple-device={isAppleDevice}>
-	{#each navItems as { href, label, icon, hasUpdate, disabled }}
-		{@render NavButton(href, label, icon, hasUpdate(), disabled())}
+	{#each navItems as { href, label, icon, isUpdating, hasUpdate, disabled }}
+		{@render NavButton(href, label, icon, isUpdating(), hasUpdate(), disabled())}
 	{/each}
 </nav>
 
@@ -155,7 +165,8 @@
 		display: flex;
 	}
 
-	.update-dot {
+	.nav-item.has-update[data-nav='/search'] .nav-item__icon-wrapper::after {
+		content: '';
 		position: absolute;
 		top: 6px;
 		right: 25px;
@@ -163,19 +174,53 @@
 		height: 4px;
 		background-color: var(--success);
 		border-radius: 50%;
+		animation: pulse 2s ease-in-out infinite;
 	}
 
-	.update-dot.search-update {
+	.nav-item.has-update[data-nav='/new-episodes']:not(.active) .nav-item__icon-wrapper::before {
+		content: '';
+		position: absolute;
+		top: 11px;
+		left: 8px;
+		right: 19px;
+		height: 5px;
+		background-color: light-dark(var(--primary), var(--primary-more));
+		border-radius: 50%;
+	}
+
+	.nav-item.has-update[data-nav='/new-episodes']:not(.active) .nav-item__icon-wrapper::after {
+		content: '';
+		position: absolute;
+		top: 11px;
+		left: 19px;
+		right: 8px;
+		height: 5px;
+		background-color: light-dark(var(--primary), var(--primary-more));
+		border-radius: 50%;
+	}
+
+	.nav-item.is-updating[data-nav='/new-episodes'] .nav-item__icon-wrapper::before {
+		content: '';
+		z-index: -1;
+		position: absolute;
+		top: 9px;
+		left: 2px;
+		right: 2px;
+		height: 8px;
+		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
+		border-radius: 2rem;
 		animation: pulse 2s ease-in-out infinite;
 	}
 
 	@keyframes pulse {
-		0%,
-		100% {
-			transform: scale(1.25);
+		0% {
+			opacity: 0;
 		}
 		50% {
-			transform: scale(1);
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
 		}
 	}
 </style>
