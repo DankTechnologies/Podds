@@ -239,14 +239,6 @@
 								<div>
 									<Check size="14" />
 								</div>
-							{:else if (getActiveEpisode(episode)?.playbackPosition ?? 0) > 0 || getActiveEpisode(episode)?.isPlaying}
-								<div>
-									<Play size="14" />
-								</div>
-							{:else if getActiveEpisode(episode)?.isDownloaded}
-								<div>
-									<Download size="14" />
-								</div>
 							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) !== -1}
 								<div class="download-progress">
 									{Math.round(downloadProgress.get(episode.id) ?? 0)}%
@@ -254,6 +246,14 @@
 							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) === -1}
 								<div class="download-progress error">
 									<Frown size="14" />
+								</div>
+							{:else if (getActiveEpisode(episode)?.playbackPosition ?? 0) > 0 || getActiveEpisode(episode)?.isPlaying}
+								<div>
+									<Play size="14" />
+								</div>
+							{:else if getActiveEpisode(episode)?.isDownloaded}
+								<div>
+									<Download size="14" />
 								</div>
 							{/if}
 							<div>
