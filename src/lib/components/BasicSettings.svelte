@@ -73,7 +73,7 @@
 		<div class="control-group" aria-labelledby="playbackControlsLabel">
 			<div class="control-row">
 				<label for="skipBackwardButtonSeconds">
-					<RotateCcw class="icon" size={16} /> Back Button
+					<RotateCcw class="icon" size={16} /> Back button
 				</label>
 				<input
 					type="number"
@@ -88,7 +88,7 @@
 			</div>
 			<div class="control-row">
 				<label for="skipForwardButtonSeconds">
-					<RotateCw class="icon" size={16} /> Forward Button
+					<RotateCw class="icon" size={16} /> Forward button
 				</label>
 				<input
 					type="number"
@@ -103,7 +103,7 @@
 			</div>
 			<div class="control-row">
 				<label for="goBackOnResumeSeconds">
-					<Route class="icon" size={16} /> Go Back on Resume
+					<Route class="icon" size={16} /> Go back on resume
 				</label>
 				<input
 					type="number"

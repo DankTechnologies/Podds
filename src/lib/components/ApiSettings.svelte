@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Settings } from '$lib/types/db';
 	import PodcastIndexClient from '$lib/api/podcast-index';
+	import { Loader2, FlaskRound } from 'lucide-svelte';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -182,29 +183,50 @@
 		</div>
 	</div>
 	<div class="actions">
-		<button type="button" onclick={handleTest}>Test Connection</button>
+		<button
+			type="button"
+			onclick={handleTest}
+			disabled={podcastIndexStatus === 'testing' ||
+				corsStatus === 'testing' ||
+				corsStatus2 === 'testing'}
+		>
+			{#if podcastIndexStatus === 'testing' || corsStatus === 'testing' || corsStatus2 === 'testing'}
+				<Loader2 size="16" class="spinner" /> Testing...
+			{:else}
+				<FlaskRound size="16" /> Test Connection
+			{/if}
+		</button>
 	</div>
 </section>
 
 <style>
 	.section {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+
 		& > div {
-			padding-bottom: 2rem;
 			display: flex;
 			flex-direction: column;
+			gap: 1rem;
+		}
+
+		& > div > label {
+			background-color: light-dark(var(--grey-200), var(--grey-800));
+			color: light-dark(var(--primary-grey-dark), var(--text));
+			padding: 0.25rem 0.75rem;
+			border-radius: 0.25rem;
+			letter-spacing: 0.05em;
 		}
 
 		label {
 			font-weight: 600;
 			font-size: var(--text-large);
-			padding-bottom: 1rem;
 		}
 
 		input {
-			padding: 0.75rem;
 			background-color: var(--bg-less);
-
-			border: 1px solid var(--primary-less);
+			border: 1px solid var(--bg-less);
 			color: var(--text);
 		}
 	}
@@ -255,6 +277,23 @@
 		background: var(--bg-less);
 		color: var(--text);
 		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+	}
+
+	.actions button:disabled {
+		opacity: 0.7;
+	}
+
+	.actions button :global(.spinner) {
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.status-container {

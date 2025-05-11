@@ -63,6 +63,7 @@ let episodes = $state.raw<Episode[]>([]);
 let activeEpisodes = $state.raw<ActiveEpisode[]>([]);
 let settings = $state.raw<Settings>();
 let searchHistory = $state.raw<SearchHistory[]>([]);
+let logs = $state.raw<LogEntry[]>([]);
 
 $effect.root(() => {
 	$effect(() => {
@@ -104,6 +105,15 @@ $effect.root(() => {
 			searchHistoryCursor.cleanup();
 		};
 	});
+
+	$effect(() => {
+		const logsCursor = db.logs.find();
+		logs = logsCursor.fetch();
+
+		return () => {
+			logsCursor.cleanup();
+		};
+	});
 });
 
 function getFeeds() {
@@ -130,4 +140,8 @@ function getSearchHistory() {
 	return searchHistory;
 }
 
-export { getFeeds, getFeedIconsById, getSettings, getEpisodes, getActiveEpisodes, getSearchHistory };
+function getLogs() {
+	return logs;
+}
+
+export { getFeeds, getFeedIconsById, getSettings, getEpisodes, getActiveEpisodes, getSearchHistory, getLogs };

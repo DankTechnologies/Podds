@@ -80,9 +80,6 @@
 
 	{#if activeSection === 'api'}
 		<ApiSettings bind:settings />
-		<div class="actions">
-			<button type="button" onclick={onSave}>Save Changes</button>
-		</div>
 	{/if}
 
 	{#if activeSection === 'advanced'}
@@ -127,25 +124,5 @@
 
 	.nav-item:not(.active) {
 		opacity: 0.5;
-	}
-
-	.actions {
-		display: flex;
-		gap: 1rem;
-	}
-
-	.actions button {
-		display: flex;
-		width: fit-content;
-		font-size: var(--text-smallish);
-		font-weight: 600;
-		align-items: center;
-		background: var(--bg-less);
-		gap: 0.5rem;
-		border: none;
-		padding: 0.5rem 1rem;
-		color: var(--text);
-		border-radius: 0.25rem;
-		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 </style>

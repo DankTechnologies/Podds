@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { db } from '$lib/stores/db.svelte';
+	import { db, getLogs } from '$lib/stores/db.svelte';
 	import type { LogEntry, Settings } from '$lib/types/db';
 	import { formatTimestamp } from '$lib/utils/time';
 	import { calculateStorageUsage, formatBytes, type StorageInfo } from '$lib/utils/storage';
 	import { onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
+	import { ListFilter, Search } from 'lucide-svelte';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -23,18 +24,18 @@
 		usage: 0
 	});
 
-	// Raw state holders for query results
-	let logs = $state.raw<LogEntry[]>([]);
-
-	// Set up reactive queries with proper cleanup
+	let logs = $derived(getLogs());
+	let matchingLogs = $state<LogEntry[]>([]);
+	let searchQuery = $state('');
 	$effect(() => {
-		const logsCursor = db.logs.find({}, { sort: { timestamp: -1 }, limit: 100 });
-
-		logs = logsCursor.fetch();
-
-		return () => {
-			logsCursor.cleanup();
-		};
+		if (searchQuery) {
+			matchingLogs = logs.filter((log) => {
+				const searchText = `${log.level} ${formatTimestamp(log.timestamp)} ${log.message}`;
+				return searchText.match(new RegExp(searchQuery, 'i'));
+			});
+		} else {
+			matchingLogs = logs;
+		}
 	});
 
 	onMount(async () => {
@@ -45,16 +46,7 @@
 
 <section class="section">
 	<div>
-		<label for="logLevel">Log Level</label>
-		<select id="logLevel" bind:value={settings.logLevel} onchange={onSave}>
-			<option value="debug">Debug</option>
-			<option value="info">Info</option>
-			<option value="warn">Warning</option>
-			<option value="error">Error</option>
-		</select>
-	</div>
-	<div>
-		<h4>Storage</h4>
+		<label for="storage">Storage</label>
 		<div class="storage-stats">
 			Audio Files:&nbsp;&nbsp;
 			{#if storageLoaded}
@@ -82,29 +74,69 @@
 		</div>
 	</div>
 	<div>
-		<h4>Logs</h4>
-		<div id="logs" class="logs">
-			{#each logs as log}
-				[{log.level}][{formatTimestamp(log.timestamp)}] {log.message}
-				<br />
-				<br />
-			{/each}
+		<label for="logs">Logs</label>
+		<div class="logs-container">
+			<div class="control-row">
+				<label for="logLevel">
+					<ListFilter class="icon" size={16} /> Log level
+				</label>
+				<div class="control-input">
+					<select id="logLevel" bind:value={settings.logLevel} onchange={onSave}>
+						<option value="debug">Debug</option>
+						<option value="info">Info</option>
+						<option value="warn">Warning</option>
+						<option value="error">Error</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-row">
+				<label for="logSearch">
+					<Search class="icon" size={16} /> Search logs
+				</label>
+				<div class="control-input">
+					<input
+						id="logSearch"
+						type="text"
+						spellcheck="false"
+						placeholder="regex works"
+						bind:value={searchQuery}
+					/>
+				</div>
+			</div>
+			<div id="logs" class="logs">
+				{#each matchingLogs as log}
+					[{log.level}][{formatTimestamp(log.timestamp)}] {log.message}
+					<br />
+					<br />
+				{/each}
+			</div>
 		</div>
 	</div>
 </section>
 
 <style>
 	.section {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+
 		& > div {
-			padding-bottom: 2rem;
 			display: flex;
 			flex-direction: column;
+			gap: 1rem;
+		}
+
+		& > div > label {
+			background-color: light-dark(var(--grey-200), var(--grey-800));
+			color: light-dark(var(--primary-grey-dark), var(--text));
+			padding: 0.25rem 0.75rem;
+			border-radius: 0.25rem;
+			letter-spacing: 0.05em;
 		}
 
 		label {
 			font-weight: 600;
 			font-size: var(--text-large);
-			padding-bottom: 1rem;
 		}
 
 		select {
@@ -114,9 +146,56 @@
 		}
 	}
 
-	select {
-		padding: 0.5em;
-		border-radius: 0.25rem;
+	.logs-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.control-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+
+		label {
+			flex: 2;
+			font-size: var(--text-smallish);
+			font-weight: normal;
+			padding-bottom: 0;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+
+			:global(.icon) {
+				color: var(--primary);
+				transition: color 0.2s ease;
+			}
+		}
+
+		.control-input {
+			flex: 3;
+
+			input,
+			select {
+				width: 100%;
+			}
+
+			input,
+			select {
+				padding: 0.5em;
+				border-radius: 0.25rem;
+				background-color: var(--bg-less);
+				border: 1px solid var(--bg-less);
+				font-size: var(--text-smallish);
+			}
+		}
+
+		&:has(select:focus) :global(.icon),
+		&:has(select:focus-visible) :global(.icon),
+		&:has(input:focus) :global(.icon),
+		&:has(input:focus-visible) :global(.icon) {
+			color: var(--primary-more);
+		}
 	}
 
 	.logs {
@@ -126,6 +205,11 @@
 		font-family: monospace;
 		font-size: var(--text-xs);
 		word-break: break-all;
+	}
+
+	#logSearch {
+		width: 90%;
+		font-family: monospace;
 	}
 
 	.storage-stats {
