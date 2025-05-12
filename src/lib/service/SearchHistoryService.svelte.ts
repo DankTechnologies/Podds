@@ -3,6 +3,7 @@ import type { SearchHistory } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import PodcastIndexClient from '$lib/api/podcast-index';
 import { getSettings } from '$lib/stores/db.svelte';
+import { isOnline } from '$lib/utils/networkState.svelte';
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -150,6 +151,11 @@ export class SearchHistoryService {
         const sync = async () => {
             if (isUpdating) {
                 Log.warn('Skipping search updates due to active update');
+                return;
+            }
+
+            if (!isOnline()) {
+                Log.debug('Skipping search updates due to no network connection');
                 return;
             }
 

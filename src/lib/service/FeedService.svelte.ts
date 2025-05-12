@@ -8,6 +8,7 @@ import { decodeHtmlEntities, encodeHtmlEntities } from '$lib/utils/feedParser';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
 import type { ImportProgress } from '$lib/types/ImportProgress';
+import { isOnline } from '$lib/utils/networkState.svelte';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -427,6 +428,11 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		const sync = async () => {
 			if (EpisodeUpdate.isUpdating) {
 				Log.warn('Skipping feed updates due to active update');
+				return;
+			}
+
+			if (!isOnline()) {
+				Log.debug('Skipping feed updates due to no network connection');
 				return;
 			}
 

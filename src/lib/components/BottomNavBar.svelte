@@ -9,6 +9,7 @@
 	import type { ActiveEpisode } from '$lib/types/db';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { EpisodeUpdate } from '$lib/service/FeedService.svelte';
+	import { isOnline } from '$lib/utils/networkState.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -21,7 +22,7 @@
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $derived(getSettings());
 	let canSearch = $derived(
-		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
+		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper && isOnline()
 	);
 
 	let isActive = $derived((href: string) => {

@@ -16,7 +16,7 @@
 	import { registerServiceWorker } from '$lib/utils/storage';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
-
+	import { trackNetworkState } from '$lib/utils/networkState.svelte';
 	let feedService = new FeedService();
 	let searchHistoryService = new SearchHistoryService();
 
@@ -31,6 +31,7 @@
 	registerServiceWorker();
 	requestStoragePersistence();
 	trackThemePreference();
+	trackNetworkState();
 
 	onMount(() => {
 		Promise.all([
