@@ -341,7 +341,14 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 			Log.info(`Starting import of ${totalFeeds} feeds`);
 
-			for (const outline of outlines) {
+			// Sort outlines by title, ignoring leading articles (the, a, an)
+			const sortedOutlines = Array.from(outlines).sort((a, b) => {
+				const titleA = (a.getAttribute('text') || '').toLowerCase().replace(/^(the|a|an)\s+/i, '');
+				const titleB = (b.getAttribute('text') || '').toLowerCase().replace(/^(the|a|an)\s+/i, '');
+				return titleA.localeCompare(titleB);
+			});
+
+			for (const outline of sortedOutlines) {
 				let url: string | null = null;
 				let title: string | null = null;
 
