@@ -7,6 +7,9 @@
 	import { fade, fly } from 'svelte/transition';
 	import { ListFilter, Search } from 'lucide-svelte';
 
+	const LIMIT_LOGS = 1000;
+	const DEBOUNCE_DELAY = 300;
+
 	let {
 		settings = $bindable<Settings>(),
 		onSave
@@ -16,7 +19,6 @@
 	} = $props();
 
 	let storageLoaded = $state(false);
-
 	let storageInfo = $state<StorageInfo>({
 		cacheSize: 0,
 		dbSize: 0,
@@ -24,17 +26,37 @@
 		usage: 0
 	});
 
-	let logs = $derived(getLogs());
+	let recentLogs = $derived(
+		getLogs()
+			.sort((a, b) => b.timestamp - a.timestamp)
+			.slice(0, LIMIT_LOGS)
+	);
+
 	let matchingLogs = $state<LogEntry[]>([]);
 	let searchQuery = $state('');
+	let debouncedQuery = $state('');
+
+	$inspect(`searchQuery: ${searchQuery}`);
+	$inspect(`debouncedQuery: ${debouncedQuery}`);
+
 	$effect(() => {
 		if (searchQuery) {
-			matchingLogs = logs.filter((log) => {
+			const timeoutId = setTimeout(() => {
+				debouncedQuery = searchQuery;
+			}, DEBOUNCE_DELAY);
+
+			return () => clearTimeout(timeoutId);
+		}
+	});
+
+	$effect(() => {
+		if (debouncedQuery) {
+			matchingLogs = recentLogs.filter((log) => {
 				const searchText = `${log.level} ${formatTimestamp(log.timestamp)} ${log.message}`;
-				return searchText.match(new RegExp(searchQuery, 'i'));
+				return searchText.match(new RegExp(debouncedQuery, 'i'));
 			});
 		} else {
-			matchingLogs = logs;
+			matchingLogs = recentLogs;
 		}
 	});
 
