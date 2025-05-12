@@ -8,6 +8,7 @@
 	import GeneralSettings from '$lib/components/GeneralSettings.svelte';
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	import AdvancedSettings from '$lib/components/AdvancedSettings.svelte';
+	import Help from '$lib/components/Help.svelte';
 
 	let settings = $state<Settings>(
 		getSettings() || {
@@ -32,19 +33,19 @@
 	);
 
 	// Default to 'general', will be updated in onMount from URL
-	let activeSection = $state<'general' | 'api' | 'advanced'>('general');
+	let activeSection = $state<'general' | 'api' | 'advanced' | 'help'>('general');
 
 	// Update active section when page URL changes
 	$effect(() => {
 		const section = page.url.searchParams.get('section');
-		if (section === 'api' || section === 'advanced') {
+		if (section === 'api' || section === 'advanced' || section === 'help') {
 			activeSection = section;
 		} else {
 			activeSection = 'general';
 		}
 	});
 
-	function setActiveSection(section: 'general' | 'api' | 'advanced') {
+	function setActiveSection(section: 'general' | 'api' | 'advanced' | 'help') {
 		goto(`?section=${section}`, { replaceState: true });
 	}
 
@@ -71,6 +72,12 @@
 			onclick={() => setActiveSection('advanced')}>Advanced</button
 		>
 	{/if}
+	<button
+		class="nav-item"
+		class:active={activeSection === 'help'}
+		onclick={() => setActiveSection('help')}
+		><img src="/gpa-smiley.svg" alt="Podds" class="smiley-nav-icon" /></button
+	>
 </nav>
 
 <div class="settings-content">
@@ -84,6 +91,10 @@
 
 	{#if activeSection === 'advanced'}
 		<AdvancedSettings bind:settings {onSave} />
+	{/if}
+
+	{#if activeSection === 'help'}
+		<Help />
 	{/if}
 </div>
 
@@ -124,5 +135,9 @@
 
 	.nav-item:not(.active) {
 		opacity: 0.5;
+	}
+
+	.smiley-nav-icon {
+		height: 1rem;
 	}
 </style>
