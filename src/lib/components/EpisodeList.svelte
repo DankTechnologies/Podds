@@ -20,6 +20,7 @@
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 
 	let {
 		episodes,
@@ -224,6 +225,8 @@
 								src={feedIconsById.get(episode.feedId)}
 								alt={episode.title}
 								class="episode-card__image"
+								loading={isAppleDevice ? 'eager' : 'lazy'}
+								decoding={isAppleDevice ? 'auto' : 'async'}
 							/>
 						{:else}
 							<div class="episode-card__image">

@@ -6,6 +6,7 @@
 	import { Check, History, List, Plus, Loader2, Antenna, ArrowUpLeft } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
+	import { isAppleDevice } from '$lib/utils/osCheck';
 
 	let {
 		feeds,
@@ -80,6 +81,8 @@
 								src={feedIconsById.get(feed.id.toString())}
 								alt={feed.title}
 								class="feed-card__image fade-in"
+								loading={isAppleDevice ? 'eager' : 'lazy'}
+								decoding={isAppleDevice ? 'auto' : 'async'}
 							/>
 						{:else}
 							<div class="feed-card__image">

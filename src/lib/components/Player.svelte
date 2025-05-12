@@ -203,7 +203,12 @@
 >
 	<div class="player__controls">
 		<div class="player__artwork">
-			<img src={`data:${feedIconsById.get(episode.feedId)}`} alt="" />
+			<img
+				src={`data:${feedIconsById.get(episode.feedId)}`}
+				alt=""
+				loading={isAppleDevice ? 'eager' : 'lazy'}
+				decoding={isAppleDevice ? 'auto' : 'async'}
+			/>
 		</div>
 
 		<button class="player__button" onclick={(e) => handleBack(e)}>

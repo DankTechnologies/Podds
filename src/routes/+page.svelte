@@ -110,7 +110,12 @@
 		{:else}
 			<div class="grid-item">
 				<button onclick={() => goto(`/podcast/${x.id}`)} aria-label={`Go to ${x.title} podcast`}>
-					<img src={`data:${x.iconData}`} alt={x.title} />
+					<img
+						src={`data:${x.iconData}`}
+						alt={x.title}
+						loading={isAppleDevice ? 'eager' : 'lazy'}
+						decoding={isAppleDevice ? 'auto' : 'async'}
+					/>
 				</button>
 			</div>
 		{/if}
