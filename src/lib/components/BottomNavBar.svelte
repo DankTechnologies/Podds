@@ -175,31 +175,38 @@
 		height: 4px;
 		background-color: var(--success);
 		border-radius: 50%;
-		animation: pulse 2s ease-in-out infinite;
+		animation: pulse-search 2s ease-in-out infinite;
 	}
 
+	/* left "eye" */
 	.nav-item.has-update[data-nav='/new-episodes']:not(.active) .nav-item__icon-wrapper::before {
+		z-index: -1;
 		content: '';
 		position: absolute;
 		top: 11px;
 		left: 8px;
 		right: 19px;
 		height: 5px;
-		background-color: light-dark(var(--primary), var(--primary-more));
+		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
 		border-radius: 50%;
+		transition: all 0.3s ease-in-out;
 	}
 
+	/* right "eye" */
 	.nav-item.has-update[data-nav='/new-episodes']:not(.active) .nav-item__icon-wrapper::after {
+		z-index: -1;
 		content: '';
 		position: absolute;
 		top: 11px;
 		left: 19px;
 		right: 8px;
 		height: 5px;
-		background-color: light-dark(var(--primary), var(--primary-more));
+		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
 		border-radius: 50%;
+		transition: all 0.3s ease-in-out;
 	}
 
+	/* pulsing "eyes" */
 	.nav-item.is-updating[data-nav='/new-episodes'] .nav-item__icon-wrapper::before {
 		content: '';
 		z-index: -1;
@@ -210,10 +217,26 @@
 		height: 8px;
 		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
 		border-radius: 2rem;
-		animation: pulse 2s ease-in-out infinite;
+		animation: pulse-new-episodes 2s ease-in-out infinite;
+		transition: all 0.3s ease-in-out;
 	}
 
-	@keyframes pulse {
+	@keyframes pulse-new-episodes {
+		0% {
+			opacity: 0.2;
+			transform: scale(0.2);
+		}
+		50% {
+			opacity: 1;
+			transform: scale(0.7);
+		}
+		100% {
+			opacity: 0.2;
+			transform: scale(0.2);
+		}
+	}
+
+	@keyframes pulse-search {
 		0% {
 			opacity: 0;
 		}
