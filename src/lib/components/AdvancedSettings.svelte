@@ -46,6 +46,8 @@
 			}, DEBOUNCE_DELAY);
 
 			return () => clearTimeout(timeoutId);
+		} else {
+			debouncedQuery = '';
 		}
 	});
 
