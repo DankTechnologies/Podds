@@ -21,6 +21,7 @@
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { page } from '$app/state';
 
 	let {
 		episodes,
@@ -44,6 +45,8 @@
 	let focusedEpisodeId = $state<string | null>(null);
 	let isReordering = $state(false);
 	let feedService = new FeedService();
+
+	let isPodcastPage = $derived(page.url.pathname.startsWith('/podcast'));
 
 	let feeds = $derived(getFeeds());
 	let settings = $derived(getSettings());
@@ -208,6 +211,7 @@
 			class="episode-card fade-in"
 			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
+			class:is-podcast-page={isPodcastPage}
 			data-episode-id={episode.id}
 		>
 			{#if getActiveEpisode(episode)?.isPlaying}
@@ -359,6 +363,11 @@
 		animation: shimmer 5s ease-in-out infinite;
 	}
 
+	.episode-card--playing.is-podcast-page :global(.background-play) {
+		width: 6.5rem;
+		height: 6.5rem;
+	}
+
 	@keyframes shimmer {
 		0% {
 			opacity: 0.08;
@@ -426,6 +435,7 @@
 		margin-right: 2rem;
 		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
+		text-wrap-style: pretty;
 	}
 
 	.episode-card__description,
@@ -433,6 +443,7 @@
 		color: var(--text-less);
 		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
+		text-wrap-style: pretty;
 		overflow: hidden;
 		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
 		padding: 0 1rem;

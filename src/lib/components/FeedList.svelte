@@ -218,6 +218,7 @@
 		font-weight: 600;
 		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
+		text-wrap-style: pretty;
 	}
 
 	.feed-card__meta {
@@ -336,6 +337,7 @@
 	.feed-controls__description {
 		font-size: var(--text-small);
 		line-height: var(--line-height-normal);
+		text-wrap-style: pretty;
 		overflow: hidden;
 		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
 		padding: 0 1rem;

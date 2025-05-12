@@ -249,6 +249,7 @@
 		font-weight: bold;
 		font-size: var(--text-medium);
 		line-height: var(--line-height-slack);
+		text-wrap-style: pretty;
 	}
 
 	.episode-title > div {
@@ -262,6 +263,7 @@
 	.description {
 		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
+		text-wrap-style: pretty;
 		overflow-y: auto;
 		min-height: 0;
 		padding: 0 1rem;

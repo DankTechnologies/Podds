@@ -445,5 +445,6 @@
 
 	.podcast-episode-description {
 		line-height: var(--line-height-slack);
+		text-wrap-style: pretty;
 	}
 </style>
