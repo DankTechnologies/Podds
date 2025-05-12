@@ -51,6 +51,11 @@ function expandUrl(shortUrl: string): string {
     return `https://${shortUrl}`;
 }
 
+export function getShareData(): string | null {
+    const url = new URL(window.location.href);
+    return url.hash.slice(1) ?? null;
+}
+
 export function encodeShareLink(config: ShareConfig): string {
     const parts = [
         config.podcastIndexKey,

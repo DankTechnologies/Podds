@@ -8,6 +8,7 @@
 	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { applyUpdate } from '$lib/utils/versionUpdate';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
+	import { decodeShareLink } from '$lib/utils/share';
 
 	let isApplePwa = $derived(isAppleDevice && isPwa);
 
@@ -42,8 +43,8 @@
 		if (isApplePwa) {
 			result.splice(shortcutPosition + 1, 0, {
 				type: 'shortcut',
-				id: 'share',
-				action: handleShare,
+				id: 'receive',
+				action: handleReceive,
 				svg: PackageOpen
 			});
 		}
@@ -69,12 +70,22 @@
 		applyUpdate();
 	}
 
-	async function handleShare() {
+	async function handleReceive() {
+		let shareData = null;
+
 		try {
-			const shareData = await navigator.clipboard.readText();
+			shareData = await navigator.clipboard.readText();
+		} catch (err) {
+			alert('Failed to read clipboard.  Hit the "Paste" button next time');
+			return;
+		}
+
+		try {
+			decodeShareLink(shareData!);
+
 			goto(`/share#${shareData}`);
 		} catch (err) {
-			alert('Failed to read clipboard');
+			alert('No luck.  Tap the "Share with app" button in Safari and try again');
 		}
 	}
 
@@ -108,7 +119,7 @@
 					{#if x.id === 'update'}
 						<span class="subnav-title-center">{x.id}</span>
 					{/if}
-					{#if x.id === 'share'}
+					{#if x.id === 'receive'}
 						<span class="subnav-title-bottom-center">{x.id}</span>
 					{/if}
 				</button>

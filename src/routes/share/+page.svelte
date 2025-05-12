@@ -9,7 +9,7 @@
 	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
 	import { Podcast, Play, Download, Dot, Package, PackageCheck, PackageOpen } from 'lucide-svelte';
-	import { decodeShareLink, type ShareConfig } from '$lib/utils/share';
+	import { decodeShareLink, getShareData, type ShareConfig } from '$lib/utils/share';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
@@ -179,11 +179,6 @@
 			() => alert('failed to download episode'),
 			(progress) => (downloadProgress = progress)
 		);
-	}
-
-	function getShareData(): string | null {
-		const url = new URL(window.location.href);
-		return url.hash.slice(1) ?? null;
 	}
 
 	function copyShareData() {

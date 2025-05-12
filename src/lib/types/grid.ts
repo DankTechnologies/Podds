@@ -3,7 +3,7 @@ import type { Settings, RefreshCw, PackageOpen } from 'lucide-svelte';
 
 export interface GridShortcut {
     type: 'shortcut';
-    id: 'settings' | 'update' | 'share';
+    id: 'settings' | 'update' | 'receive';
     url?: string;
     action?: () => void;
     svg: typeof Settings | typeof RefreshCw | typeof PackageOpen;
