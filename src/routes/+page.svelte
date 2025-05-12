@@ -105,6 +105,12 @@
 					}}
 				>
 					<x.svg size="128" />
+					{#if x.id === 'update'}
+						<span class="subnav-title-center">{x.id}</span>
+					{/if}
+					{#if x.id === 'share'}
+						<span class="subnav-title-bottom-center">{x.id}</span>
+					{/if}
 				</button>
 			</div>
 		{:else}
@@ -182,11 +188,9 @@
 		width: 128px;
 		height: 128px;
 		background: none;
-		color: var(--neutral);
 		border: none;
 		border-radius: 0.25rem;
-		font-weight: 600;
-		font-size: var(--text-2xl);
+		position: relative;
 	}
 
 	.subnav :global(svg) {
@@ -196,5 +200,23 @@
 	.subnav :global(svg) {
 		width: 100%;
 		height: 100%;
+	}
+
+	.subnav-title-center {
+		font-size: var(--text-small);
+		color: var(--primary);
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+
+	.subnav-title-bottom-center {
+		font-size: var(--text-small);
+		color: var(--primary);
+		position: absolute;
+		bottom: 22%;
+		left: 50%;
+		transform: translate(-50%, -22%);
 	}
 </style>
