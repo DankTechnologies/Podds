@@ -101,6 +101,8 @@ export class AudioService {
 		this.audio.src = corsHelper;
 		this.audio.currentTime = currentTime;
 		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+
+		this.setupMediaSession(settings!);
 	}
 
 	static async play(url: string, currentTime: number = 0) {
