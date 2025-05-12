@@ -96,7 +96,7 @@ export class AudioService {
 
 		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
 		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
-		const corsHelper = `${settings!.corsHelper}?url = ${encodeURIComponent(url)}& cacheAudio=true`;
+		const corsHelper = `${settings!.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
 		this.audio.src = corsHelper;
 		this.audio.currentTime = currentTime;

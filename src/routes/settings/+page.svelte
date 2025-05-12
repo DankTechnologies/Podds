@@ -20,7 +20,7 @@
 			searchTermSyncIntervalHours: 24,
 			lastSyncAt: new Date(),
 			isAdvanced: false,
-			logLevel: 'debug',
+			logLevel: 'info',
 			playbackSpeed: 1.0,
 			isPwaInstalled: isPwa,
 			skipForwardButtonSeconds: 30,
