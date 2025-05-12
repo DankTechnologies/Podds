@@ -353,6 +353,7 @@
 		font-size: var(--text-smallish);
 		padding: 1rem;
 		background-color: var(--bg-less);
+		min-height: 8rem;
 	}
 
 	.control-group {
