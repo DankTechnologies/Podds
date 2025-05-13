@@ -12,8 +12,9 @@
 			data mining.
 		</p>
 		<p>
-			It supports <a href="https://podcastindex.org/">Podcast Index</a> for discovery and uses CORS Helpers
-			to reach RSS feeds and download episodes without any hassles.
+			It supports <a href="https://podcastindex.org/">Podcast Index</a> for discovery and uses CORS
+			Helpers to reach RSS feeds and download episodes without any hassles. These get configured in
+			the <a href="/settings?section=api">API</a> section.
 		</p>
 		<p>
 			If you're somewhat technical, follow the steps below to start your own branch and propogate.
@@ -27,6 +28,7 @@
 			private email domain, e.g. gmail won't work. On the bright side, domains are pretty cheap
 			<a href="https://domains.cloudflare.com/">to register</a> and fun to have.
 		</p>
+		<p>Then, use Podcast Index's developer portal to create an API key and secret.</p>
 	</section>
 	<section class="section">
 		<h3 class="subtitle">CORS Helper - Cloudflare Way</h3>

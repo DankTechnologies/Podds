@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getFeeds } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
 	import type { GridItem } from '$lib/types/grid';
 	import { isShortcut } from '$lib/types/grid';
@@ -11,6 +11,12 @@
 	import { decodeShareLink } from '$lib/utils/share';
 
 	let isApplePwa = $derived(isAppleDevice && isPwa);
+
+	let settings = $derived(getSettings());
+
+	let isConfigured = $derived(
+		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
+	);
 
 	let feeds = $derived(
 		getFeeds()
@@ -138,6 +144,20 @@
 		{/if}
 	{/each}
 </div>
+{#if feeds.length === 0}
+	<div class="no-feeds">
+		<div>Hi there, welcome to podds!</div>
+		{#if isConfigured}
+			<div>You're all set up to <a href="/search">search</a> for podcasts</div>
+			<div>
+				or <a href="/settings?section=basic">import</a> from another podcast app
+			</div>
+		{:else}
+			<div>Follow <a href="/settings?section=help">these steps</a> to get it set up</div>
+		{/if}
+		<div><img alt="smiley" src="/gpa-smiley.svg" />Have fun!</div>
+	</div>
+{/if}
 
 <svg width="0" height="0">
 	<defs>
@@ -229,5 +249,19 @@
 		bottom: 22%;
 		left: 50%;
 		transform: translate(-50%, -22%);
+	}
+
+	.no-feeds {
+		display: flex;
+		margin-top: 2rem;
+		font-size: var(--text-large);
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.no-feeds img {
+		height: 1rem;
+		margin-right: 0.5rem;
 	}
 </style>
