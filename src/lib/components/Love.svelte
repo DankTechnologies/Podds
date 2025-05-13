@@ -21,14 +21,14 @@
 			if (i < fullText1.length) {
 				text1 += fullText1.charAt(i);
 				i++;
-				setTimeout(typeWriter, 100);
+				setTimeout(typeWriter, 50);
 			} else {
 				i = 0;
 				const typeWriter2 = () => {
 					if (i < fullText2.length) {
 						text2 += fullText2.charAt(i);
 						i++;
-						setTimeout(typeWriter2, 100);
+						setTimeout(typeWriter2, 50);
 					} else {
 						showSmiley = true;
 						i = 0;
@@ -36,28 +36,28 @@
 							if (i < fullText3.length) {
 								text3 += fullText3.charAt(i);
 								i++;
-								setTimeout(typeWriter3, 100);
+								setTimeout(typeWriter3, 50);
 							} else {
 								i = 0;
 								const typeWriter4 = () => {
 									if (i < fullText4.length) {
 										text4 += fullText4.charAt(i);
 										i++;
-										setTimeout(typeWriter4, 100);
+										setTimeout(typeWriter4, 50);
 									} else {
 										i = 0;
 										const typeWriter5 = () => {
 											if (i < fullText5.length) {
 												text5 += fullText5.charAt(i);
 												i++;
-												setTimeout(typeWriter5, 100);
+												setTimeout(typeWriter5, 50);
 											} else {
 												i = 0;
 												const typeWriter6 = () => {
 													if (i < fullText6.length) {
 														text6 += fullText6.charAt(i);
 														i++;
-														setTimeout(typeWriter6, 100);
+														setTimeout(typeWriter6, 50);
 													}
 												};
 												setTimeout(typeWriter6, 500);
@@ -99,7 +99,7 @@
 	.container {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
+		padding: 0 2rem;
 		gap: 2rem;
 	}
 
@@ -121,10 +121,11 @@
 	}
 
 	.smiley {
+		align-self: center;
 		width: 7rem;
 		height: 7rem;
 		opacity: 0;
-		transition: opacity 15s cubic-bezier(0.25, 0.1, 0.25, 1);
+		transition: opacity 9s cubic-bezier(0.25, 0.1, 0.25, 1);
 		position: relative;
 		visibility: hidden;
 	}
@@ -140,8 +141,8 @@
 	}
 
 	.signature {
+		align-self: flex-end;
 		display: flex;
-		width: 60vw;
 		flex-direction: column;
 		font-family: monospace;
 		user-select: text;

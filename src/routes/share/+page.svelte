@@ -16,6 +16,10 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
+	import {
+		getClickedShareBeforeInstall,
+		setClickedShareBeforeInstall
+	} from '$lib/utils/shareState.svelte';
 
 	let shareDataCopied = $state(false);
 	let feedExists = $state(false);
@@ -37,7 +41,8 @@
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
 
-	let isAppleWeb = $derived(isAppleDevice && !isPwa);
+	let isAppleWeb = true;
+	// let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
 	onMount(async () => {
 		try {
@@ -185,6 +190,9 @@
 		const shareData = getShareData();
 		navigator.clipboard.writeText(shareData!);
 		shareDataCopied = true;
+		if (isAppleWeb) {
+			setClickedShareBeforeInstall(true);
+		}
 	}
 </script>
 
