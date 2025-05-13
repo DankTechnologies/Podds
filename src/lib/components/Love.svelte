@@ -89,9 +89,9 @@
 		<img src="/gpa-smiley.svg" alt="GPA Smiley" />
 	</div>
 	<div class="signature">
-		<div class="love">{text4}</div>
-		<div class="company">{text5}</div>
-		<div class="email">{text6}</div>
+		<div>{text4}</div>
+		<div>{text5}</div>
+		<div>{text6}</div>
 	</div>
 </div>
 
