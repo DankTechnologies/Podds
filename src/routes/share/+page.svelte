@@ -16,10 +16,6 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
-	import {
-		getClickedShareBeforeInstall,
-		setClickedShareBeforeInstall
-	} from '$lib/utils/shareState.svelte';
 
 	let shareDataCopied = $state(false);
 	let feedExists = $state(false);
@@ -190,9 +186,6 @@
 		const shareData = getShareData();
 		navigator.clipboard.writeText(shareData!);
 		shareDataCopied = true;
-		if (isAppleWeb) {
-			setClickedShareBeforeInstall(true);
-		}
 	}
 </script>
 

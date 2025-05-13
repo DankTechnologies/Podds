@@ -9,6 +9,7 @@
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	import AdvancedSettings from '$lib/components/AdvancedSettings.svelte';
 	import Love from '$lib/components/Love.svelte';
+	import Help from '$lib/components/Help.svelte';
 
 	let settings = $state<Settings>(
 		getSettings() || {
@@ -20,7 +21,7 @@
 			syncIntervalMinutes: 15,
 			searchTermSyncIntervalHours: 24,
 			lastSyncAt: new Date(),
-			isAdvanced: false,
+			isAdvanced: true,
 			logLevel: 'info',
 			playbackSpeed: 1.0,
 			isPwaInstalled: isPwa,
@@ -33,19 +34,19 @@
 	);
 
 	// Default to 'general', will be updated in onMount from URL
-	let activeSection = $state<'general' | 'api' | 'advanced' | 'love'>('general');
+	let activeSection = $state<'general' | 'api' | 'advanced' | 'love' | 'help'>('general');
 
 	// Update active section when page URL changes
 	$effect(() => {
 		const section = page.url.searchParams.get('section');
-		if (section === 'api' || section === 'advanced' || section === 'love') {
+		if (section === 'api' || section === 'advanced' || section === 'love' || section === 'help') {
 			activeSection = section;
 		} else {
 			activeSection = 'general';
 		}
 	});
 
-	function setActiveSection(section: 'general' | 'api' | 'advanced' | 'love') {
+	function setActiveSection(section: 'general' | 'api' | 'advanced' | 'love' | 'help') {
 		goto(`?section=${section}`, { replaceState: true });
 	}
 
@@ -74,6 +75,11 @@
 	{/if}
 	<button
 		class="nav-item"
+		class:active={activeSection === 'help'}
+		onclick={() => setActiveSection('help')}>Help</button
+	>
+	<button
+		class="nav-item"
 		class:active={activeSection === 'love'}
 		onclick={() => setActiveSection('love')}
 		><img src="/gpa-smiley.svg" alt="Podds" class="smiley-nav-icon" /></button
@@ -96,6 +102,10 @@
 	{#if activeSection === 'love'}
 		<Love />
 	{/if}
+
+	{#if activeSection === 'help'}
+		<Help />
+	{/if}
 </div>
 
 <style>
@@ -117,7 +127,7 @@
 	}
 
 	.nav-item {
-		padding: 0.5rem 1rem;
+		padding: 0.5rem;
 		border-radius: 0.25rem;
 		border: none;
 		background: var(--bg);

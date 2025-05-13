@@ -144,8 +144,7 @@ h4,
 h5,
 h6 {
 	color: var(--text-900);
-	margin-top: 2rem;
-	margin-bottom: 1rem;
+	margin: 0.5rem 0;
 	line-height: var(--line-height-tight);
 	font-weight: 600;
 }
@@ -229,7 +228,7 @@ button {
 	}
 
 	p {
-		margin-bottom: 1.2rem;
+		margin-bottom: 0.5rem;
 	}
 
 	html {

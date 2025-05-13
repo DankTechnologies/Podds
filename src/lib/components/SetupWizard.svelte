@@ -2,7 +2,6 @@
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { LandPlot, Rocket, Loader2, X } from 'lucide-svelte';
 	import { getSettings } from '$lib/stores/db.svelte';
-	import { getClickedShareBeforeInstall, resetShareState } from '$lib/utils/shareState.svelte';
 
 	let settings = $derived(getSettings());
 	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
@@ -49,7 +48,6 @@
 
 	function onIosInstall() {
 		showIosInstructions = true;
-		resetShareState();
 	}
 
 	function closeIosInstructions() {
@@ -83,11 +81,7 @@
 			{/if}
 		{/if}
 		{#if isAppleWeb}
-			<button
-				class="install-button"
-				class:shimmer={getClickedShareBeforeInstall()}
-				onclick={onIosInstall}
-			>
+			<button class="install-button" onclick={onIosInstall}>
 				<LandPlot size="16" />
 				Install podds
 			</button>
@@ -255,12 +249,6 @@
 	.instructions-header-title {
 		font-size: var(--text-xl);
 		font-weight: bold;
-	}
-
-	.install-button.shimmer {
-		animation: shimmer 2s infinite;
-		background: linear-gradient(90deg, var(--bg) 0%, var(--primary) 50%, var(--bg) 100%);
-		background-size: 200% 100%;
 	}
 
 	@keyframes shimmer {
