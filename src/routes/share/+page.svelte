@@ -37,8 +37,7 @@
 	const ICON_MAX_WIDTH = 300;
 	const ICON_MAX_HEIGHT = 300;
 
-	let isAppleWeb = true;
-	// let isAppleWeb = $derived(isAppleDevice && !isPwa);
+	let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
 	onMount(async () => {
 		try {

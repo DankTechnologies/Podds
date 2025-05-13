@@ -12,11 +12,8 @@
 			data mining.
 		</p>
 		<p>
-			It supports <a href="https://podcastindex.org/">Podcast Index</a> for discovery and uses
-			<a href="https://gist.github.com/DankTechnologies/8dd399de6a588085eea26517048b7366"
-				>CORS Helpers</a
-			>
-			to sync RSS feeds and download episodes.
+			It supports <a href="https://podcastindex.org/">Podcast Index</a> for discovery and uses CORS Helpers
+			to reach RSS feeds and download episodes without any hassles.
 		</p>
 		<p>
 			If you're somewhat technical, follow the steps below to start your own branch and propogate.
