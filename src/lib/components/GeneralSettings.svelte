@@ -22,6 +22,10 @@
 		onSave: () => void;
 	} = $props();
 
+	let isConfigured = $derived(
+		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
+	);
+
 	let feedService = new FeedService();
 	let isImporting = $state(false);
 	let importProgress = $state<ImportProgress | null>(null);
@@ -137,79 +141,81 @@
 			</div>
 		</div>
 	</div>
-	<div>
-		<label for="importFeeds">Import / Export Podcasts</label>
-		<div class="section-help-text">
-			<Signpost size="24" /> Most podcast apps have a Backup/Export setting that writes your podcasts
-			to a file. You can <b>import</b> that file here, to move over all your podcasts.
-			<b>Export</b> helps you move in the other direction
-		</div>
-		<div class="actions">
-			<input
-				id="importFeeds"
-				type="file"
-				accept=".txt,.opml,.xml,text/xml,application/xml"
-				onchange={onImportFeeds}
-				class="file-input"
-			/>
-			<button
-				type="button"
-				onclick={() => document.getElementById('importFeeds')?.click()}
-				disabled={isImporting}
-			>
-				{#if isImporting}
-					<Loader2 size="16" class="spinner" /> Importing...
-				{:else}
-					<Upload size="16" /> Import
-				{/if}
-			</button>
-			<button type="button" onclick={onExportFeeds} disabled={isImporting}>
-				<Download size="16" /> Export
-			</button>
-		</div>
-		{#if importProgress}
-			<div class="import-progress">
-				{#if importProgress.total > 0}
-					Added {importProgress.success} of {importProgress.total} podcasts
-					<br />
-					{#if importProgress.skipped > 0}
-						({importProgress.skipped} already exist)
+	{#if isConfigured}
+		<div>
+			<label for="importFeeds">Import / Export Podcasts</label>
+			<div class="section-help-text">
+				<Signpost size="24" /> Most podcast apps have a Backup/Export setting that writes your podcasts
+				to a file. You can <b>import</b> that file here, to move over all your podcasts.
+				<b>Export</b> helps you move in the other direction
+			</div>
+			<div class="actions">
+				<input
+					id="importFeeds"
+					type="file"
+					accept=".txt,.opml,.xml,text/xml,application/xml"
+					onchange={onImportFeeds}
+					class="file-input"
+				/>
+				<button
+					type="button"
+					onclick={() => document.getElementById('importFeeds')?.click()}
+					disabled={isImporting}
+				>
+					{#if isImporting}
+						<Loader2 size="16" class="spinner" /> Importing...
+					{:else}
+						<Upload size="16" /> Import
+					{/if}
+				</button>
+				<button type="button" onclick={onExportFeeds} disabled={isImporting}>
+					<Download size="16" /> Export
+				</button>
+			</div>
+			{#if importProgress}
+				<div class="import-progress">
+					{#if importProgress.total > 0}
+						Added {importProgress.success} of {importProgress.total} podcasts
+						<br />
+						{#if importProgress.skipped > 0}
+							({importProgress.skipped} already exist)
+							<br />
+						{/if}
+					{:else}
+						No podcasts detected
 						<br />
 					{/if}
-				{:else}
-					No podcasts detected
-					<br />
-				{/if}
-				{#if importProgress.current}
-					Processing: {importProgress.current}
-					<br />
-				{/if}
-				{#if importProgress.failed.length > 0}
-					Failed podcasts:
-					{#each importProgress.failed as feed}
-						<br /> * {feed}
-					{/each}
-				{/if}
-			</div>
-		{/if}
-		{#if exportMessage}
-			<div class="import-progress">
-				{exportMessage}
-			</div>
-		{/if}
-	</div>
-	<div>
+					{#if importProgress.current}
+						Processing: {importProgress.current}
+						<br />
+					{/if}
+					{#if importProgress.failed.length > 0}
+						Failed podcasts:
+						{#each importProgress.failed as feed}
+							<br /> * {feed}
+						{/each}
+					{/if}
+				</div>
+			{/if}
+			{#if exportMessage}
+				<div class="import-progress">
+					{exportMessage}
+				</div>
+			{/if}
+		</div>
+	{/if}
+	<div class="advanced-mode-wrapper">
 		<div class="control-row">
-			<label for="advancedMode">Advanced Mode</label>
+			<label for="advanced-mode">Advanced Mode</label>
 			<div class="toggle-switch-wrapper">
 				<div class="toggle-switch">
-					<input
+					Mode <input
 						type="checkbox"
-						id="advancedMode"
+						id="advanced-mode"
 						bind:checked={settings.isAdvanced}
 						onchange={onSave}
 					/>
-					<label for="advancedMode" class="slider"></label>
+					<label for="advanced-mode" class="slider"></label>
 				</div>
 			</div>
 		</div>
@@ -406,5 +412,9 @@
 		.toggle-switch-wrapper {
 			flex: 1;
 		}
+	}
+
+	.advanced-mode-wrapper {
+		visibility: hidden;
 	}
 </style>

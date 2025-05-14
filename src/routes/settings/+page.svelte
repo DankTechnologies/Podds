@@ -7,9 +7,11 @@
 	import { goto } from '$app/navigation';
 	import GeneralSettings from '$lib/components/GeneralSettings.svelte';
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
-	import AdvancedSettings from '$lib/components/AdvancedSettings.svelte';
+	import SystemSettings from '$lib/components/SystemSettings.svelte';
 	import Love from '$lib/components/Love.svelte';
 	import Help from '$lib/components/Help.svelte';
+
+	type Section = 'general' | 'api' | 'system' | 'love' | 'help';
 
 	let settings = $state<Settings>(
 		getSettings() || {
@@ -21,7 +23,7 @@
 			syncIntervalMinutes: 15,
 			searchTermSyncIntervalHours: 24,
 			lastSyncAt: new Date(),
-			isAdvanced: true,
+			isAdvanced: false,
 			logLevel: 'info',
 			playbackSpeed: 1.0,
 			isPwaInstalled: isPwa,
@@ -39,19 +41,19 @@
 	);
 
 	// Default to 'general', will be updated in onMount from URL
-	let activeSection = $state<'general' | 'api' | 'advanced' | 'love' | 'help'>('general');
+	let activeSection = $state<Section>('general');
 
 	// Update active section when page URL changes
 	$effect(() => {
 		const section = page.url.searchParams.get('section');
-		if (section === 'api' || section === 'advanced' || section === 'love' || section === 'help') {
+		if (section === 'api' || section === 'system' || section === 'love' || section === 'help') {
 			activeSection = section;
 		} else {
 			activeSection = 'general';
 		}
 	});
 
-	function setActiveSection(section: 'general' | 'api' | 'advanced' | 'love' | 'help') {
+	function setActiveSection(section: Section) {
 		if (section === 'love') {
 			SettingsService.markHugged();
 		}
@@ -70,6 +72,11 @@
 		class:active={activeSection === 'general'}
 		onclick={() => setActiveSection('general')}>General</button
 	>
+	<button
+		class="nav-item"
+		class:active={activeSection === 'system'}
+		onclick={() => setActiveSection('system')}>System</button
+	>
 	{#if settings.isAdvanced}
 		<button
 			class="nav-item"
@@ -78,15 +85,10 @@
 		>
 		<button
 			class="nav-item"
-			class:active={activeSection === 'advanced'}
-			onclick={() => setActiveSection('advanced')}>Advanced</button
+			class:active={activeSection === 'help'}
+			onclick={() => setActiveSection('help')}>Help</button
 		>
 	{/if}
-	<button
-		class="nav-item"
-		class:active={activeSection === 'help'}
-		onclick={() => setActiveSection('help')}>Help</button
-	>
 	{#if isConfigured && !settings.hugged}
 		<button
 			class="nav-item"
@@ -106,8 +108,8 @@
 		<ApiSettings bind:settings {onSave} />
 	{/if}
 
-	{#if activeSection === 'advanced'}
-		<AdvancedSettings bind:settings {onSave} />
+	{#if activeSection === 'system'}
+		<SystemSettings bind:settings {onSave} />
 	{/if}
 
 	{#if activeSection === 'love'}
@@ -138,7 +140,7 @@
 	}
 
 	.nav-item {
-		padding: 0.5rem;
+		padding: 0.5rem 0.75rem;
 		border-radius: 0.25rem;
 		border: none;
 		background: var(--bg);

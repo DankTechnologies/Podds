@@ -29,6 +29,7 @@
 	let feeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 	let settings = $derived(getSettings());
+	let shareData = $state<string | null>(null);
 
 	let targetEpisode = $derived(
 		episodes.find((e) => e.publishedAt.getTime() / 1000 === config?.episodePublishedAt)
@@ -41,10 +42,13 @@
 
 	onMount(async () => {
 		try {
-			const shareData = getShareData();
+			shareData = getShareData();
 			if (!shareData) {
 				throw new Error('No share data found');
 			}
+
+			// Remove the fragment from the URL without reloading
+			history.replaceState(null, '', window.location.pathname + window.location.search);
 
 			config = decodeShareLink(shareData);
 
@@ -183,8 +187,8 @@
 	}
 
 	function copyShareData() {
-		const shareData = getShareData();
-		navigator.clipboard.writeText(shareData!);
+		if (!shareData) return;
+		navigator.clipboard.writeText(shareData);
 		shareDataCopied = true;
 	}
 </script>
