@@ -29,8 +29,13 @@
 			skipBackwardButtonSeconds: 10,
 			completedEpisodeRetentionDays: 7,
 			inProgressEpisodeRetentionDays: 14,
-			goBackOnResumeSeconds: 10
+			goBackOnResumeSeconds: 10,
+			hugged: false
 		}
+	);
+
+	let isConfigured = $derived(
+		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
 	);
 
 	// Default to 'general', will be updated in onMount from URL
@@ -47,6 +52,10 @@
 	});
 
 	function setActiveSection(section: 'general' | 'api' | 'advanced' | 'love' | 'help') {
+		if (section === 'love') {
+			SettingsService.markHugged();
+		}
+
 		goto(`?section=${section}`, { replaceState: true });
 	}
 
@@ -78,12 +87,14 @@
 		class:active={activeSection === 'help'}
 		onclick={() => setActiveSection('help')}>Help</button
 	>
-	<button
-		class="nav-item"
-		class:active={activeSection === 'love'}
-		onclick={() => setActiveSection('love')}
-		><img src="/gpa-smiley.svg" alt="Podds" class="smiley-nav-icon" /></button
-	>
+	{#if isConfigured && !settings.hugged}
+		<button
+			class="nav-item"
+			class:active={activeSection === 'love'}
+			onclick={() => setActiveSection('love')}
+			><img src="/gpa-smiley.svg" alt="Podds" class="smiley-nav-icon" /></button
+		>
+	{/if}
 </nav>
 
 <div class="settings-content">

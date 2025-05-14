@@ -90,6 +90,7 @@ export interface Settings {
 	inProgressEpisodeRetentionDays?: number;
 	goBackOnResumeSeconds?: number;
 	primaryColor?: string;
+	hugged: boolean;
 }
 
 export interface SearchHistory {

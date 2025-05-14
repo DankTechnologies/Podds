@@ -68,7 +68,8 @@
 					completedEpisodeRetentionDays: settings?.completedEpisodeRetentionDays ?? 7,
 					inProgressEpisodeRetentionDays: settings?.inProgressEpisodeRetentionDays ?? 14,
 					goBackOnResumeSeconds: settings?.goBackOnResumeSeconds ?? 10,
-					isPwaInstalled: settings?.isPwaInstalled ?? isPwa
+					isPwaInstalled: settings?.isPwaInstalled ?? isPwa,
+					hugged: false
 				});
 			}
 

@@ -23,6 +23,10 @@ export class SettingsService {
 		db.settings.updateOne({ id: '1' }, { $set: { isPwaInstalled: true } });
 	}
 
+	static markHugged(): void {
+		db.settings.updateOne({ id: '1' }, { $set: { hugged: true } });
+	}
+
 	static updateLastSyncAt(): void {
 		db.settings.updateOne({ id: '1' }, { $set: { lastSyncAt: new Date() } });
 	}
