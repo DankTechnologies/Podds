@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Settings } from '$lib/types/db';
-	import PodcastIndexClient from '$lib/api/podcast-index';
 	import { Loader2, FlaskRound } from 'lucide-svelte';
 
 	let {
@@ -14,20 +13,9 @@
 	} = $props();
 
 	let corsTestUrl = $state('https://feeds.publicradio.org/public_feeds/marketplace');
-	let podcastIndexStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let corsStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let corsStatus2 = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
-	let isValid = $derived(podcastIndexStatus === 'success' && corsStatus === 'success');
-
-	async function testPodcastIndex() {
-		try {
-			const api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-			const result = await api.testConnection();
-			podcastIndexStatus = result ? 'success' : 'error';
-		} catch (error) {
-			podcastIndexStatus = 'error';
-		}
-	}
+	let isValid = $derived(corsStatus === 'success');
 
 	async function testCorsHelpers() {
 		if (settings.corsHelper) {
@@ -56,39 +44,14 @@
 	}
 
 	async function handleTest() {
-		podcastIndexStatus = 'testing';
 		corsStatus = 'testing';
 		corsStatus2 = 'testing';
-		await Promise.all([testPodcastIndex(), testCorsHelpers()]);
+		await Promise.all([testCorsHelpers()]);
 		onTestComplete?.(isValid);
 	}
 </script>
 
 <section class="section">
-	<div>
-		<label for="podcastIndexKey">Podcast Index Key</label>
-		<input
-			id="podcastIndexKey"
-			class="api-input"
-			type="text"
-			spellcheck="false"
-			bind:value={settings.podcastIndexKey}
-			onchange={onSave}
-			required
-		/>
-	</div>
-	<div>
-		<label for="podcastIndexSecret">Podcast Index Secret</label>
-		<input
-			id="podcastIndexSecret"
-			class="api-input"
-			type="text"
-			spellcheck="false"
-			bind:value={settings.podcastIndexSecret}
-			onchange={onSave}
-			required
-		/>
-	</div>
 	<div>
 		<label for="corsHelper">CORS Helper</label>
 		<input
@@ -127,26 +90,6 @@
 	<div>
 		<label for="connectionStatus">Connection Status</label>
 		<div class="status-container">
-			<div class="status-item">
-				<span class="status-label">Podcast Index:</span>
-				<div
-					role="status"
-					class="status"
-					class:success={podcastIndexStatus === 'success'}
-					class:error={podcastIndexStatus === 'error'}
-					class:testing={podcastIndexStatus === 'testing'}
-				>
-					{#if podcastIndexStatus === 'untested'}
-						Not tested
-					{:else if podcastIndexStatus === 'testing'}
-						Testing...
-					{:else if podcastIndexStatus === 'success'}
-						Connection successful
-					{:else}
-						Connection failed
-					{/if}
-				</div>
-			</div>
 			<div class="status-item">
 				<span class="status-label">CORS Helper:</span>
 				<div
@@ -193,11 +136,9 @@
 		<button
 			type="button"
 			onclick={handleTest}
-			disabled={podcastIndexStatus === 'testing' ||
-				corsStatus === 'testing' ||
-				corsStatus2 === 'testing'}
+			disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
 		>
-			{#if podcastIndexStatus === 'testing' || corsStatus === 'testing' || corsStatus2 === 'testing'}
+			{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
 				<Loader2 size="16" class="spinner" /> Testing...
 			{:else}
 				<FlaskRound size="16" /> Test Connection

@@ -22,6 +22,7 @@
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
+	import { findPocastById } from '$lib/api/itunes';
 
 	let {
 		episodes,
@@ -34,7 +35,7 @@
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
-		feedIconsById?: Map<string, string>;
+		feedIconsById?: Map<string, string | undefined>;
 		isPlaylist?: boolean;
 		isSearch?: boolean;
 		isShare?: boolean;
@@ -55,11 +56,14 @@
 		return activeEpisodes.find((x) => x.id === episode.id);
 	}
 
-	function playEpisode(episode: Episode) {
+	async function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+			const feed = await findPocastById(episode.feedId);
+			if (feed) {
+				feedService.addFeed(feed);
+			}
 		}
 
 		EpisodeService.setPlayingEpisode(episode);
@@ -92,11 +96,14 @@
 		}
 	}
 
-	function downloadEpisode(episode: Episode) {
+	async function downloadEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+			const feed = await findPocastById(episode.feedId);
+			if (feed) {
+				feedService.addFeed(feed);
+			}
 		}
 
 		downloadProgress.set(episode.id, 0);

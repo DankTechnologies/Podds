@@ -95,15 +95,13 @@
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<div class="podcast-header__main">
-			<a href={feed.link} target="_blank" rel="noopener noreferrer">
-				<img
-					class="podcast-header__image"
-					src={`data:${feed.iconData}`}
-					alt={feed.title}
-					loading={isAppleDevice ? 'eager' : 'lazy'}
-					decoding={isAppleDevice ? 'auto' : 'async'}
-				/>
-			</a>
+			<img
+				class="podcast-header__image"
+				src={`data:${feed.iconData}`}
+				alt={feed.title}
+				loading={isAppleDevice ? 'eager' : 'lazy'}
+				decoding={isAppleDevice ? 'auto' : 'async'}
+			/>
 			<div class="podcast-header__content">
 				<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
 				<div class="podcast-header__description">{feed.description}</div>

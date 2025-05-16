@@ -1,15 +1,13 @@
 import { db } from '$lib/stores/db.svelte';
 import type { SearchHistory } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
-import PodcastIndexClient from '$lib/api/podcast-index';
 import { getSettings } from '$lib/stores/db.svelte';
 import { isOnline } from '$lib/utils/networkState.svelte';
+import { searchEpisodes } from '$lib/api/itunes';
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 export class SearchHistoryService {
-    private api: PodcastIndexClient | null = null;
-
     static addSearchHistory(term: string, latestEpisodePublishedAt: Date): void {
         const existingSearch = this.findSearchHistory(term);
 
@@ -72,8 +70,6 @@ export class SearchHistoryService {
             return;
         }
 
-        await this.initialize();
-
         const monitoredSearches = SearchHistoryService.getMonitoredSearchHistory();
 
         if (monitoredSearches.length === 0) {
@@ -100,7 +96,7 @@ export class SearchHistoryService {
                 Log.info(`Checking for new episodes for search term: ${search.term}`);
 
                 // Search for new episodes
-                const episodes = await this.api!.episodesByPerson(search.term);
+                const episodes = await searchEpisodes(search.term);
 
                 if (episodes.length === 0) {
                     Log.debug(`No episodes found for search term: ${search.term}`);
@@ -113,7 +109,7 @@ export class SearchHistoryService {
                 }
 
                 // Find the latest episode date
-                const latestEpisodeDate = new Date(Math.max(...episodes.map(e => e.datePublished * 1000)));
+                const latestEpisodeDate = new Date(Math.max(...episodes.map(e => e.publishedAt.getTime())));
 
                 // Update search history with new results
                 const hasNewResults = latestEpisodeDate > search.latestEpisodePublishedAt;
@@ -185,16 +181,4 @@ export class SearchHistoryService {
         // Register periodic updates
         setInterval(sync, CHECK_INTERVAL_MS);
     }
-
-    private async initialize() {
-        if (this.api) return;
-
-        const settings = getSettings();
-        if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
-            throw new Error('Podcast Index credentials not found');
-        }
-
-        this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-    }
-
 } 

@@ -50,7 +50,7 @@ export async function resizeBase64Image(
 	url: string,
 	maxWidth: number,
 	maxHeight: number,
-	corsHelper: string,
+	corsHelper: string | undefined,
 	corsHelper2: string | undefined,
 	title: string
 ): Promise<string> {
@@ -95,7 +95,7 @@ export async function resizeBase64Image(
 		});
 	}
 
-	const primaryUrl = `${corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+	const primaryUrl = corsHelper ? `${corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}` : url;
 	const result = await loadImage(primaryUrl);
 	if (result) return result;
 	if (corsHelper2) {

@@ -1,31 +1,23 @@
 <script lang="ts">
-	import { PodcastIndexClient } from '$lib/api/podcast-index';
-	import type { PIApiEpisodeBase, PIApiFeed } from '$lib/types/podcast-index';
 	import { Search as SearchIcon, Bell, BellRing, X, BellOff, Dot } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { SvelteMap } from 'svelte/reactivity';
 	import {
 		getActiveEpisodes,
-		getEpisodes,
-		getFeedIconsById,
 		getFeeds,
 		getSettings,
 		getSearchHistory
 	} from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
-	import type { Episode, SearchHistory } from '$lib/types/db';
+	import type { Feed, Episode, SearchHistory } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { searchEpisodes, searchPodcasts } from '$lib/api/itunes';
 
 	let query = $state('');
-	let feedResults = $state<PIApiFeed[]>([]);
-	let episodeResults = $state<PIApiEpisodeBase[]>([]);
-	let resizedImageById = $state<SvelteMap<string, string>>(new SvelteMap());
+	let feedResults = $state<Feed[]>([]);
+	let episodeResults = $state<Episode[]>([]);
 	let isLoading = $state(false);
-	let client = $state<PodcastIndexClient | null>(null);
-	let view = $state<'feeds' | 'episodes' | 'library'>('feeds');
-	let libraryEpisodes = $state<Episode[]>([]);
+	let view = $state<'feeds' | 'episodes'>('feeds');
 
 	let searchHistory = $derived(
 		getSearchHistory()
@@ -34,117 +26,44 @@
 			.sort((a, b) => Number(b.monitored) - Number(a.monitored))
 	);
 
-	let feedIconsById = $derived(getFeedIconsById());
-
-	const ICON_MAX_WIDTH = 300;
-	const ICON_MAX_HEIGHT = 300;
-
-	onMount(async () => {
-		const settings = getSettings();
-		if (!settings) return;
-
-		client = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-	});
-
 	let currentFeeds = $derived(getFeeds());
-
 	let activeEpisodes = $derived(getActiveEpisodes());
-
 	let settings = $derived(getSettings());
 
-	let episodes: Episode[] = $derived(
-		episodeResults.map((episode) => ({
-			id: episode.guid, // aligns with feedParser
-			feedId: episode.feedId.toString(),
-			title: episode.title,
-			publishedAt: new Date(episode.datePublished * 1000),
-			content: episode.description,
-			url: episode.enclosureUrl,
-			durationMin: Math.floor(episode.duration / 60)
-		}))
-	);
+	let episodeIconsById = $derived(new SvelteMap(episodeResults.map((x) => [x.feedId, x.iconData])));
 
 	$effect(() => {
 		if (query.trim() === '') {
 			feedResults = [];
 			episodeResults = [];
-			libraryEpisodes = [];
 		}
 	});
 
 	async function handleSearch() {
-		if (!query.trim() || !client) return;
+		if (!query.trim() || !settings) return;
 
 		feedResults = [];
 		episodeResults = [];
-		libraryEpisodes = [];
-		resizedImageById.clear();
 		isLoading = true;
 
 		try {
-			feedResults = await client.searchFeeds(query);
-			episodeResults = await client.episodesByPerson(query);
-
-			// Search local episodes
-			const searchQuery = query.toLowerCase();
-			libraryEpisodes = getEpisodes().filter(
-				(episode) =>
-					episode.title.toLowerCase().includes(searchQuery) ||
-					episode.content.toLowerCase().includes(searchQuery)
-			);
+			feedResults = await searchPodcasts(query);
+			episodeResults = await searchEpisodes(query);
 
 			// Set initial view based on results
 			if (feedResults.length > 0) {
 				view = 'feeds';
 			} else if (episodeResults.length > 0) {
 				view = 'episodes';
-			} else if (libraryEpisodes.length > 0) {
-				view = 'library';
 			}
 
 			// Save search history
 			const latestEpisodeDate = new Date(
-				Math.max(...episodeResults.map((e) => e.datePublished * 1000))
+				Math.max(...episodeResults.map((e) => e.publishedAt.getTime()))
 			);
 			SearchHistoryService.addSearchHistory(query, latestEpisodeDate);
 
 			isLoading = false;
-
-			// TODO: This is a hack to get the images to load after the results are loaded
-			setTimeout(() => {
-				type FeedImage = { image: string | undefined; title: string };
-				const uniqueFeeds = new Map<number, FeedImage>();
-
-				// Process feed results first (they have more complete data)
-				feedResults.forEach((feed) => {
-					if (!uniqueFeeds.has(feed.id)) {
-						uniqueFeeds.set(feed.id, { image: feed.image || feed.artwork, title: feed.title });
-					}
-				});
-
-				// Then process episode results only for feeds we haven't seen
-				episodeResults.forEach((episode) => {
-					if (!uniqueFeeds.has(episode.feedId)) {
-						uniqueFeeds.set(episode.feedId, { image: episode.feedImage, title: episode.feedTitle });
-					}
-				});
-
-				Array.from(uniqueFeeds.entries()).forEach(([id, feed]) => {
-					if (!feed.image) {
-						return;
-					}
-					resizeBase64Image(
-						feed.image,
-						ICON_MAX_WIDTH,
-						ICON_MAX_HEIGHT,
-						settings!.corsHelper,
-						settings!.corsHelper2,
-						feed.title
-					).then((resizedImage) => {
-						resizedImageById.set(id.toString(), resizedImage);
-					});
-				});
-			}, 0);
 		} catch (error) {
 			console.error('Search failed:', error);
 			isLoading = false;
@@ -186,7 +105,7 @@
 
 {#if isLoading}
 	<div class="message">Loading...</div>
-{:else if query && (feedResults.length > 0 || episodeResults.length > 0 || libraryEpisodes.length > 0)}
+{:else if query && (feedResults.length > 0 || episodeResults.length > 0)}
 	<div class="search-view-controls">
 		{#if feedResults.length > 0}
 			<button
@@ -208,20 +127,10 @@
 				<span class="search-view-button-count">{episodeResults.length}</span>
 			</button>
 		{/if}
-		{#if libraryEpisodes.length > 0}
-			<button
-				class="search-view-button"
-				class:active={view === 'library'}
-				onclick={() => (view = 'library')}
-			>
-				Library
-				<span class="search-view-button-count">{libraryEpisodes.length}</span>
-			</button>
-		{/if}
 	</div>
 
 	{#if view === 'feeds' && feedResults.length > 0}
-		<FeedList feeds={feedResults} feedIconsById={resizedImageById} {currentFeeds} />
+		<FeedList feeds={feedResults} {currentFeeds} />
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
 		<div class="episodes-header">
@@ -237,10 +146,12 @@
 				{/if}
 			</button>
 		</div>
-		<EpisodeList {episodes} {activeEpisodes} feedIconsById={resizedImageById} isSearch />
-	{/if}
-	{#if view === 'library' && libraryEpisodes.length > 0}
-		<EpisodeList episodes={libraryEpisodes} {activeEpisodes} {feedIconsById} />
+		<EpisodeList
+			episodes={episodeResults}
+			{activeEpisodes}
+			feedIconsById={episodeIconsById}
+			isSearch
+		/>
 	{/if}
 {:else if query}
 	<div class="message">No podcasts found</div>
@@ -351,7 +262,6 @@
 		padding: 1rem;
 		gap: 1rem;
 		background-color: var(--bg-less);
-		overflow-x: scroll;
 	}
 
 	.search-view-button {
