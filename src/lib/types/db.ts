@@ -7,6 +7,8 @@ export interface Feed {
 	link: string;
 	url: string;
 	iconData: string;
+	episodeCount: number;
+	newestItemPubdate: number;
 	lastModified?: Date;
 	ttlMinutes?: number;
 	lastCheckedAt?: Date;
@@ -72,8 +74,8 @@ export interface LogEntry {
 
 export interface Settings {
 	id: string;
-	podcastIndexKey: string;
-	podcastIndexSecret: string;
+	podcastIndexKey?: string;
+	podcastIndexSecret?: string;
 	corsHelper: string;
 	corsHelper2?: string;
 	lastSyncAt: Date;

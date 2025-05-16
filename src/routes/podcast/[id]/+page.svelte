@@ -21,7 +21,6 @@
 	let observerTarget = $state<HTMLElement | null>(null);
 	let feedService = new FeedService();
 	let isDeleting = $state(false);
-	let isAdding = $state(false);
 	let retryState = $state<'none' | 'updating' | 'success' | 'failure'>('none');
 
 	let episodes = $derived(
@@ -43,13 +42,6 @@
 
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 	onMount(() => {
-		if (!feed) {
-			isAdding = true;
-			feedService.addFeedById(feedId).then(() => {
-				isAdding = false;
-			});
-		}
-
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -91,23 +83,13 @@
 			return;
 		}
 
-		shareFeedUtil(
-			feed,
-			settings.podcastIndexKey,
-			settings.podcastIndexSecret,
-			settings.corsHelper,
-			settings.corsHelper2
-		);
+		shareFeedUtil(feed, settings);
 	}
 </script>
 
 {#if isDeleting}
 	<div class="status-screen">
 		<div class="status-message">Deleting...</div>
-	</div>
-{:else if isAdding}
-	<div class="status-screen">
-		<div class="status-message">Loading...</div>
 	</div>
 {:else if feed}
 	<!-- Podcast Header -->

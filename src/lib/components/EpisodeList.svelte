@@ -194,14 +194,7 @@
 			return;
 		}
 
-		shareEpisodeUtil(
-			episode,
-			feed,
-			settings.podcastIndexKey,
-			settings.podcastIndexSecret,
-			settings.corsHelper,
-			settings.corsHelper2
-		);
+		shareEpisodeUtil(episode, feed, settings);
 	}
 </script>
 

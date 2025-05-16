@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PIApiFeed } from '$lib/types/podcast-index';
+	import type { Feed } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
@@ -13,7 +13,7 @@
 		feedIconsById,
 		currentFeeds
 	}: {
-		feeds: PIApiFeed[];
+		feeds: Feed[];
 		feedIconsById: SvelteMap<string, string>;
 		currentFeeds: { id: string }[];
 	} = $props();
@@ -22,17 +22,13 @@
 	let feedService = new FeedService();
 	let feedStates = $state(new SvelteMap<string, 'adding' | 'success' | 'failure'>());
 
-	async function addFeed(feed: PIApiFeed) {
+	async function addFeed(feed: Feed) {
 		feedStates.set(feed.id.toString(), 'adding');
 		const success = await feedService.addFeed(feed, feedIconsById.get(feed.id.toString()) ?? '');
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 
-	function deleteFeed(feedId: string) {
-		feedService.deleteFeed(feedId);
-	}
-
-	function toggleFeedFocus(feed: PIApiFeed) {
+	function toggleFeedFocus(feed: Feed) {
 		focusedFeedId = focusedFeedId === feed.id.toString() ? null : feed.id.toString();
 
 		if (focusedFeedId) {
