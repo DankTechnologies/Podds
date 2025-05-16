@@ -23,7 +23,7 @@ export class FeedService {
 
 		try {
 			const finderRequest: EpisodeFinderRequest = {
-				feeds: [feed],
+				feeds: [$state.snapshot(feed)],
 				since: undefined,
 				corsHelper: settings!.corsHelper,
 				corsHelper2: settings!.corsHelper2
@@ -160,7 +160,11 @@ export class FeedService {
 				lastCheckedAt: finderResponse.feeds[0].lastCheckedAt,
 				lastSyncedAt: finderResponse.feeds[0].lastSyncedAt,
 				lastModified: finderResponse.feeds[0].lastModified,
-				ttlMinutes: finderResponse.feeds[0].ttlMinutes
+				ttlMinutes: finderResponse.feeds[0].ttlMinutes,
+				description: finderResponse.feeds[0].description,
+				link: finderResponse.feeds[0].link,
+				author: finderResponse.feeds[0].author,
+				ownerName: finderResponse.feeds[0].ownerName
 			};
 
 			db.feeds.insert(feedWithTimestamps);

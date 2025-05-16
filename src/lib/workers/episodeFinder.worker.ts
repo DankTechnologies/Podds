@@ -94,6 +94,22 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 					if (result.ttlMinutes) {
 						updatedFeed.ttlMinutes = result.ttlMinutes;
 					}
+
+					if (result.description) {
+						updatedFeed.description = result.description;
+					}
+
+					if (result.link) {
+						updatedFeed.link = result.link;
+					}
+
+					if (result.author) {
+						updatedFeed.author = result.author;
+					}
+
+					if (result.ownerName) {
+						updatedFeed.ownerName = result.ownerName;
+					}
 				}
 
 				return {

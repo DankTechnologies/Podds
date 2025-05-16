@@ -8,6 +8,8 @@ interface ParseFeedResult {
 	ttlMinutes?: number;
 	description?: string;
 	link?: string;
+	ownerName?: string;
+	author?: string;
 }
 
 interface ParseXmlResult {
@@ -48,12 +50,16 @@ export async function parseFeedUrl(
 
 		let description: string | undefined = undefined;
 		let link: string | undefined = undefined;
+		let ownerName: string | undefined = undefined;
+		let author: string | undefined = undefined;
 
 		try {
 			const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
 			const result = parser.parse(xmlString);
 			description = result?.rss?.channel?.description?.toString() || undefined;
 			link = result?.rss?.channel?.link?.toString() || undefined;
+			author = result?.rss?.channel?.['itunes:author']?.toString() || undefined;
+			ownerName = result?.rss?.channel?.['itunes:owner']?.['itunes:name']?.toString() || undefined;
 		} catch { }
 
 		return {
@@ -62,7 +68,9 @@ export async function parseFeedUrl(
 			lastModified: response.headers.get('last-modified') || undefined,
 			ttlMinutes,
 			description,
-			link
+			link,
+			ownerName,
+			author
 		};
 	}
 
