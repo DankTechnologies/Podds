@@ -71,9 +71,23 @@ export async function searchEpisodes(term: string, options: { limit?: number } =
         throw new Error(`Error fetching episodes: ${response.statusText}`);
     }
     const data = await response.json();
-    const episodes = await Promise.all(data.results.map(mapITunesEpisodeToEpisode)) as Episode[];
-    episodes.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
-    return episodes;
+    const episodes = await Promise.all(data.results.map(mapITunesEpisodeToEpisode)) as Episode[]
+
+    const terms = term
+        .replace(/["']/g, '')
+        .toLowerCase()
+        .trim()
+        .split(' ')
+        .filter(t => t.length > 0);
+
+    return episodes
+        .filter(episode =>
+            terms.every(term =>
+                episode.title.toLowerCase().includes(term) ||
+                (episode.content?.toLowerCase().includes(term) ?? false)
+            )
+        )
+        .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 }
 
 export async function lookupITunesPodcastById(collectionId: string): Promise<Feed | null> {

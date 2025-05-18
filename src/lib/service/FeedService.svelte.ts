@@ -23,7 +23,7 @@ export class FeedService {
 
 		try {
 			const finderRequest: EpisodeFinderRequest = {
-				feeds: [$state.snapshot(feed)],
+				feeds: [feed],
 				since: undefined,
 				corsHelper: settings!.corsHelper,
 				corsHelper2: settings!.corsHelper2
@@ -143,7 +143,7 @@ export class FeedService {
 
 		const settings = getSettings();
 
-		const feeds = [$state.snapshot(feed)];
+		const feeds = [feed];
 
 		try {
 			const finderRequest: EpisodeFinderRequest = {

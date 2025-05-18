@@ -22,7 +22,7 @@
 
 	async function addFeed(feed: Feed) {
 		feedStates.set(feed.id.toString(), 'adding');
-		const success = await feedService.addFeed(feed);
+		const success = await feedService.addFeed($state.snapshot(feed));
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 

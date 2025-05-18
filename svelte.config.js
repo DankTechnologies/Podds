@@ -13,7 +13,7 @@ const config = {
 			relative: false
 		},
 		serviceWorker: {
-			register: false 	// conditionally registered at runtime
+			register: process.env.NODE_ENV === 'development' // only register during dev
 		}
 	}
 };

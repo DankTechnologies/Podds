@@ -65,7 +65,7 @@
 	async function updateFeed() {
 		if (!feed) return;
 		retryState = 'updating';
-		retryState = (await feedService.updateEmptyFeed(feed)) ? 'success' : 'failure';
+		retryState = (await feedService.updateEmptyFeed($state.snapshot(feed))) ? 'success' : 'failure';
 	}
 
 	function deleteFeed(feed: Feed) {
