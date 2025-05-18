@@ -14,7 +14,7 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
-	import { findPocastById } from '$lib/api/itunes';
+	import { searchPodcasts } from '$lib/api/itunes';
 
 	let shareDataCopied = $state(false);
 	let feedExists = $state(false);
@@ -74,9 +74,13 @@
 			feedExists = feed !== null;
 
 			if (!feedExists) {
-				const newFeed = await findPocastById(config.feedId);
-				if (!newFeed) throw new Error('Feed not found');
-				feed = newFeed;
+				const newFeed = await searchPodcasts(config.feedId, { limit: 1 });
+				if (newFeed.length === 1) {
+					feed = newFeed[0];
+					feedExists = true;
+				} else {
+					throw new Error('Feed not found');
+				}
 			}
 
 			episodes = await getEpisodes(feed!);

@@ -6,7 +6,6 @@ import type {
 import { resizeBase64Image } from '$lib/utils/resizeImage';
 
 const apiUrl = 'https://itunes.apple.com/search';
-const lookupApiUrl = 'https://itunes.apple.com/lookup';
 
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
@@ -15,8 +14,7 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
     const params = new URLSearchParams({
         media: 'podcast',
         entity: 'podcast',
-        term,
-        limit: String(options.limit ?? 20)
+        term
     });
     const url = `${apiUrl}?${params.toString()}`;
     const response = await fetch(url);
@@ -24,54 +22,64 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
         throw new Error(`Error fetching podcasts: ${response.statusText}`);
     }
     const data = await response.json();
-    const feeds = await Promise.all(data.results.map(mapITunesFeedToFeed)) as Feed[];
-    feeds.sort((a, b) => b.newestItemPubdate.getTime() - a.newestItemPubdate.getTime());
+
+    // Filtering and sorting on raw iTunesPodcast objects
+    const lowerTerm = term.trim().toLowerCase();
+    let results = data.results as ITunesPodcast[];
+    results = results.sort((a, b) => {
+        // 1. Exact match on collectionName or collectionId
+        const aExact = a.collectionName.toLowerCase() === lowerTerm || a.collectionId.toString() === term;
+        const bExact = b.collectionName.toLowerCase() === lowerTerm || b.collectionId.toString() === term;
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        // 2. collectionName contains term
+        const aContains = a.collectionName.toLowerCase().includes(lowerTerm);
+        const bContains = b.collectionName.toLowerCase().includes(lowerTerm);
+        if (aContains && !bContains) return -1;
+        if (!aContains && bContains) return 1;
+        // 3. newestItemPubdate descending
+        return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+    });
+    if (options.limit) {
+        results = results.slice(0, options.limit);
+    }
+    const feeds = await Promise.all(results.map(mapITunesFeedToFeed)) as Feed[];
     return feeds;
 }
 
-export async function findPocastById(id: string): Promise<Feed | null> {
-    const params = new URLSearchParams({
-        id,
-        entity: 'podcast'
-    });
-    const url = `${lookupApiUrl}?${params.toString()}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Error fetching podcast: ${response.statusText}`);
-    }
-    const data = await response.json();
-    if (!data.results?.length) {
-        return null;
-    }
-    return await mapITunesFeedToFeed(data.results[0] as ITunesPodcast);
-
-}
-
 export async function findPodcastByTitleAndUrl(title: string, url: string): Promise<Feed | null> {
-    const podcasts = await searchPodcasts(title, { limit: 1 });
+    const podcasts = await searchPodcasts(title);
+
     if (podcasts.length === 0) {
         return null;
     }
 
-    return podcasts
-        .sort((a, b) => b.newestItemPubdate.getTime() - a.newestItemPubdate.getTime())
-        .find((p) => p.url === url) ?? null;
+    const exactUrlMatch = podcasts.find((p) => p.url === url);
+    if (exactUrlMatch)
+        return exactUrlMatch;
+
+    const lowerTitle = title.trim().toLowerCase();
+    const containsNameMatch = podcasts.find((p) => p.title.toLowerCase().includes(lowerTitle));
+    if (containsNameMatch)
+        return containsNameMatch;
+
+    return podcasts.sort((a, b) => b.newestItemPubdate.getTime() - a.newestItemPubdate.getTime())[0];
 }
 
 export async function searchEpisodes(term: string, options: { limit?: number } = {}): Promise<Episode[]> {
     const params = new URLSearchParams({
         media: 'podcast',
         entity: 'podcastEpisode',
-        term,
-        limit: String(options.limit ?? 20)
+        term
     });
+
     const url = `${apiUrl}?${params.toString()}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Error fetching episodes: ${response.statusText}`);
     }
     const data = await response.json();
-    const episodes = await Promise.all(data.results.map(mapITunesEpisodeToEpisode)) as Episode[]
+    let results = data.results as ITunesEpisode[];
 
     const terms = term
         .replace(/["']/g, '')
@@ -80,34 +88,20 @@ export async function searchEpisodes(term: string, options: { limit?: number } =
         .split(' ')
         .filter(t => t.length > 0);
 
-    return episodes
-        .filter(episode =>
-            terms.every(term =>
-                episode.title.toLowerCase().includes(term) ||
-                (episode.content?.toLowerCase().includes(term) ?? false)
-            )
+    // Filtering and sorting on raw ITunesEpisode objects
+    results = results.filter(episode =>
+        terms.every(term =>
+            episode.trackName.toLowerCase().includes(term) ||
+            (episode.description?.toLowerCase().includes(term) ?? false)
         )
-        .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
-}
+    ).sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
-export async function lookupITunesPodcastById(collectionId: string): Promise<Feed | null> {
-    const params = new URLSearchParams({
-        id: collectionId,
-        entity: 'podcast'
-    });
-    const url = `${lookupApiUrl}?${params.toString()}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Error looking up podcast: ${response.statusText}`);
+    if (options.limit) {
+        results = results.slice(0, options.limit);
     }
-    const data = await response.json();
-    if (Array.isArray(data.results) && data.results.length > 0) {
-        // The first result should be the podcast
-        return mapITunesFeedToFeed(data.results[0] as ITunesPodcast);
-    }
-    return null;
+    const episodes = await Promise.all(results.map(mapITunesEpisodeToEpisode)) as Episode[];
+    return episodes;
 }
-
 
 async function mapITunesFeedToFeed(feed: ITunesPodcast): Promise<Feed> {
     const iconData = await resizeBase64Image(
@@ -143,13 +137,13 @@ async function mapITunesEpisodeToEpisode(episode: ITunesEpisode): Promise<Episod
     );
 
     return {
-        id: episode.trackId.toString(),
+        id: episode.episodeGuid,
         feedId: episode.collectionId.toString(),
         title: episode.trackName,
         publishedAt: new Date(episode.releaseDate),
         content: episode.description || '',
         url: episode.episodeUrl || '',
-        durationMin: episode.trackTimeMillis ? Math.floor(episode.trackTimeMillis / 60000) : 0,
+        durationMin: Math.floor(episode.trackTimeMillis / 60000),
         chaptersUrl: undefined,
         iconData,
     };

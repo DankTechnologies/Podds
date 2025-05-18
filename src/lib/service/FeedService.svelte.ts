@@ -241,7 +241,10 @@ export class FeedService {
 	}
 
 	exportFeeds(): string {
-		const feeds = db.feeds.find({}).fetch();
+		const feeds = db.feeds
+			.find({}, { sort: { title: 1 } })
+			.fetch();
+
 		const opml = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <opml version="1.0">
   <head>
@@ -274,8 +277,11 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 			const existingFeeds = db.feeds.find({}).fetch();
 
+			// Remove unicode hex entities as it trips up parseFromString
+			opmlContent = opmlContent.replace(/&#x[0-9A-Fa-f]+;/g, '');
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(opmlContent, 'text/xml');
+
 			// Get all outlines that are direct children of the parent outline
 			const outlines = doc.querySelectorAll('outline[type="rss"]');
 
@@ -311,17 +317,17 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					if (!url || !title) continue;
 
 					url = decodeHtmlEntities(url);
-
+					title = decodeHtmlEntities(title);
 					// Skip if we've already processed this URL
 					if (processedUrls.has(url)) {
-						Log.warn(`${title} is a duplicate, skipping`);
+						Log.warn(`[${processedCount}/${totalFeeds}] ${title} is a duplicate, skipping`);
 						skippedCount++;
 						continue;
 					}
 					processedUrls.add(url);
 
 					if (existingFeeds.find(f => f.url === url || f.title?.toLowerCase() === title?.toLowerCase())) {
-						Log.warn(`${title} already exists, skipping`);
+						Log.warn(`[${processedCount}/${totalFeeds}] ${title} already exists, skipping`);
 						skippedCount++;
 						continue;
 					}
@@ -334,20 +340,20 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 						skipped: skippedCount
 					});
 
-					Log.info(`Processing feed ${processedCount}/${totalFeeds}: ${url}`);
+					Log.info(`[${processedCount}/${totalFeeds}] Processing ${title}`);
 
 					const feed = await findPodcastByTitleAndUrl(title, url);
 					if (!feed) {
-						Log.warn(`Feed ${title} not found, skipping`);
+						Log.error(`[${processedCount}/${totalFeeds}] Feed ${title} not found, skipping`);
 						skippedCount++;
 						continue;
 					}
 
 					validFeeds.push(feed);
 
-					Log.info(`Successfully processed feed ${url}`);
+					Log.info(`[${processedCount}/${totalFeeds}] Successfully processed ${title}`);
 				} catch (error) {
-					Log.error(`Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
+					Log.error(`[${processedCount}/${totalFeeds}] Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
 					failedFeeds.push(title || 'Unknown');
 					continue;
 				}

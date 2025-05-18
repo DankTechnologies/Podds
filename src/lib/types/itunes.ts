@@ -11,7 +11,7 @@ export interface ITunesPodcast {
 }
 
 export interface ITunesEpisode {
-    trackId: number;
+    episodeGuid: string;
     trackName: string;
     collectionId: number;
     collectionName: string;
@@ -21,5 +21,5 @@ export interface ITunesEpisode {
     episodeUrl: string;
     feedUrl: string;
     artworkUrl600: string;
-    trackTimeMillis?: number;
+    trackTimeMillis: number;
 }
