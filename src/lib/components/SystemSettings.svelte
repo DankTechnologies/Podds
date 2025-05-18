@@ -36,9 +36,6 @@
 	let searchQuery = $state('');
 	let debouncedQuery = $state('');
 
-	$inspect(`searchQuery: ${searchQuery}`);
-	$inspect(`debouncedQuery: ${debouncedQuery}`);
-
 	$effect(() => {
 		if (searchQuery) {
 			const timeoutId = setTimeout(() => {
