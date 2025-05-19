@@ -88,13 +88,22 @@ export async function searchEpisodes(term: string, options: { limit?: number } =
         .split(' ')
         .filter(t => t.length > 0);
 
-    // Filtering and sorting on raw ITunesEpisode objects
-    results = results.filter(episode =>
-        terms.every(term =>
-            episode.trackName.toLowerCase().includes(term) ||
-            (episode.description?.toLowerCase().includes(term) ?? false)
+    results = results
+        .filter(episode =>
+            terms.every(term =>
+                episode.trackName.toLowerCase().includes(term) ||
+                (episode.description?.toLowerCase().includes(term) ?? false)
+            )
         )
-    ).sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+        .reduce((acc, episode) => {
+            const existing = acc.get(episode.episodeGuid);
+            return !existing || episode.collectionId > existing.collectionId
+                ? acc.set(episode.episodeGuid, episode)
+                : acc;
+        }, new Map<string, ITunesEpisode>())
+        .values()
+        .toArray()
+        .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
 
     if (options.limit) {
         results = results.slice(0, options.limit);
