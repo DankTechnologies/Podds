@@ -8,10 +8,11 @@
 	import SystemSettings from '$lib/components/SystemSettings.svelte';
 	import Love from '$lib/components/Love.svelte';
 	import Help from '$lib/components/Help.svelte';
-	import { getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 
 	type Section = 'general' | 'api' | 'system' | 'love' | 'help';
 
+	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $state<Settings>(getSettings());
 
 	// Default to 'general', will be updated in onMount from URL
@@ -51,7 +52,7 @@
 		class:active={activeSection === 'system'}
 		onclick={() => setActiveSection('system')}>System</button
 	>
-	{#if true}
+	{#if settings.isAdvanced}
 		<button
 			class="nav-item"
 			class:active={activeSection === 'api'}
@@ -63,7 +64,7 @@
 			onclick={() => setActiveSection('help')}>Help</button
 		>
 	{/if}
-	{#if !settings.hugged}
+	{#if hasFeeds && !settings.hugged}
 		<button
 			class="nav-item"
 			class:active={activeSection === 'love'}

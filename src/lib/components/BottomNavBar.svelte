@@ -7,7 +7,7 @@
 	import { getFeeds, getSearchHistory, getSettings } from '$lib/stores/db.svelte';
 	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
 	import type { ActiveEpisode } from '$lib/types/db';
-	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { EpisodeUpdate } from '$lib/service/FeedService.svelte';
 	import { isOnline } from '$lib/utils/networkState.svelte';
 
@@ -21,7 +21,8 @@
 
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $derived(getSettings());
-	let canSearch = $derived(settings.corsHelper && isOnline());
+	let isAppleWeb = $derived(isAppleDevice && !isPwa);
+	let canSearch = $derived(settings.corsHelper && isOnline() && !isAppleWeb);
 
 	let isActive = $derived((href: string) => {
 		if (href === '/') {

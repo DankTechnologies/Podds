@@ -14,6 +14,7 @@
 	import { searchEpisodes, searchPodcasts } from '$lib/api/itunes';
 
 	let query = $state('');
+	let queryTrimmed = $derived(query.trim());
 	let feedResults = $state<Feed[]>([]);
 	let episodeResults = $state<Episode[]>([]);
 	let isLoading = $state(false);
@@ -33,22 +34,22 @@
 	let episodeIconsById = $derived(new SvelteMap(episodeResults.map((x) => [x.feedId, x.iconData])));
 
 	$effect(() => {
-		if (query.trim() === '') {
+		if (queryTrimmed === '') {
 			feedResults = [];
 			episodeResults = [];
 		}
 	});
 
 	async function handleSearch() {
-		if (!query.trim() || !settings) return;
+		if (!queryTrimmed) return;
 
 		feedResults = [];
 		episodeResults = [];
 		isLoading = true;
 
 		try {
-			feedResults = await searchPodcasts(query);
-			episodeResults = await searchEpisodes(query);
+			feedResults = await searchPodcasts(queryTrimmed);
+			episodeResults = await searchEpisodes(queryTrimmed);
 
 			// Set initial view based on results
 			if (feedResults.length > 0) {
@@ -61,7 +62,7 @@
 			const latestEpisodeDate = new Date(
 				Math.max(...episodeResults.map((e) => e.publishedAt.getTime()))
 			);
-			SearchHistoryService.addSearchHistory(query, latestEpisodeDate);
+			SearchHistoryService.addSearchHistory(queryTrimmed, latestEpisodeDate);
 
 			isLoading = false;
 		} catch (error) {

@@ -78,11 +78,6 @@
 
 	function shareFeed(feed: Feed) {
 		const settings = getSettings();
-		if (!settings) {
-			Log.error('Settings not found, skipping share link');
-			return;
-		}
-
 		shareFeedUtil(feed, settings);
 	}
 </script>

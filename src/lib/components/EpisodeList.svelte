@@ -194,10 +194,6 @@
 
 	function shareEpisode(episode: Episode) {
 		const settings = getSettings();
-		if (!settings) {
-			Log.error('Settings not found, skipping share link');
-			return;
-		}
 
 		const feed = feeds.find((f) => f.id === episode.feedId);
 		if (!feed) {
