@@ -41,7 +41,7 @@
 
 		if (feedDataById.has(feed.id.toString()) && episodeDataByFeedId.has(feed.id.toString())) {
 			success = feedService.addFeedAndEpisodes(
-				$state.snapshot(feed),
+				feedDataById.get(feed.id.toString())!,
 				episodeDataByFeedId.get(feed.id.toString())!
 			);
 		} else {
