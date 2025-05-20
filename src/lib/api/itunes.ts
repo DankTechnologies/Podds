@@ -1,3 +1,4 @@
+import { Log } from '$lib/service/LogService';
 import { getSettings } from '$lib/stores/db.svelte';
 import type { Episode, Feed } from '$lib/types/db';
 import type {
@@ -11,32 +12,6 @@ const apiUrl = 'https://itunes.apple.com/search';
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 
-async function fetchWithCorsFallback(url: string): Promise<Response> {
-    const settings = getSettings();
-    const response = await fetch(url);
-    if (response.ok) {
-        return response;
-    }
-
-    if (response.status === 403) {
-        const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-        const corsResponse = await fetch(corsUrl);
-        if (corsResponse.ok) {
-            return corsResponse;
-        }
-
-        if (corsResponse.status === 403 && settings.corsHelper2) {
-            const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
-            const corsResponse2 = await fetch(corsUrl2);
-            if (corsResponse2.ok) {
-                return corsResponse2;
-            }
-        }
-    }
-
-    throw new Error(`Unable to fetch data at ${url}: ${response.status} ${response.statusText}`);
-}
-
 export async function searchPodcasts(term: string, options: { limit?: number } = {}): Promise<Feed[]> {
     const params = new URLSearchParams({
         media: 'podcast',
@@ -47,23 +22,33 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
     const response = await fetchWithCorsFallback(url);
     const data = await response.json();
 
-    // Filtering and sorting on raw iTunesPodcast objects
     const lowerTerm = term.trim().toLowerCase();
     let results = data.results as ITunesPodcast[];
-    results = results.sort((a, b) => {
-        // 1. Exact match on collectionName or collectionId
-        const aExact = a.collectionName.toLowerCase() === lowerTerm || a.collectionId.toString() === term;
-        const bExact = b.collectionName.toLowerCase() === lowerTerm || b.collectionId.toString() === term;
-        if (aExact && !bExact) return -1;
-        if (!aExact && bExact) return 1;
-        // 2. collectionName contains term
-        const aContains = a.collectionName.toLowerCase().includes(lowerTerm);
-        const bContains = b.collectionName.toLowerCase().includes(lowerTerm);
-        if (aContains && !bContains) return -1;
-        if (!aContains && bContains) return 1;
-        // 3. newestItemPubdate descending
-        return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
-    });
+
+    results = results
+        .reduce((acc, podcast) => {
+            const existing = acc.get(podcast.collectionName);
+            return !existing || podcast.collectionId > existing.collectionId
+                ? acc.set(podcast.collectionName, podcast)
+                : acc;
+        }, new Map<string, ITunesPodcast>())
+        .values()
+        .toArray()
+        .sort((a, b) => {
+            // 1. Exact match on collectionName or collectionId
+            const aExact = a.collectionName.toLowerCase() === lowerTerm || a.collectionId.toString() === term;
+            const bExact = b.collectionName.toLowerCase() === lowerTerm || b.collectionId.toString() === term;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            // 2. collectionName contains term
+            const aContains = a.collectionName.toLowerCase().includes(lowerTerm);
+            const bContains = b.collectionName.toLowerCase().includes(lowerTerm);
+            if (aContains && !bContains) return -1;
+            if (!aContains && bContains) return 1;
+            // 3. newestItemPubdate descending
+            return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+        });
+
     if (options.limit) {
         results = results.slice(0, options.limit);
     }
@@ -190,4 +175,41 @@ async function mapITunesEpisodeToEpisode(episode: ITunesEpisode): Promise<Episod
         chaptersUrl: undefined,
         iconData,
     };
+}
+
+async function fetchWithCorsFallback(url: string): Promise<Response> {
+    const settings = getSettings();
+
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            return response;
+        }
+    } catch (error) {
+        Log.debug(`Failed to fetch ${url}: ${error}`);
+    }
+
+    try {
+        const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+        const corsResponse = await fetch(corsUrl);
+        if (corsResponse.ok) {
+            return corsResponse;
+        }
+    } catch (error) {
+        Log.debug(`Failed to fetch ${url}: ${error}`);
+    }
+
+    if (settings.corsHelper2) {
+        try {
+            const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+            const corsResponse2 = await fetch(corsUrl2);
+            if (corsResponse2.ok) {
+                return corsResponse2;
+            }
+        } catch (error) {
+            Log.debug(`Failed to fetch ${url}: ${error}`);
+        }
+    }
+
+    throw new Error(`Unable to fetch data at ${url}`);
 }

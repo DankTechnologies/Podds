@@ -133,13 +133,19 @@ export class FeedService {
 	}
 
 
-	addFeedAndEpisodes(feed: Feed, episodes: Episode[]) {
-		Log.info(`Adding feed: ${feed.title}`);
+	addFeedAndEpisodes(feed: Feed, episodes: Episode[]): boolean {
+		try {
+			Log.info(`Adding feed and episodes: ${feed.title}`);
 
-		db.feeds.insert(feed);
-		db.episodes.insertMany(episodes);
+			db.feeds.insert(feed);
+			db.episodes.insertMany(episodes);
 
-		Log.info(`Finished adding ${feed.title}`);
+			Log.info(`Finished adding feed and episodes: ${feed.title}`);
+			return true;
+		} catch (e) {
+			Log.error(`Error adding feed and episodes ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			return false;
+		}
 	}
 
 	async addFeed(feed: Feed): Promise<boolean> {

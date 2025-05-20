@@ -1,22 +1,22 @@
 <script lang="ts">
-	import type { Feed } from '$lib/types/db';
+	import type { Episode, Feed } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { parseTitle } from '$lib/utils/feedParser';
+	import { parseOwner, parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
 	import {
 		History,
 		List,
-		Plus,
-		Loader2,
-		Antenna,
 		ArrowUpLeft,
 		CirclePlus,
 		CheckCircle,
-		CircleFadingPlus
+		LoaderPinwheel,
+		Antenna
 	} from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
 	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { getSettings } from '$lib/stores/db.svelte';
+	import type { EpisodeFinderResponse } from '$lib/types/episodeFinder';
 
 	let {
 		feeds,
@@ -26,13 +26,28 @@
 		currentFeeds: { id: string }[];
 	} = $props();
 
+	let feedDataById = $state(new SvelteMap<string, Feed>());
+	let episodeDataByFeedId = $state(new SvelteMap<string, Episode[]>());
+	let settings = $derived(getSettings());
 	let focusedFeedId = $state<string | null>(null);
+	let loadingFeedId = $state<string | null>(null);
 	let feedService = new FeedService();
 	let feedStates = $state(new SvelteMap<string, 'adding' | 'success' | 'failure'>());
 
 	async function addFeed(feed: Feed) {
+		let success = false;
+
 		feedStates.set(feed.id.toString(), 'adding');
-		const success = await feedService.addFeed($state.snapshot(feed));
+
+		if (feedDataById.has(feed.id.toString()) && episodeDataByFeedId.has(feed.id.toString())) {
+			success = feedService.addFeedAndEpisodes(
+				$state.snapshot(feed),
+				episodeDataByFeedId.get(feed.id.toString())!
+			);
+		} else {
+			success = await feedService.addFeed($state.snapshot(feed));
+		}
+
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 
@@ -40,7 +55,15 @@
 		return currentFeeds?.some((f) => f.id === feed.id.toString());
 	}
 
-	function toggleFeedFocus(feed: Feed) {
+	async function toggleFeedFocus(feed: Feed) {
+		if (!feedDataById.has(feed.id.toString())) {
+			loadingFeedId = feed.id.toString();
+			const response = await getEpisodes($state.snapshot(feed));
+			episodeDataByFeedId.set(feed.id.toString(), response.episodes);
+			feedDataById.set(feed.id.toString(), response.feeds[0]);
+			loadingFeedId = null;
+		}
+
 		focusedFeedId = focusedFeedId === feed.id.toString() ? null : feed.id.toString();
 
 		if (focusedFeedId) {
@@ -49,7 +72,7 @@
 				const card = document.querySelector(`.feed-card__wrapper[data-feed-id="${feed.id}"]`);
 				if (card) {
 					const cardBottom = card.getBoundingClientRect().bottom;
-					if (cardBottom + 350 > window.innerHeight) {
+					if (cardBottom + 300 > window.innerHeight) {
 						// Use a more reliable scroll approach
 						const scrollOptions: ScrollIntoViewOptions = {
 							behavior: 'smooth',
@@ -78,6 +101,17 @@
 			addFeed(feed);
 		}
 	}
+
+	async function getEpisodes(feed: Feed): Promise<EpisodeFinderResponse> {
+		const finderRequest = {
+			feeds: [feed],
+			since: undefined,
+			corsHelper: settings.corsHelper,
+			corsHelper2: settings.corsHelper2
+		};
+
+		return await feedService.runEpisodeFinder(finderRequest);
+	}
 </script>
 
 <ul class="feed-list" role="list">
@@ -95,6 +129,9 @@
 				role="button"
 				tabindex="0"
 			>
+				{#if loadingFeedId === feed.id.toString()}
+					<LoaderPinwheel class="feed-card__loading" />
+				{/if}
 				<div class="feed-card__content">
 					<div
 						class="feed-card__image-container"
@@ -117,7 +154,7 @@
 							</div>
 						{:else if feedStates.get(feed.id.toString()) === 'adding'}
 							<div class="added-overlay">
-								<CirclePlus class="added-overlay-icon plus-icon pulse-icon" size="28" />
+								<LoaderPinwheel class="added-overlay-icon plus-icon pulse-icon" size="28" />
 							</div>
 						{:else}
 							<button class="added-overlay">
@@ -143,12 +180,27 @@
 				</div>
 			</div>
 
-			<div class="feed-controls" class:feed-controls--hidden={focusedFeedId !== feed.id.toString()}>
-				<div class="feed-controls__description-wrapper">
-					<div class="feed-controls__description">{@html feed.description}</div>
-				</div>
+			<div class="feed-details" class:feed-details--hidden={focusedFeedId !== feed.id.toString()}>
+				{#if feedDataById.has(feed.id.toString())}
+					<div class="feed-details__description-wrapper">
+						<div class="feed-details__owner">
+							<div class="feed-details__owner-icon">
+								<Antenna size="0.9rem" />
+							</div>
+							<div class="feed-details__owner-text">
+								{parseOwner(
+									feedDataById.get(feed.id.toString())?.author,
+									feedDataById.get(feed.id.toString())?.ownerName
+								)}
+							</div>
+						</div>
+						<div class="feed-details__description">
+							{@html feedDataById.get(feed.id.toString())?.description}
+						</div>
+					</div>
+				{/if}
 				{#if feedStates.get(feed.id.toString()) === 'failure'}
-					<div class="feed-controls__error-message">
+					<div class="feed-details__error-message">
 						couldn't get episodes <ArrowUpLeft size="16" /> try later
 					</div>
 				{/if}
@@ -173,8 +225,21 @@
 
 	.feed-card--focused {
 		background: var(--bg-less);
-		border-bottom: 0.4rem solid light-dark(var(--primary), var(--primary-more));
+		border-bottom: 0.1rem solid light-dark(var(--primary), var(--primary-more));
 		transition: border-bottom 150ms ease-in-out;
+	}
+
+	:global(.feed-card__loading) {
+		position: absolute;
+		right: 0.5rem;
+		top: 1rem;
+		width: 5rem;
+		height: 5rem;
+		pointer-events: none;
+		color: var(--bg-less);
+		opacity: 0.5;
+		animation: spin 1.25s linear infinite;
+		z-index: 1;
 	}
 
 	.feed-card__wrapper {
@@ -204,8 +269,8 @@
 	}
 
 	.feed-card__image {
-		width: 100%;
-		height: 100%;
+		width: 5rem;
+		height: 5rem;
 		object-fit: cover;
 		aspect-ratio: 1;
 		border-radius: 0.25rem;
@@ -219,10 +284,11 @@
 	}
 
 	.feed-card__title {
-		font-weight: 600;
+		font-weight: bold;
 		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
 		text-wrap-style: pretty;
+		z-index: 2;
 	}
 
 	.feed-card__meta {
@@ -274,18 +340,16 @@
 	}
 
 	:global(.pulse-icon) {
-		animation: pulse 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+		scale: 1.1;
+		animation: spin 1.25s linear infinite;
 	}
 
-	@keyframes pulse {
-		0% {
-			opacity: 1;
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
 		}
-		50% {
-			transform: scale(1.15);
-		}
-		100% {
-			opacity: 1;
+		to {
+			transform: rotate(360deg);
 		}
 	}
 
@@ -302,7 +366,7 @@
 		}
 	}
 
-	.feed-controls {
+	.feed-details {
 		transform: scaleY(0);
 		transform-origin: top;
 		opacity: 0;
@@ -310,12 +374,12 @@
 		height: 0;
 	}
 
-	.feed-controls--hidden {
+	.feed-details--hidden {
 		background: var(--bg);
 		pointer-events: none;
 	}
 
-	.feed-controls:not(.feed-controls--hidden) {
+	.feed-details:not(.feed-details--hidden) {
 		transform: scaleY(1);
 		opacity: 1;
 		height: auto;
@@ -324,11 +388,42 @@
 			opacity 150ms ease-in-out;
 	}
 
-	.feed-controls__description-wrapper {
+	.feed-details__owner {
+		color: light-dark(var(--primary), var(--primary-more));
+		display: flex;
+		gap: 0.75rem;
+		margin-left: -0.25rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.feed-card--subscribed .feed-details__owner {
+		color: var(--success);
+	}
+
+	.feed-details__owner-icon {
+		margin-top: 0.2rem;
+	}
+
+	.feed-details__owner-text {
+		font-family: monospace;
+		font-size: var(--text-smaller);
+		margin-top: 0.2rem;
+		letter-spacing: 0.08rem;
+		text-overflow: ellipsis;
+		text-wrap-style: pretty;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		line-clamp: 1;
+		-webkit-box-orient: vertical;
+		word-break: break-word;
+	}
+
+	.feed-details__description-wrapper {
 		padding: 1rem;
 	}
 
-	.feed-controls__description {
+	.feed-details__description {
 		font-size: var(--text-small);
 		line-height: var(--line-height-normal);
 		text-wrap-style: pretty;
@@ -337,8 +432,8 @@
 		padding: 0 1rem;
 		text-overflow: ellipsis;
 		display: -webkit-box;
-		-webkit-line-clamp: 6;
-		line-clamp: 6;
+		-webkit-line-clamp: 10;
+		line-clamp: 10;
 		-webkit-box-orient: vertical;
 		word-break: break-word;
 
@@ -347,7 +442,11 @@
 		}
 	}
 
-	.feed-controls__error-message {
+	.feed-card--subscribed .feed-details__description {
+		border-left-color: var(--success);
+	}
+
+	.feed-details__error-message {
 		display: flex;
 		align-items: center;
 		padding: 1rem;
