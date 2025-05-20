@@ -413,6 +413,7 @@
 		height: 5rem;
 		margin-right: 1rem;
 		aspect-ratio: 1;
+		border-radius: 0.25rem;
 		object-fit: cover;
 		background: var(--bg-less);
 	}

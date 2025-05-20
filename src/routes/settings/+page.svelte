@@ -51,7 +51,7 @@
 		class:active={activeSection === 'system'}
 		onclick={() => setActiveSection('system')}>System</button
 	>
-	{#if settings.isAdvanced}
+	{#if true}
 		<button
 			class="nav-item"
 			class:active={activeSection === 'api'}

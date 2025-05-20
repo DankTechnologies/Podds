@@ -3,7 +3,17 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
-	import { Check, History, List, Plus, Loader2, Antenna, ArrowUpLeft } from 'lucide-svelte';
+	import {
+		History,
+		List,
+		Plus,
+		Loader2,
+		Antenna,
+		ArrowUpLeft,
+		CirclePlus,
+		CheckCircle,
+		CircleFadingPlus
+	} from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
 	import { isAppleDevice } from '$lib/utils/osCheck';
@@ -24,6 +34,10 @@
 		feedStates.set(feed.id.toString(), 'adding');
 		const success = await feedService.addFeed($state.snapshot(feed));
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
+	}
+
+	function isFeedSubscribed(feed: Feed) {
+		return currentFeeds?.some((f) => f.id === feed.id.toString());
 	}
 
 	function toggleFeedFocus(feed: Feed) {
@@ -55,19 +69,41 @@
 			});
 		}
 	}
+
+	function handleFeedAction(feed: Feed, e: Event) {
+		e.stopPropagation();
+		if (isFeedSubscribed(feed)) {
+			goto(`/podcast/${feed.id}`);
+		} else {
+			addFeed(feed);
+		}
+	}
 </script>
 
 <ul class="feed-list" role="list">
 	{#each feeds as feed (feed.id)}
-		<li class="feed-card fade-in" class:feed-card--focused={focusedFeedId === feed.id.toString()}>
-			<button
+		<li
+			class="feed-card fade-in"
+			class:feed-card--focused={focusedFeedId === feed.id.toString()}
+			class:feed-card--subscribed={isFeedSubscribed(feed)}
+		>
+			<div
 				class="feed-card__wrapper"
-				type="button"
 				data-feed-id={feed.id}
 				onclick={() => toggleFeedFocus(feed)}
+				onkeydown={(e) => e.key === 'Enter' && toggleFeedFocus(feed)}
+				role="button"
+				tabindex="0"
 			>
 				<div class="feed-card__content">
-					<div class="feed-card__image-container">
+					<div
+						class="feed-card__image-container"
+						onclick={(e) => handleFeedAction(feed, e)}
+						onkeydown={(e) => e.key === 'Enter' && handleFeedAction(feed, e)}
+						aria-label="Add {parseTitle(feed.title)}"
+						role="button"
+						tabindex="0"
+					>
 						<img
 							src={`data:${feed.iconData}`}
 							alt={feed.title}
@@ -75,10 +111,18 @@
 							loading={isAppleDevice ? 'eager' : 'lazy'}
 							decoding={isAppleDevice ? 'auto' : 'async'}
 						/>
-						{#if currentFeeds?.some((f) => f.id === feed.id.toString())}
+						{#if isFeedSubscribed(feed)}
 							<div class="added-overlay">
-								<Check size="2rem" />
+								<CheckCircle class="added-overlay-icon circle-icon" size="28" />
 							</div>
+						{:else if feedStates.get(feed.id.toString()) === 'adding'}
+							<div class="added-overlay">
+								<CirclePlus class="added-overlay-icon plus-icon pulse-icon" size="28" />
+							</div>
+						{:else}
+							<button class="added-overlay">
+								<CirclePlus class="added-overlay-icon plus-icon" size="28" />
+							</button>
 						{/if}
 					</div>
 					<div class="feed-card__heading">
@@ -97,29 +141,11 @@
 						</div>
 					</div>
 				</div>
-			</button>
+			</div>
 
 			<div class="feed-controls" class:feed-controls--hidden={focusedFeedId !== feed.id.toString()}>
 				<div class="feed-controls__description-wrapper">
 					<div class="feed-controls__description">{@html feed.description}</div>
-				</div>
-				<div class="feed-controls__buttons">
-					{#if feedStates.get(feed.id.toString()) === 'adding'}
-						<button class="feed-controls__button" disabled>
-							<Loader2 size="16" class="spinner" /> Adding Feed...
-						</button>
-					{:else if currentFeeds?.some((f) => f.id === feed.id.toString())}
-						<button
-							class="feed-controls__button success"
-							onclick={() => goto(`/podcast/${feed.id}`)}
-						>
-							<Antenna size="16" /> Go to {parseTitle(feed.title)}
-						</button>
-					{:else}
-						<button class="feed-controls__button" onclick={() => addFeed(feed)}>
-							<Plus size="16" /> Add Feed
-						</button>
-					{/if}
 				</div>
 				{#if feedStates.get(feed.id.toString()) === 'failure'}
 					<div class="feed-controls__error-message">
@@ -136,6 +162,7 @@
 		display: flex;
 		flex-direction: column;
 		padding-bottom: 10rem;
+		overflow-y: hidden;
 	}
 
 	.feed-card {
@@ -157,6 +184,7 @@
 		padding: 1rem;
 		text-align: left;
 		color: var(--text);
+		box-sizing: border-box;
 	}
 
 	.feed-card--focused .feed-card__wrapper {
@@ -179,6 +207,8 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		aspect-ratio: 1;
+		border-radius: 0.25rem;
 	}
 
 	.feed-card__heading {
@@ -209,6 +239,11 @@
 		color: light-dark(var(--primary), var(--primary-more));
 	}
 
+	.feed-card--subscribed .feed-card__meta {
+		color: var(--success);
+		transition: color 150ms ease-in-out;
+	}
+
 	.meta-with-icon {
 		display: flex;
 		align-items: center;
@@ -217,26 +252,40 @@
 
 	.added-overlay {
 		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.7);
+		bottom: 0.25rem;
+		right: 0.25rem;
+		padding: 0;
+		border-radius: 50%;
+		color: light-dark(var(--primary), var(--primary-more));
+		background: light-dark(var(--grey-100), var(--grey-750));
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--neutral);
+		border: none;
+	}
+
+	:global(.added-overlay-icon) {
+		stroke-width: 1.5;
+	}
+
+	:global(.circle-icon) {
+		color: var(--success);
+		transition: color 150ms ease-in-out;
+	}
+
+	:global(.pulse-icon) {
+		animation: pulse 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 	}
 
 	@keyframes pulse {
 		0% {
-			opacity: 0.6;
+			opacity: 1;
 		}
 		50% {
-			opacity: 0.8;
+			transform: scale(1.15);
 		}
 		100% {
-			opacity: 0.6;
+			opacity: 1;
 		}
 	}
 
@@ -279,28 +328,6 @@
 		padding: 1rem;
 	}
 
-	.feed-controls__buttons {
-		display: flex;
-		background: var(--bg-less);
-		padding: 1rem;
-		gap: 1rem;
-	}
-
-	.feed-controls__button {
-		display: flex;
-		font-size: var(--text-small);
-		font-weight: 600;
-		align-items: center;
-		gap: 0.5rem;
-		border: none;
-		padding: 0.5rem;
-		cursor: pointer;
-		border-radius: 0.25rem;
-		background: var(--bg);
-		color: var(--text);
-		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
-	}
-
 	.feed-controls__description {
 		font-size: var(--text-small);
 		line-height: var(--line-height-normal);
@@ -318,23 +345,6 @@
 		:global(p) {
 			margin: 0;
 		}
-	}
-
-	.feed-controls__button :global(.spinner) {
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.feed-controls__button:disabled {
-		opacity: 0.7;
 	}
 
 	.feed-controls__error-message {

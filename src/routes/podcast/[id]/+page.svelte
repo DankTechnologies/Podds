@@ -104,7 +104,7 @@
 			/>
 			<div class="podcast-header__content">
 				<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
-				<div class="podcast-header__description">{feed.description}</div>
+				<div class="podcast-header__description">{@html feed.description}</div>
 			</div>
 		</div>
 		<div class="podcast-header__buttons">

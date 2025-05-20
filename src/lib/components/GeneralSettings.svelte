@@ -105,7 +105,7 @@
 		</div>
 	</div>
 	<div>
-		<label id="retentionLabel" for="completedEpisodeRetentionDays">Retention</label>
+		<label id="retentionLabel" for="completedEpisodeRetentionDays">Keep Audio Files For</label>
 		<div class="control-group" aria-labelledby="retentionLabel">
 			<div class="control-row">
 				<label for="completedEpisodeRetentionDays"
