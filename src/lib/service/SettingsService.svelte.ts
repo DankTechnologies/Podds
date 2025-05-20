@@ -28,7 +28,7 @@ export const DefaultSettings: Settings = {
 
 export class SettingsService {
 	static initializeSettings(): void {
-		if (getSettings()) {
+		if (db.settings.findOne({ id: '1' })) {
 			return;
 		}
 
