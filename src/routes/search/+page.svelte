@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { Search as SearchIcon, Bell, BellRing, X, BellOff, Dot } from 'lucide-svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import {
-		getActiveEpisodes,
-		getFeeds,
-		getSettings,
-		getSearchHistory
-	} from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Feed, Episode, SearchHistory } from '$lib/types/db';
@@ -29,7 +24,6 @@
 
 	let currentFeeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
-	let settings = $derived(getSettings());
 
 	let episodeIconsById = $derived(new SvelteMap(episodeResults.map((x) => [x.feedId, x.iconData])));
 

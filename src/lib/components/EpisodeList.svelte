@@ -22,7 +22,7 @@
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
-	import { searchPodcasts } from '$lib/api/itunes';
+	import { findPodcastByEpisode } from '$lib/api/itunes';
 
 	let {
 		episodes,
@@ -60,11 +60,11 @@
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			const feeds = await searchPodcasts(episode.feedId, { limit: 1 });
-			if (feeds.length === 1) {
-				feedService.addFeed(feeds[0]);
+			const feed = await findPodcastByEpisode(episode);
+			if (feed) {
+				feedService.addFeed(feed);
 			} else {
-				Log.error(`Failed to add feed for episode ${episode.id}`);
+				Log.error(`Failed to add feed for episode ${episode.title}`);
 			}
 		}
 
@@ -102,11 +102,11 @@
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			const feeds = await searchPodcasts(episode.feedId, { limit: 1 });
-			if (feeds.length === 1) {
-				feedService.addFeed(feeds[0]);
+			const feed = await findPodcastByEpisode(episode);
+			if (feed) {
+				feedService.addFeed(feed);
 			} else {
-				Log.error(`Failed to add feed for episode ${episode.id}`);
+				Log.error(`Failed to add feed for episode ${episode.title}`);
 			}
 		}
 

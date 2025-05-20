@@ -71,6 +71,19 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
     return feeds;
 }
 
+export async function findPodcastByEpisode(episode: Episode): Promise<Feed | null> {
+    let podcasts = await searchPodcasts(episode.feedId, { limit: 1 });
+
+    if (podcasts.length === 0) {
+        const feedTitle = episode.title.match(/^\[(.+?)\]/)?.[1];
+        if (feedTitle) {
+            podcasts = await searchPodcasts(feedTitle, { limit: 1 });
+        }
+    }
+
+    return podcasts[0] ?? null;
+}
+
 export async function findPodcastByTitleAndUrl(title: string, url: string): Promise<Feed | null> {
     const podcasts = await searchPodcasts(title);
 
@@ -169,7 +182,7 @@ async function mapITunesEpisodeToEpisode(episode: ITunesEpisode): Promise<Episod
     return {
         id: episode.episodeGuid,
         feedId: episode.collectionId.toString(),
-        title: episode.trackName,
+        title: `[${episode.collectionName}] ${episode.trackName}`,
         publishedAt: new Date(episode.releaseDate),
         content: episode.description || '',
         url: episode.episodeUrl || '',
