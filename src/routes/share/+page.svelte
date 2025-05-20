@@ -3,7 +3,7 @@
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
-	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
 	import { Podcast, Play, Download, Dot, Package, PackageCheck, PackageOpen } from 'lucide-svelte';
 	import { decodeShareLink, getShareData, type ShareConfig } from '$lib/utils/share';
@@ -35,18 +35,23 @@
 
 	let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
-	onMount(async () => {
+	onMount(initialize);
+
+	// Add hashchange event listener
+	$effect(() => {
+		window.addEventListener('hashchange', initialize);
+		return () => window.removeEventListener('hashchange', initialize);
+	});
+
+	async function initialize() {
 		try {
+			shareDataCopied = false;
 			shareData = getShareData();
 			if (!shareData) {
 				throw new Error('No share data found');
 			}
 
-			// Remove the fragment from the URL without reloading
-			history.replaceState(null, '', window.location.pathname + window.location.search);
-
 			config = decodeShareLink(shareData);
-
 			await getFeedAndEpisodes(config!.feedId);
 
 			const loadingScreen = document.getElementById('appLoading');
@@ -57,7 +62,7 @@
 			error = err instanceof Error ? err.message : 'Failed to load shared content';
 			alert(error);
 		}
-	});
+	}
 
 	function addFeed() {
 		if (!feed || feedExists) return;
@@ -68,29 +73,31 @@
 	async function getFeedAndEpisodes(feedId: string) {
 		feed = feeds.find((f) => f.id === feedId) ?? null;
 
-		if (!feedExists) {
+		if (feedExists) {
+			episodes = db.episodes.find({ feedId: feedId }).fetch();
+		} else {
 			const newFeed = await searchPodcasts(feedId, { limit: 1 });
 			if (newFeed.length === 1) {
 				feed = newFeed[0];
 			} else {
 				throw new Error('Feed not found');
 			}
+
+			const finderResponse = await getEpisodes($state.snapshot(feed!));
+			episodes = finderResponse.episodes;
+
+			feed = {
+				...feed!,
+				lastCheckedAt: finderResponse.feeds[0].lastCheckedAt ?? new Date(),
+				lastSyncedAt: finderResponse.feeds[0].lastSyncedAt ?? new Date(),
+				lastModified: finderResponse.feeds[0].lastModified ?? new Date(),
+				ttlMinutes: finderResponse.feeds[0].ttlMinutes ?? 0,
+				description: finderResponse.feeds[0].description ?? '',
+				link: finderResponse.feeds[0].link ?? '',
+				author: finderResponse.feeds[0].author ?? '',
+				ownerName: finderResponse.feeds[0].ownerName ?? ''
+			};
 		}
-
-		const finderResponse = await getEpisodes(feed!);
-		episodes = finderResponse.episodes;
-
-		feed = {
-			...feed!,
-			lastCheckedAt: finderResponse.feeds[0].lastCheckedAt ?? new Date(),
-			lastSyncedAt: finderResponse.feeds[0].lastSyncedAt ?? new Date(),
-			lastModified: finderResponse.feeds[0].lastModified ?? new Date(),
-			ttlMinutes: finderResponse.feeds[0].ttlMinutes ?? 0,
-			description: finderResponse.feeds[0].description ?? '',
-			link: finderResponse.feeds[0].link ?? '',
-			author: finderResponse.feeds[0].author ?? '',
-			ownerName: finderResponse.feeds[0].ownerName ?? ''
-		};
 	}
 
 	async function getEpisodes(feed: Feed): Promise<EpisodeFinderResponse> {
@@ -390,9 +397,10 @@
 	}
 
 	.podcast-episode-title {
-		font-size: 1.5rem;
+		font-size: var(--text-xl);
 		font-weight: 600;
 		margin: 0;
+		padding-bottom: 1rem;
 	}
 
 	.podcast-episode-description {
