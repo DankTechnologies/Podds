@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
-	import { getSettings } from '$lib/stores/db.svelte';
+	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
-	import { isPwa } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import GeneralSettings from '$lib/components/GeneralSettings.svelte';
@@ -10,31 +8,11 @@
 	import SystemSettings from '$lib/components/SystemSettings.svelte';
 	import Love from '$lib/components/Love.svelte';
 	import Help from '$lib/components/Help.svelte';
+	import { getSettings } from '$lib/stores/db.svelte';
 
 	type Section = 'general' | 'api' | 'system' | 'love' | 'help';
 
-	let settings = $state<Settings>(
-		getSettings() || {
-			id: '1',
-			corsHelper: import.meta.env.VITE_CORS_HELPER_URL || '',
-			corsHelper2: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
-			syncIntervalMinutes: 15,
-			searchTermSyncIntervalHours: 24,
-			lastSyncAt: new Date(),
-			isAdvanced: false,
-			logLevel: 'info',
-			playbackSpeed: 1.0,
-			isPwaInstalled: isPwa,
-			skipForwardButtonSeconds: 30,
-			skipBackwardButtonSeconds: 10,
-			completedEpisodeRetentionDays: 7,
-			inProgressEpisodeRetentionDays: 14,
-			goBackOnResumeSeconds: 10,
-			hugged: false
-		}
-	);
-
-	let isConfigured = $derived(settings?.corsHelper);
+	let settings = $state<Settings>(getSettings());
 
 	// Default to 'general', will be updated in onMount from URL
 	let activeSection = $state<Section>('general');
@@ -58,7 +36,7 @@
 	}
 
 	function onSave() {
-		SettingsService.saveSettings(settings);
+		SettingsService.saveSettings(settings!);
 	}
 </script>
 
@@ -85,7 +63,7 @@
 			onclick={() => setActiveSection('help')}>Help</button
 		>
 	{/if}
-	{#if isConfigured && !settings.hugged}
+	{#if !settings.hugged}
 		<button
 			class="nav-item"
 			class:active={activeSection === 'love'}

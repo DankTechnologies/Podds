@@ -21,7 +21,7 @@
 	let searchHistoryService = new SearchHistoryService();
 
 	let settings = $derived(getSettings());
-	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
+	let isPwaConfigured = $derived(settings.isPwaInstalled);
 
 	let isDbReady = $state(false);
 
@@ -44,6 +44,7 @@
 		]).then(async () => {
 			isDbReady = true;
 			Log.initServiceWorkerLogging();
+			SettingsService.initializeSettings();
 			feedService.startPeriodicUpdates();
 			searchHistoryService.startPeriodicUpdates();
 			EpisodeService.startPeriodicUpdates();

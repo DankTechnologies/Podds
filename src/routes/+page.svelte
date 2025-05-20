@@ -14,7 +14,7 @@
 
 	let settings = $derived(getSettings());
 
-	let isConfigured = $derived(settings?.corsHelper);
+	let isConfigured = $derived(settings.corsHelper);
 
 	let feeds = $derived(
 		getFeeds()

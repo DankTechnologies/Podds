@@ -4,7 +4,7 @@
 	import { getSettings } from '$lib/stores/db.svelte';
 
 	let settings = $derived(getSettings());
-	let isPwaConfigured = $derived(settings?.isPwaInstalled ?? false);
+	let isPwaConfigured = $derived(settings.isPwaInstalled);
 
 	// @ts-ignore
 	let showAndroidInstallButton = $state(window.deferredInstallPrompt !== undefined);

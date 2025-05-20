@@ -21,7 +21,7 @@
 
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $derived(getSettings());
-	let canSearch = $derived(settings?.corsHelper && isOnline());
+	let canSearch = $derived(settings.corsHelper && isOnline());
 
 	let isActive = $derived((href: string) => {
 		if (href === '/') {

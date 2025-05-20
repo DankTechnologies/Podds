@@ -22,7 +22,7 @@
 		onSave: () => void;
 	} = $props();
 
-	let isConfigured = $derived(settings?.corsHelper);
+	let isConfigured = $derived(settings.corsHelper);
 
 	let feedService = new FeedService();
 	let isImporting = $state(false);

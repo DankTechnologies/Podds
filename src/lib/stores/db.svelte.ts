@@ -2,6 +2,7 @@ import type { ActiveEpisode, CompletedEpisode, Episode, Feed, LogEntry, Settings
 import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
 import { SvelteMap } from 'svelte/reactivity';
+import { DefaultSettings } from '$lib/service/SettingsService.svelte';
 
 const reactivityConfig = {
 	create() {
@@ -133,7 +134,7 @@ function getActiveEpisodes() {
 }
 
 function getSettings() {
-	return settings;
+	return settings ?? DefaultSettings;
 }
 
 function getSearchHistory() {

@@ -76,10 +76,10 @@
 				? 0
 				: (activeEpisode.playbackPosition ?? 0);
 
-			if (settings?.goBackOnResumeSeconds) {
+			if (settings.goBackOnResumeSeconds) {
 				AudioService.play(
 					episode.url,
-					Math.max(0, playbackPosition - settings?.goBackOnResumeSeconds)
+					Math.max(0, playbackPosition - settings.goBackOnResumeSeconds)
 				);
 			} else {
 				AudioService.play(episode.url, playbackPosition);

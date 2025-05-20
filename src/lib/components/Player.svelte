@@ -138,7 +138,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(
 			0,
-			Math.min(duration, currentTime - (settings?.skipBackwardButtonSeconds ?? 10))
+			Math.min(duration, currentTime - (settings.skipBackwardButtonSeconds ?? 10))
 		);
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
@@ -155,7 +155,7 @@
 		if (!episode.isDownloaded) return;
 		const newTime = Math.max(
 			0,
-			Math.min(duration, currentTime + (settings?.skipForwardButtonSeconds ?? 30))
+			Math.min(duration, currentTime + (settings.skipForwardButtonSeconds ?? 30))
 		);
 		AudioService.seek(newTime);
 		EpisodeService.updatePlaybackPosition(episode.id, newTime, remainingTime);
@@ -216,7 +216,7 @@
 				<div>
 					<RotateCcw size={ICON_SIZE} />
 				</div>
-				<div class="time-text">{settings?.skipBackwardButtonSeconds ?? 10}</div>
+				<div class="time-text">{settings.skipBackwardButtonSeconds ?? 10}</div>
 			</div>
 		</button>
 
@@ -240,7 +240,7 @@
 				<div>
 					<RotateCw size={ICON_SIZE} />
 				</div>
-				<div class="time-text">{settings?.skipForwardButtonSeconds ?? 30}</div>
+				<div class="time-text">{settings.skipForwardButtonSeconds ?? 30}</div>
 			</div>
 		</button>
 
@@ -276,8 +276,8 @@
 	onSpeedChange={handleSpeedChange}
 	playbackSpeed={settings!.playbackSpeed}
 	isOpen={showDetailedControls}
-	skipForwardButtonSeconds={settings?.skipForwardButtonSeconds}
-	skipBackwardButtonSeconds={settings?.skipBackwardButtonSeconds}
+	skipForwardButtonSeconds={settings.skipForwardButtonSeconds ?? 30}
+	skipBackwardButtonSeconds={settings.skipBackwardButtonSeconds ?? 10}
 />
 
 <style>

@@ -11,7 +11,7 @@ export class Log {
 
 	private static async write(level: LogEntry['level'], message: string) {
 		let settings = getSettings();
-		if (settings?.logLevel && Log.levels[level] < Log.levels[settings.logLevel]) {
+		if (settings.logLevel && Log.levels[level] < Log.levels[settings.logLevel]) {
 			return;
 		}
 

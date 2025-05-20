@@ -23,10 +23,10 @@ export class AudioService {
 		});
 
 		navigator.mediaSession.setActionHandler('previoustrack', () => {
-			this.audio.currentTime = Math.max(0, this.audio.currentTime - (settings?.skipBackwardButtonSeconds ?? 10));
+			this.audio.currentTime = Math.max(0, this.audio.currentTime - (settings.skipBackwardButtonSeconds ?? 10));
 		});
 		navigator.mediaSession.setActionHandler('nexttrack', () => {
-			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + (settings?.skipForwardButtonSeconds ?? 30));
+			this.audio.currentTime = Math.min(this.audio.duration, this.audio.currentTime + (settings.skipForwardButtonSeconds ?? 30));
 		});
 
 		navigator.mediaSession.setActionHandler('stop', () => {
@@ -96,13 +96,13 @@ export class AudioService {
 
 		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
 		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
-		const corsHelper = `${settings!.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+		const corsHelper = `${settings.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
 		this.audio.src = corsHelper;
 		this.audio.currentTime = currentTime;
-		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+		this.audio.playbackRate = settings.playbackSpeed;
 
-		this.setupMediaSession(settings!);
+		this.setupMediaSession(settings);
 	}
 
 	static async play(url: string, currentTime: number = 0) {
@@ -111,7 +111,7 @@ export class AudioService {
 
 		// the service worker normalizes the cache API keys with "https://mp3-cache" as the domain
 		// this decouples the cached MP3 keys from the CORS helper that helped download at the time
-		const corsHelper = `${settings!.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
+		const corsHelper = `${settings.corsHelper}?url=${encodeURIComponent(url)}&cacheAudio=true`;
 
 		this.audio.src = corsHelper;
 
@@ -120,9 +120,9 @@ export class AudioService {
 		}
 
 		this.audio.currentTime = currentTime;
-		this.audio.playbackRate = settings?.playbackSpeed ?? 1.0;
+		this.audio.playbackRate = settings.playbackSpeed;
 
-		this.setupMediaSession(settings!);
+		this.setupMediaSession(settings);
 		this.audio.play();
 	}
 

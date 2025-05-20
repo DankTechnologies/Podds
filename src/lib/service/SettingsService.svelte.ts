@@ -1,22 +1,44 @@
 import { db, getSettings } from '$lib/stores/db.svelte';
 import type { Settings } from '$lib/types/db';
+import { isPwa } from '$lib/utils/osCheck';
 import { Log } from './LogService';
 
 export const SessionInfo = $state({
 	hasUpdate: false
 });
 
-export class SettingsService {
-	static saveSettings(settings: Settings): void {
-		let currentSettings = getSettings();
+export const DefaultSettings: Settings = {
+	id: '1',
+	corsHelper: import.meta.env.VITE_CORS_HELPER_URL || '',
+	corsHelper2: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
+	syncIntervalMinutes: 15,
+	searchTermSyncIntervalHours: 24,
+	lastSyncAt: new Date(),
+	isAdvanced: false,
+	logLevel: 'info',
+	playbackSpeed: 1.0,
+	isPwaInstalled: isPwa,
+	skipForwardButtonSeconds: 30,
+	skipBackwardButtonSeconds: 10,
+	completedEpisodeRetentionDays: 7,
+	inProgressEpisodeRetentionDays: 14,
+	goBackOnResumeSeconds: 10,
+	hugged: false
+};
 
-		if (!currentSettings) {
-			db.settings.insert(settings);
-			Log.info('Added initial settings');
-		} else {
-			db.settings.updateOne({ id: '1' }, { $set: { ...settings } });
-			Log.info('Updated settings');
+export class SettingsService {
+	static initializeSettings(): void {
+		if (getSettings()) {
+			return;
 		}
+
+		db.settings.insert(DefaultSettings);
+		Log.info('Added initial settings');
+	}
+
+	static saveSettings(settings: Settings): void {
+		db.settings.updateOne({ id: '1' }, { $set: { ...settings } });
+		Log.info('Updated settings');
 	}
 
 	static markPwaInstalled(): void {
