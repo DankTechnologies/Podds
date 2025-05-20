@@ -117,7 +117,11 @@ export class FeedService {
 						lastCheckedAt: x.lastCheckedAt,
 						lastSyncedAt: x.lastSyncedAt,
 						lastModified: x.lastModified,
-						ttlMinutes: x.ttlMinutes
+						ttlMinutes: x.ttlMinutes,
+						description: x.description,
+						link: x.link,
+						author: x.author,
+						ownerName: x.ownerName
 					}
 				});
 			});
@@ -209,13 +213,6 @@ export class FeedService {
 
 		finderResponse.errors.forEach((x) => Log.error(x));
 
-		// avoids 'item with id already exists' error during large imports
-		for (let i = 0; i < finderResponse.episodes.length; i += 1000) {
-			Log.debug(`Inserting episodes - batch ${i}`);
-			const batch = finderResponse.episodes.slice(i, i + 1000);
-			db.episodes.insertMany(batch);
-		}
-
 		db.feeds.batch(() => {
 			finderResponse.feeds.forEach((x) => {
 				db.feeds.updateOne({ id: x.id }, {
@@ -223,11 +220,22 @@ export class FeedService {
 						lastCheckedAt: x.lastCheckedAt,
 						lastSyncedAt: x.lastSyncedAt,
 						lastModified: x.lastModified,
-						ttlMinutes: x.ttlMinutes
+						ttlMinutes: x.ttlMinutes,
+						description: x.description,
+						link: x.link,
+						author: x.author,
+						ownerName: x.ownerName
 					}
 				});
 			});
 		});
+
+		// avoids 'item with id already exists' error during large imports
+		for (let i = 0; i < finderResponse.episodes.length; i += 1000) {
+			Log.debug(`Inserting episodes - batch ${i}`);
+			const batch = finderResponse.episodes.slice(i, i + 1000);
+			db.episodes.insertMany(batch);
+		}
 
 		Log.info(`Finished adding ${feeds.length} feeds`);
 	}
