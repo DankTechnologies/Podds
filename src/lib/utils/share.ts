@@ -1,9 +1,7 @@
 import { Log } from '$lib/service/LogService';
-import type { Feed, Episode } from '$lib/types/db';
+import type { Feed, Episode, Settings } from '$lib/types/db';
 
 export interface ShareConfig {
-    podcastIndexKey: string;
-    podcastIndexSecret: string;
     corsHelper: string;
     corsHelper2?: string;
     feedId: string;
@@ -58,12 +56,11 @@ export function getShareData(): string | null {
 
 export function encodeShareLink(config: ShareConfig): string {
     const parts = [
-        config.podcastIndexKey,
-        config.podcastIndexSecret,
         config.corsHelper2
             ? `${shortenUrl(config.corsHelper)}|||${shortenUrl(config.corsHelper2)}`
             : shortenUrl(config.corsHelper),
         config.feedId
+
     ];
 
     if (config.episodePublishedAt) {
@@ -79,29 +76,25 @@ export function decodeShareLink(hash: string): ShareConfig {
     try {
         const parts = decodeURIComponent(hash).split(' ');
 
-        const corsHelpers = parts[2].split('|||');
+        const corsHelpers = parts[0].split('|||');
         const corsHelper = expandUrl(corsHelpers[0]);
         const corsHelper2 = corsHelpers.length > 1 ? expandUrl(corsHelpers[1]) : undefined;
 
         return {
-            podcastIndexKey: parts[0],
-            podcastIndexSecret: parts[1],
             corsHelper,
             corsHelper2,
-            feedId: parts[3],
-            episodePublishedAt: parts[4] ? parseInt(parts[4], 10) : undefined
+            feedId: parts[1],
+            episodePublishedAt: parts[2] ? parseInt(parts[2], 10) : undefined
         };
     } catch {
         throw new Error('Invalid share link format');
     }
 }
 
-export async function shareFeed(feed: Feed, podcastIndexKey: string, podcastIndexSecret: string, corsHelper: string, corsHelper2?: string): Promise<void> {
+export async function shareFeed(feed: Feed, settings: Settings): Promise<void> {
     const url = encodeShareLink({
-        podcastIndexKey,
-        podcastIndexSecret,
-        corsHelper,
-        corsHelper2,
+        corsHelper: settings.corsHelper,
+        corsHelper2: settings.corsHelper2,
         feedId: feed.id
     });
 
@@ -116,12 +109,10 @@ export async function shareFeed(feed: Feed, podcastIndexKey: string, podcastInde
     }
 }
 
-export async function shareEpisode(episode: Episode, feed: Feed, podcastIndexKey: string, podcastIndexSecret: string, corsHelper: string, corsHelper2?: string): Promise<void> {
+export async function shareEpisode(episode: Episode, feed: Feed, settings: Settings): Promise<void> {
     const url = encodeShareLink({
-        podcastIndexKey,
-        podcastIndexSecret,
-        corsHelper,
-        corsHelper2,
+        corsHelper: settings.corsHelper,
+        corsHelper2: settings.corsHelper2,
         feedId: feed.id,
         episodePublishedAt: episode.publishedAt.getTime() / 1000
     });

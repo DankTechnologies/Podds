@@ -16,8 +16,6 @@
 	let settings = $state<Settings>(
 		getSettings() || {
 			id: '1',
-			podcastIndexKey: import.meta.env.VITE_PODCAST_INDEX_KEY || '',
-			podcastIndexSecret: import.meta.env.VITE_PODCAST_INDEX_SECRET || '',
 			corsHelper: import.meta.env.VITE_CORS_HELPER_URL || '',
 			corsHelper2: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
 			syncIntervalMinutes: 15,
@@ -36,9 +34,7 @@
 		}
 	);
 
-	let isConfigured = $derived(
-		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
-	);
+	let isConfigured = $derived(settings?.corsHelper);
 
 	// Default to 'general', will be updated in onMount from URL
 	let activeSection = $state<Section>('general');

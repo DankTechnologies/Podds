@@ -21,7 +21,6 @@
 	let observerTarget = $state<HTMLElement | null>(null);
 	let feedService = new FeedService();
 	let isDeleting = $state(false);
-	let isAdding = $state(false);
 	let retryState = $state<'none' | 'updating' | 'success' | 'failure'>('none');
 
 	let episodes = $derived(
@@ -43,13 +42,6 @@
 
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 	onMount(() => {
-		if (!feed) {
-			isAdding = true;
-			feedService.addFeedById(feedId).then(() => {
-				isAdding = false;
-			});
-		}
-
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -73,7 +65,7 @@
 	async function updateFeed() {
 		if (!feed) return;
 		retryState = 'updating';
-		retryState = (await feedService.updateEmptyFeed(feed)) ? 'success' : 'failure';
+		retryState = (await feedService.updateEmptyFeed($state.snapshot(feed))) ? 'success' : 'failure';
 	}
 
 	function deleteFeed(feed: Feed) {
@@ -91,13 +83,7 @@
 			return;
 		}
 
-		shareFeedUtil(
-			feed,
-			settings.podcastIndexKey,
-			settings.podcastIndexSecret,
-			settings.corsHelper,
-			settings.corsHelper2
-		);
+		shareFeedUtil(feed, settings);
 	}
 </script>
 
@@ -105,23 +91,17 @@
 	<div class="status-screen">
 		<div class="status-message">Deleting...</div>
 	</div>
-{:else if isAdding}
-	<div class="status-screen">
-		<div class="status-message">Loading...</div>
-	</div>
 {:else if feed}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<div class="podcast-header__main">
-			<a href={feed.link} target="_blank" rel="noopener noreferrer">
-				<img
-					class="podcast-header__image"
-					src={`data:${feed.iconData}`}
-					alt={feed.title}
-					loading={isAppleDevice ? 'eager' : 'lazy'}
-					decoding={isAppleDevice ? 'auto' : 'async'}
-				/>
-			</a>
+			<img
+				class="podcast-header__image"
+				src={`data:${feed.iconData}`}
+				alt={feed.title}
+				loading={isAppleDevice ? 'eager' : 'lazy'}
+				decoding={isAppleDevice ? 'auto' : 'async'}
+			/>
 			<div class="podcast-header__content">
 				<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
 				<div class="podcast-header__description">{feed.description}</div>

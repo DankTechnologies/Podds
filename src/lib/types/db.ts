@@ -1,12 +1,14 @@
 export interface Feed {
 	id: string;
 	title: string;
-	description: string;
+	description?: string;
 	author: string;
 	ownerName: string;
-	link: string;
+	link?: string;
 	url: string;
 	iconData: string;
+	episodeCount: number;
+	newestItemPubdate: Date;
 	lastModified?: Date;
 	ttlMinutes?: number;
 	lastCheckedAt?: Date;
@@ -23,6 +25,7 @@ export interface Episode {
 	url: string;
 	durationMin: number;
 	chaptersUrl?: string;
+	iconData?: string;
 }
 
 export interface ActiveEpisode {
@@ -72,8 +75,6 @@ export interface LogEntry {
 
 export interface Settings {
 	id: string;
-	podcastIndexKey: string;
-	podcastIndexSecret: string;
 	corsHelper: string;
 	corsHelper2?: string;
 	lastSyncAt: Date;

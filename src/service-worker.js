@@ -120,7 +120,8 @@ const handleRequest = async ({ request }) => {
 		networkResponse.then(async (response) => {
 			if (
 				response.ok &&
-				response.headers.get('Content-Type')?.startsWith('audio/')
+				(response.headers.get('Content-Type')?.startsWith('audio/') ||
+				response.headers.get('Content-Type') === 'binary/octet-stream')
 			) {
 				putInCache(MP3_CACHE, cacheKey, response.clone()).catch((err) =>
 					log('error', 'Failed to cache MP3 resource: ' + cacheKey.url + ', ' + err)

@@ -22,6 +22,7 @@
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
+	import { searchPodcasts } from '$lib/api/itunes';
 
 	let {
 		episodes,
@@ -34,7 +35,7 @@
 	}: {
 		episodes: Episode[];
 		activeEpisodes: ActiveEpisode[];
-		feedIconsById?: Map<string, string>;
+		feedIconsById?: Map<string, string | undefined>;
 		isPlaylist?: boolean;
 		isSearch?: boolean;
 		isShare?: boolean;
@@ -55,11 +56,16 @@
 		return activeEpisodes.find((x) => x.id === episode.id);
 	}
 
-	function playEpisode(episode: Episode) {
+	async function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+			const feeds = await searchPodcasts(episode.feedId, { limit: 1 });
+			if (feeds.length === 1) {
+				feedService.addFeed(feeds[0]);
+			} else {
+				Log.error(`Failed to add feed for episode ${episode.id}`);
+			}
 		}
 
 		EpisodeService.setPlayingEpisode(episode);
@@ -92,11 +98,16 @@
 		}
 	}
 
-	function downloadEpisode(episode: Episode) {
+	async function downloadEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
 		if (!feeds.find((x) => x.id === episode.feedId)) {
-			feedService.addFeedById(episode.feedId, feedIconsById?.get(episode.feedId) ?? '');
+			const feeds = await searchPodcasts(episode.feedId, { limit: 1 });
+			if (feeds.length === 1) {
+				feedService.addFeed(feeds[0]);
+			} else {
+				Log.error(`Failed to add feed for episode ${episode.id}`);
+			}
 		}
 
 		downloadProgress.set(episode.id, 0);
@@ -194,14 +205,7 @@
 			return;
 		}
 
-		shareEpisodeUtil(
-			episode,
-			feed,
-			settings.podcastIndexKey,
-			settings.podcastIndexSecret,
-			settings.corsHelper,
-			settings.corsHelper2
-		);
+		shareEpisodeUtil(episode, feed, settings);
 	}
 </script>
 

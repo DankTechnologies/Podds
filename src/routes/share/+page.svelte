@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PodcastIndexClient } from '$lib/api/podcast-index';
-	import { resizeBase64Image } from '$lib/utils/resizeImage';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
@@ -16,6 +14,7 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
+	import { searchPodcasts } from '$lib/api/itunes';
 
 	let shareDataCopied = $state(false);
 	let feedExists = $state(false);
@@ -23,7 +22,6 @@
 	let error = $state<string | null>(null);
 	let feed = $state.raw<Feed | null>(null);
 	let episodes = $state<Episode[]>([]);
-	let iconData = $state<string | null>(null);
 	let feedService = new FeedService();
 	let downloadProgress = $state<number>(-1);
 	let feeds = $derived(getFeeds());
@@ -34,9 +32,6 @@
 	let targetEpisode = $derived(
 		episodes.find((e) => e.publishedAt.getTime() / 1000 === config?.episodePublishedAt)
 	);
-
-	const ICON_MAX_WIDTH = 300;
-	const ICON_MAX_HEIGHT = 300;
 
 	let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
@@ -57,10 +52,8 @@
 			if (!isAppleWeb) {
 				SettingsService.saveSettings({
 					id: '1',
-					podcastIndexKey: config!.podcastIndexKey,
-					podcastIndexSecret: config!.podcastIndexSecret,
-					corsHelper: config!.corsHelper,
-					corsHelper2: config?.corsHelper2,
+					corsHelper: config.corsHelper,
+					corsHelper2: config.corsHelper2 ?? settings?.corsHelper2,
 					syncIntervalMinutes: settings?.syncIntervalMinutes ?? 15,
 					searchTermSyncIntervalHours: settings?.searchTermSyncIntervalHours ?? 24,
 					lastSyncAt: settings?.lastSyncAt ?? new Date(),
@@ -80,12 +73,14 @@
 			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
 			feedExists = feed !== null;
 
-			if (feedExists) {
-				iconData = feed?.iconData ?? null;
-			} else {
-				const { feed: newFeed, iconData: newIconData } = await getFeedFromPodcastIndex();
-				feed = newFeed;
-				iconData = newIconData;
+			if (!feedExists) {
+				const newFeed = await searchPodcasts(config.feedId, { limit: 1 });
+				if (newFeed.length === 1) {
+					feed = newFeed[0];
+					feedExists = true;
+				} else {
+					throw new Error('Feed not found');
+				}
 			}
 
 			episodes = await getEpisodes(feed!);
@@ -101,7 +96,7 @@
 	});
 
 	function addFeed() {
-		if (!feed || !iconData || feedExists) return;
+		if (!feed || feedExists) return;
 		feedService.addFeedAndEpisodes(feed, episodes);
 		goto(`/podcast/${feed.id}`);
 	}
@@ -116,40 +111,6 @@
 
 		const finderResponse = await feedService.runEpisodeFinder(finderRequest);
 		return finderResponse.episodes;
-	}
-
-	async function getFeedFromPodcastIndex(): Promise<{ feed: Feed; iconData: string }> {
-		const api = new PodcastIndexClient(config!.podcastIndexKey, config!.podcastIndexSecret);
-
-		const feedResponse = await api.podcastById(Number(config!.feedId));
-		if (!feedResponse) {
-			throw new Error('Feed not found');
-		}
-
-		// Resize and store icon
-		const imageUrl = feedResponse.feed.image || feedResponse.feed.artwork;
-		const iconData = await resizeBase64Image(
-			imageUrl,
-			ICON_MAX_WIDTH,
-			ICON_MAX_HEIGHT,
-			config!.corsHelper,
-			config!.corsHelper2,
-			feedResponse.feed.title
-		);
-
-		const feed = {
-			id: feedResponse.feed.id.toString(),
-			url: feedResponse.feed.url,
-			title: feedResponse.feed.title,
-			iconData: iconData || '',
-			description: feedResponse.feed.description,
-			author: feedResponse.feed.author,
-			ownerName: feedResponse.feed.ownerName,
-			link: feedResponse.feed.link,
-			categories: Object.values(feedResponse.feed.categories || {})
-		};
-
-		return { feed, iconData };
 	}
 
 	function playEpisode(feed: Feed, episode: Episode) {
@@ -201,7 +162,7 @@
 			<div class="podcast-header__main">
 				<img
 					class="podcast-header__image"
-					src={`data:${iconData}`}
+					src={`data:${feed.iconData}`}
 					alt={feed.title}
 					loading={isAppleDevice ? 'eager' : 'lazy'}
 					decoding={isAppleDevice ? 'auto' : 'async'}

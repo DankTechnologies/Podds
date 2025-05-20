@@ -12,9 +12,10 @@
 			data mining.
 		</p>
 		<p>
-			It supports <a href="https://podcastindex.org/">Podcast Index</a> for discovery and uses CORS
-			Helpers to reach RSS feeds and download episodes without any hassles. These get configured in
-			the <a href="/settings?section=api">API</a> section.
+			It uses the iTunes API for podcast and episode discovery, along with CORS Helpers to reach RSS
+			feeds and download episodes without any hassles. These get configured in the <a
+				href="/settings?section=api">API</a
+			> section.
 		</p>
 		<p>
 			If you're somewhat technical, follow the steps below to start your own branch and propogate.
@@ -22,36 +23,29 @@
 	</section>
 
 	<section class="section">
-		<h3 class="subtitle">Podcast Index Creds</h3>
-		<p>
-			Sign up for an <a href="https://api.podcastindex.org/">API Key</a>, but note this requires a
-			private email domain, e.g. gmail won't work. On the bright side, domains are pretty cheap
-			<a href="https://domains.cloudflare.com/">to register</a> and fun to have.
-		</p>
-		<p>Then, use Podcast Index's developer portal to create an API key and secret.</p>
-	</section>
-	<section class="section">
-		<h3 class="subtitle">CORS Helper - Cloudflare Way</h3>
-		<p>
-			<a href="https://dash.cloudflare.com/sign-up">With a Cloudflare account</a>, create + deploy a
-			worker with the <i>Hello World</i> template. Then <b>Edit Code</b> and paste in this
-			<a
-				href="https://github.com/DankTechnologies/Podds/blob/main/cors-helpers/cloudflare/worker.js"
-				>worker.js</a
-			> script
-		</p>
-		<p>
-			The free tier quota is 100k requests per day, as of April 2025. It should suffice for dozens
-			of users in your branch.
-		</p>
-	</section>
-	<section>
-		<h3 class="subtitle">CORS Helper - Self-Hosted Way</h3>
-		<p>
-			Equivalent NodeJS app and Docker files can be found
-			<a href="https://github.com/DankTechnologies/Podds/blob/main/cors-helpers/node">here</a>.
-			Plumbing out to the internet is left as an exercise for the self-hoster.
-		</p>
+		<section class="section">
+			<h3 class="subtitle">CORS Helper - Cloudflare Way</h3>
+			<p>
+				<a href="https://dash.cloudflare.com/sign-up">With a Cloudflare account</a>, create + deploy
+				a worker with the <i>Hello World</i> template. Then <b>Edit Code</b> and paste in this
+				<a
+					href="https://github.com/DankTechnologies/Podds/blob/main/cors-helpers/cloudflare/worker.js"
+					>worker.js</a
+				> script
+			</p>
+			<p>
+				The free tier quota is 100k requests per day, as of April 2025. It should suffice for dozens
+				of users in your branch.
+			</p>
+		</section>
+		<section>
+			<h3 class="subtitle">CORS Helper - Self-Hosted Way</h3>
+			<p>
+				Equivalent NodeJS app and Docker files can be found
+				<a href="https://github.com/DankTechnologies/Podds/blob/main/cors-helpers/node">here</a>.
+				Plumbing out to the internet is left as an exercise for the self-hoster.
+			</p>
+		</section>
 	</section>
 </main>
 

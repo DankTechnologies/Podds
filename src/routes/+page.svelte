@@ -14,9 +14,7 @@
 
 	let settings = $derived(getSettings());
 
-	let isConfigured = $derived(
-		settings?.podcastIndexKey && settings?.podcastIndexSecret && settings?.corsHelper
-	);
+	let isConfigured = $derived(settings?.corsHelper);
 
 	let feeds = $derived(
 		getFeeds()

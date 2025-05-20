@@ -1,20 +1,15 @@
-import PodcastIndexClient from '$lib/api/podcast-index';
 import { db, getFeeds, getSettings } from '$lib/stores/db.svelte';
 import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
-import type { PIApiFeed } from '$lib/types/podcast-index';
-import { resizeBase64Image } from '$lib/utils/resizeImage';
 import { decodeHtmlEntities, encodeHtmlEntities } from '$lib/utils/feedParser';
 import { Log } from './LogService';
 import { SettingsService } from './SettingsService.svelte';
 import type { ImportProgress } from '$lib/types/ImportProgress';
 import { isOnline } from '$lib/utils/networkState.svelte';
+import { findPodcastByTitleAndUrl } from '$lib/api/itunes';
 
-const ICON_MAX_WIDTH = 300;
-const ICON_MAX_HEIGHT = 300;
 const CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
-const FEED_TIMEOUT_MS = 10000; // Added for the new importFeeds method
 
 export const EpisodeUpdate = $state({
 	isUpdating: false,
@@ -23,16 +18,6 @@ export const EpisodeUpdate = $state({
 
 
 export class FeedService {
-	private api: PodcastIndexClient | null = null;
-	private initialized = false;
-
-	constructor(apiKey?: string, apiSecret?: string) {
-		if (apiKey && apiSecret) {
-			this.api = new PodcastIndexClient(apiKey, apiSecret);
-			this.initialized = true;
-		}
-	}
-
 	async updateEmptyFeed(feed: Feed): Promise<boolean> {
 		const settings = getSettings();
 
@@ -132,7 +117,11 @@ export class FeedService {
 						lastCheckedAt: x.lastCheckedAt,
 						lastSyncedAt: x.lastSyncedAt,
 						lastModified: x.lastModified,
-						ttlMinutes: x.ttlMinutes
+						ttlMinutes: x.ttlMinutes,
+						description: x.description,
+						link: x.link,
+						author: x.author,
+						ownerName: x.ownerName
 					}
 				});
 			});
@@ -143,19 +132,6 @@ export class FeedService {
 		Log.info('Finished update of all feeds');
 	}
 
-	async addFeedById(feedId: string, iconData?: string) {
-		await this.initialize();
-
-		const feed = await this.api!.podcastById(Number(feedId));
-
-		if (!iconData) {
-			iconData = await this.resizeImage(feed.feed);
-		}
-
-		if (feed) {
-			this.addFeed(feed.feed, iconData);
-		}
-	}
 
 	addFeedAndEpisodes(feed: Feed, episodes: Episode[]) {
 		Log.info(`Adding feed: ${feed.title}`);
@@ -166,27 +142,16 @@ export class FeedService {
 		Log.info(`Finished adding ${feed.title}`);
 	}
 
-	async addFeed(feed: PIApiFeed, iconData: string): Promise<boolean> {
+	async addFeed(feed: Feed): Promise<boolean> {
 		Log.info(`Adding feed: ${feed.title}`);
 
 		const settings = getSettings();
 
-		try {
-			const newFeed = {
-				id: feed.id.toString(),
-				url: feed.url,
-				title: feed.title,
-				description: feed.description,
-				author: feed.author,
-				ownerName: feed.ownerName,
-				link: feed.link,
-				iconData: iconData,
-				lastUpdatedAt: new Date(),
-				categories: Object.values(feed.categories || {})
-			};
+		const feeds = [feed];
 
+		try {
 			const finderRequest: EpisodeFinderRequest = {
-				feeds: [newFeed],
+				feeds,
 				since: undefined,
 				corsHelper: settings!.corsHelper,
 				corsHelper2: settings!.corsHelper2
@@ -194,12 +159,16 @@ export class FeedService {
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
 
-			const feedWithTimestamps = {
-				...newFeed,
+			const feedWithTimestamps: Feed = {
+				...feed,
 				lastCheckedAt: finderResponse.feeds[0].lastCheckedAt,
 				lastSyncedAt: finderResponse.feeds[0].lastSyncedAt,
 				lastModified: finderResponse.feeds[0].lastModified,
-				ttlMinutes: finderResponse.feeds[0].ttlMinutes
+				ttlMinutes: finderResponse.feeds[0].ttlMinutes,
+				description: finderResponse.feeds[0].description,
+				link: finderResponse.feeds[0].link,
+				author: finderResponse.feeds[0].author,
+				ownerName: finderResponse.feeds[0].ownerName
 			};
 
 			db.feeds.insert(feedWithTimestamps);
@@ -224,29 +193,17 @@ export class FeedService {
 		}
 	}
 
-	async addFeeds(feeds: { feed: PIApiFeed; iconData: string }[]): Promise<void> {
+	async addFeeds(feeds: Feed[]): Promise<void> {
 		if (feeds.length === 0) return;
 
 		const settings = getSettings();
 
 		Log.info(`Adding ${feeds.length} feeds`);
 
-		const newFeeds = feeds.map(({ feed, iconData }): Feed => ({
-			id: feed.id.toString(),
-			url: feed.url,
-			title: feed.title,
-			description: feed.description,
-			author: feed.author,
-			ownerName: feed.ownerName,
-			link: feed.link,
-			iconData: iconData,
-			categories: Object.values(feed.categories || {})
-		}));
-
-		db.feeds.insertMany(newFeeds);
+		db.feeds.insertMany(feeds);
 
 		const finderRequest: EpisodeFinderRequest = {
-			feeds: newFeeds,
+			feeds,
 			since: undefined,
 			corsHelper: settings!.corsHelper,
 			corsHelper2: settings!.corsHelper2
@@ -256,13 +213,6 @@ export class FeedService {
 
 		finderResponse.errors.forEach((x) => Log.error(x));
 
-		// avoids 'item with id already exists' error during large imports
-		for (let i = 0; i < finderResponse.episodes.length; i += 1000) {
-			Log.debug(`Inserting episodes - batch ${i}`);
-			const batch = finderResponse.episodes.slice(i, i + 1000);
-			db.episodes.insertMany(batch);
-		}
-
 		db.feeds.batch(() => {
 			finderResponse.feeds.forEach((x) => {
 				db.feeds.updateOne({ id: x.id }, {
@@ -270,11 +220,22 @@ export class FeedService {
 						lastCheckedAt: x.lastCheckedAt,
 						lastSyncedAt: x.lastSyncedAt,
 						lastModified: x.lastModified,
-						ttlMinutes: x.ttlMinutes
+						ttlMinutes: x.ttlMinutes,
+						description: x.description,
+						link: x.link,
+						author: x.author,
+						ownerName: x.ownerName
 					}
 				});
 			});
 		});
+
+		// avoids 'item with id already exists' error during large imports
+		for (let i = 0; i < finderResponse.episodes.length; i += 1000) {
+			Log.debug(`Inserting episodes - batch ${i}`);
+			const batch = finderResponse.episodes.slice(i, i + 1000);
+			db.episodes.insertMany(batch);
+		}
 
 		Log.info(`Finished adding ${feeds.length} feeds`);
 	}
@@ -288,7 +249,10 @@ export class FeedService {
 	}
 
 	exportFeeds(): string {
-		const feeds = db.feeds.find({}).fetch();
+		const feeds = db.feeds
+			.find({}, { sort: { title: 1 } })
+			.fetch();
+
 		const opml = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <opml version="1.0">
   <head>
@@ -318,12 +282,14 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 	async importFeeds(opmlContent: string, onProgress?: (progress: ImportProgress) => void): Promise<void> {
 		try {
 			EpisodeUpdate.isUpdating = true;
-			await this.initialize();
 
 			const existingFeeds = db.feeds.find({}).fetch();
 
+			// Remove unicode hex entities as it trips up parseFromString
+			opmlContent = opmlContent.replace(/&#x[0-9A-Fa-f]+;/g, '');
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(opmlContent, 'text/xml');
+
 			// Get all outlines that are direct children of the parent outline
 			const outlines = doc.querySelectorAll('outline[type="rss"]');
 
@@ -332,7 +298,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 				return;
 			}
 
-			const validFeeds: { feed: PIApiFeed; iconData: string }[] = [];
+			const validFeeds: Feed[] = [];
 			let processedCount = 0;
 			const totalFeeds = outlines.length;
 			const processedUrls = new Set<string>(); // Track unique URLs
@@ -356,20 +322,20 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					processedCount++;
 					url = outline.getAttribute('xmlUrl');
 					title = outline.getAttribute('text');
-					if (!url) continue;
+					if (!url || !title) continue;
 
 					url = decodeHtmlEntities(url);
-
+					title = decodeHtmlEntities(title);
 					// Skip if we've already processed this URL
 					if (processedUrls.has(url)) {
-						Log.warn(`${title} is a duplicate, skipping`);
+						Log.warn(`[${processedCount}/${totalFeeds}] ${title} is a duplicate, skipping`);
 						skippedCount++;
 						continue;
 					}
 					processedUrls.add(url);
 
 					if (existingFeeds.find(f => f.url === url || f.title?.toLowerCase() === title?.toLowerCase())) {
-						Log.warn(`${title} already exists, skipping`);
+						Log.warn(`[${processedCount}/${totalFeeds}] ${title} already exists, skipping`);
 						skippedCount++;
 						continue;
 					}
@@ -382,24 +348,20 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 						skipped: skippedCount
 					});
 
-					Log.info(`Processing feed ${processedCount}/${totalFeeds}: ${url}`);
+					Log.info(`[${processedCount}/${totalFeeds}] Processing ${title}`);
 
-					const processFeed = async () => {
-						const response = await this.api!.podcastByFeedUrl(url!);
-						const iconData = await this.resizeImage(response.feed);
-						return { feed: response.feed, iconData };
-					};
+					const feed = await findPodcastByTitleAndUrl(title, url);
+					if (!feed) {
+						Log.error(`[${processedCount}/${totalFeeds}] Feed ${title} not found, skipping`);
+						skippedCount++;
+						continue;
+					}
 
-					const timeoutPromise = new Promise((_, reject) =>
-						setTimeout(() => reject(new Error('Feed processing timeout')), FEED_TIMEOUT_MS)
-					);
+					validFeeds.push(feed);
 
-					const result = await Promise.race([processFeed(), timeoutPromise]);
-					validFeeds.push(result as { feed: PIApiFeed; iconData: string });
-
-					Log.info(`Successfully processed feed ${url}`);
+					Log.info(`[${processedCount}/${totalFeeds}] Successfully processed ${title}`);
 				} catch (error) {
-					Log.error(`Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
+					Log.error(`[${processedCount}/${totalFeeds}] Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
 					failedFeeds.push(title || 'Unknown');
 					continue;
 				}
@@ -485,23 +447,5 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		} finally {
 			worker.terminate();
 		}
-	}
-
-	private async initialize() {
-		if (this.initialized) return;
-
-		let settings = getSettings();
-		if (!settings?.podcastIndexKey || !settings?.podcastIndexSecret) {
-			throw new Error('Podcast Index credentials not found');
-		}
-
-		this.api = new PodcastIndexClient(settings.podcastIndexKey, settings.podcastIndexSecret);
-		this.initialized = true;
-	}
-
-	private async resizeImage(feed: PIApiFeed): Promise<string> {
-		const settings = getSettings();
-		const imageUrl = feed.image || feed.artwork;
-		return await resizeBase64Image(imageUrl, ICON_MAX_WIDTH, ICON_MAX_HEIGHT, settings!.corsHelper, settings!.corsHelper2, feed.title);
 	}
 }

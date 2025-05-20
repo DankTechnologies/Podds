@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PIApiFeed } from '$lib/types/podcast-index';
+	import type { Feed } from '$lib/types/db';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { parseTitle } from '$lib/utils/feedParser';
 	import { formatEpisodeDate } from '$lib/utils/time';
@@ -10,11 +10,9 @@
 
 	let {
 		feeds,
-		feedIconsById,
 		currentFeeds
 	}: {
-		feeds: PIApiFeed[];
-		feedIconsById: SvelteMap<string, string>;
+		feeds: Feed[];
 		currentFeeds: { id: string }[];
 	} = $props();
 
@@ -22,17 +20,13 @@
 	let feedService = new FeedService();
 	let feedStates = $state(new SvelteMap<string, 'adding' | 'success' | 'failure'>());
 
-	async function addFeed(feed: PIApiFeed) {
+	async function addFeed(feed: Feed) {
 		feedStates.set(feed.id.toString(), 'adding');
-		const success = await feedService.addFeed(feed, feedIconsById.get(feed.id.toString()) ?? '');
+		const success = await feedService.addFeed($state.snapshot(feed));
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 
-	function deleteFeed(feedId: string) {
-		feedService.deleteFeed(feedId);
-	}
-
-	function toggleFeedFocus(feed: PIApiFeed) {
+	function toggleFeedFocus(feed: Feed) {
 		focusedFeedId = focusedFeedId === feed.id.toString() ? null : feed.id.toString();
 
 		if (focusedFeedId) {
@@ -74,23 +68,13 @@
 			>
 				<div class="feed-card__content">
 					<div class="feed-card__image-container">
-						{#if !feedIconsById.has(feed.id.toString())}
-							<div class="skeleton"></div>
-						{:else if feedIconsById.get(feed.id.toString())?.startsWith('data:')}
-							<img
-								src={feedIconsById.get(feed.id.toString())}
-								alt={feed.title}
-								class="feed-card__image fade-in"
-								loading={isAppleDevice ? 'eager' : 'lazy'}
-								decoding={isAppleDevice ? 'auto' : 'async'}
-							/>
-						{:else}
-							<div class="feed-card__image">
-								<div class="fallback">
-									<span>{feed.title[0]?.toUpperCase() || '?'}</span>
-								</div>
-							</div>
-						{/if}
+						<img
+							src={`data:${feed.iconData}`}
+							alt={feed.title}
+							class="feed-card__image fade-in"
+							loading={isAppleDevice ? 'eager' : 'lazy'}
+							decoding={isAppleDevice ? 'auto' : 'async'}
+						/>
 						{#if currentFeeds?.some((f) => f.id === feed.id.toString())}
 							<div class="added-overlay">
 								<Check size="2rem" />
@@ -108,7 +92,7 @@
 						<div class="feed-card__meta">
 							<div class="meta-with-icon">
 								<History size="0.75rem" />
-								<span>{formatEpisodeDate(feed.newestItemPubdate * 1000)}</span>
+								<span>{formatEpisodeDate(feed.newestItemPubdate)}</span>
 							</div>
 						</div>
 					</div>
@@ -197,16 +181,6 @@
 		object-fit: cover;
 	}
 
-	.feed-card__image .fallback {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 3rem;
-		color: var(--text-less);
-	}
-
 	.feed-card__heading {
 		display: flex;
 		flex-direction: column;
@@ -252,13 +226,6 @@
 		align-items: center;
 		justify-content: center;
 		color: var(--neutral);
-	}
-
-	.skeleton {
-		width: 100%;
-		height: 100%;
-		background: var(--bg-less);
-		animation: pulse 1.5s infinite;
 	}
 
 	@keyframes pulse {
