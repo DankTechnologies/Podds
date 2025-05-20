@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import type { Episode, Feed } from '$lib/types/db';
 	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
@@ -15,9 +14,9 @@
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { searchPodcasts } from '$lib/api/itunes';
+	import type { EpisodeFinderResponse } from '$lib/types/episodeFinder';
 
 	let shareDataCopied = $state(false);
-	let feedExists = $state(false);
 	let config = $state<ShareConfig | null>(null);
 	let error = $state<string | null>(null);
 	let feed = $state.raw<Feed | null>(null);
@@ -25,6 +24,7 @@
 	let feedService = new FeedService();
 	let downloadProgress = $state<number>(-1);
 	let feeds = $derived(getFeeds());
+	let feedExists = $derived(feeds.find((f) => f.id === config?.feedId) !== undefined);
 	let activeEpisodes = $derived(getActiveEpisodes());
 	let settings = $derived(getSettings());
 	let shareData = $state<string | null>(null);
@@ -47,43 +47,7 @@
 
 			config = decodeShareLink(shareData);
 
-			// iOS safari and PWA are isolated and iOS sends all links to safari even when PWA installed
-			// thus, avoid steps in safari that make the app feel installed.  it's just a showroom...
-			if (!isAppleWeb) {
-				SettingsService.saveSettings({
-					id: '1',
-					corsHelper: config.corsHelper,
-					corsHelper2: config.corsHelper2 ?? settings.corsHelper2,
-					syncIntervalMinutes: settings.syncIntervalMinutes,
-					searchTermSyncIntervalHours: settings.searchTermSyncIntervalHours,
-					lastSyncAt: settings.lastSyncAt,
-					logLevel: settings.logLevel,
-					isAdvanced: settings.isAdvanced,
-					playbackSpeed: settings.playbackSpeed,
-					skipForwardButtonSeconds: settings.skipForwardButtonSeconds,
-					skipBackwardButtonSeconds: settings.skipBackwardButtonSeconds,
-					completedEpisodeRetentionDays: settings.completedEpisodeRetentionDays,
-					inProgressEpisodeRetentionDays: settings.inProgressEpisodeRetentionDays,
-					goBackOnResumeSeconds: settings.goBackOnResumeSeconds,
-					isPwaInstalled: settings.isPwaInstalled,
-					hugged: false
-				});
-			}
-
-			feed = feeds.find((f) => f.id === config?.feedId) ?? null;
-			feedExists = feed !== null;
-
-			if (!feedExists) {
-				const newFeed = await searchPodcasts(config.feedId, { limit: 1 });
-				if (newFeed.length === 1) {
-					feed = newFeed[0];
-					feedExists = true;
-				} else {
-					throw new Error('Feed not found');
-				}
-			}
-
-			episodes = await getEpisodes(feed!);
+			await getFeedAndEpisodes(config!.feedId);
 
 			const loadingScreen = document.getElementById('appLoading');
 			if (loadingScreen) {
@@ -101,16 +65,43 @@
 		goto(`/podcast/${feed.id}`);
 	}
 
-	async function getEpisodes(feed: Feed): Promise<Episode[]> {
+	async function getFeedAndEpisodes(feedId: string) {
+		feed = feeds.find((f) => f.id === feedId) ?? null;
+
+		if (!feedExists) {
+			const newFeed = await searchPodcasts(feedId, { limit: 1 });
+			if (newFeed.length === 1) {
+				feed = newFeed[0];
+			} else {
+				throw new Error('Feed not found');
+			}
+		}
+
+		const finderResponse = await getEpisodes(feed!);
+		episodes = finderResponse.episodes;
+
+		feed = {
+			...feed!,
+			lastCheckedAt: finderResponse.feeds[0].lastCheckedAt ?? new Date(),
+			lastSyncedAt: finderResponse.feeds[0].lastSyncedAt ?? new Date(),
+			lastModified: finderResponse.feeds[0].lastModified ?? new Date(),
+			ttlMinutes: finderResponse.feeds[0].ttlMinutes ?? 0,
+			description: finderResponse.feeds[0].description ?? '',
+			link: finderResponse.feeds[0].link ?? '',
+			author: finderResponse.feeds[0].author ?? '',
+			ownerName: finderResponse.feeds[0].ownerName ?? ''
+		};
+	}
+
+	async function getEpisodes(feed: Feed): Promise<EpisodeFinderResponse> {
 		const finderRequest = {
 			feeds: [feed],
 			since: undefined,
-			corsHelper: config!.corsHelper,
-			corsHelper2: config?.corsHelper2
+			corsHelper: settings.corsHelper,
+			corsHelper2: settings.corsHelper2
 		};
 
-		const finderResponse = await feedService.runEpisodeFinder(finderRequest);
-		return finderResponse.episodes;
+		return await feedService.runEpisodeFinder(finderRequest);
 	}
 
 	function playEpisode(feed: Feed, episode: Episode) {
@@ -169,7 +160,7 @@
 				/>
 				<div class="podcast-header__content">
 					<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
-					<div class="podcast-header__description">{feed.description}</div>
+					<div class="podcast-header__description">{@html feed.description}</div>
 				</div>
 			</div>
 		</header>

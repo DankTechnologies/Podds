@@ -77,6 +77,7 @@ export interface Settings {
 	id: string;
 	corsHelper: string;
 	corsHelper2?: string;
+	isCustomCorsHelpers: boolean;
 	lastSyncAt: Date;
 	syncIntervalMinutes: number;
 	searchTermSyncIntervalHours: number;

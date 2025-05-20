@@ -201,7 +201,7 @@
 			return;
 		}
 
-		shareEpisodeUtil(episode, feed, settings);
+		shareEpisodeUtil(episode, feed);
 	}
 </script>
 

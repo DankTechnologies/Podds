@@ -1,4 +1,4 @@
-import { db, getSettings } from '$lib/stores/db.svelte';
+import { db } from '$lib/stores/db.svelte';
 import type { Settings } from '$lib/types/db';
 import { isPwa } from '$lib/utils/osCheck';
 import { Log } from './LogService';
@@ -11,6 +11,7 @@ export const DefaultSettings: Settings = {
 	id: '1',
 	corsHelper: import.meta.env.VITE_CORS_HELPER_URL || '',
 	corsHelper2: import.meta.env.VITE_CORS_HELPER_BACKUP_URL || '',
+	isCustomCorsHelpers: false,
 	syncIntervalMinutes: 15,
 	searchTermSyncIntervalHours: 24,
 	lastSyncAt: new Date(),
@@ -28,12 +29,20 @@ export const DefaultSettings: Settings = {
 
 export class SettingsService {
 	static initializeSettings(): void {
-		if (db.settings.findOne({ id: '1' })) {
-			return;
-		}
+		let settings = db.settings.findOne({ id: '1' });
 
-		db.settings.insert(DefaultSettings);
-		Log.info('Added initial settings');
+		if (settings) {
+
+			if (!settings.isCustomCorsHelpers && (settings.corsHelper !== DefaultSettings.corsHelper || settings.corsHelper2 !== DefaultSettings.corsHelper2)) {
+				settings.corsHelper = DefaultSettings.corsHelper;
+				settings.corsHelper2 = DefaultSettings.corsHelper2;
+				SettingsService.saveSettings(settings);
+				Log.info('Updated CORS helpers');
+			}
+		} else {
+			db.settings.insert(DefaultSettings);
+			Log.info('Added initial settings');
+		}
 	}
 
 	static saveSettings(settings: Settings): void {

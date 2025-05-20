@@ -1,3 +1,4 @@
+import { getSettings } from '$lib/stores/db.svelte';
 import type { Episode, Feed } from '$lib/types/db';
 import type {
     ITunesPodcast,
@@ -10,6 +11,32 @@ const apiUrl = 'https://itunes.apple.com/search';
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 
+async function fetchWithCorsFallback(url: string): Promise<Response> {
+    const settings = getSettings();
+    const response = await fetch(url);
+    if (response.ok) {
+        return response;
+    }
+
+    if (response.status === 403) {
+        const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+        const corsResponse = await fetch(corsUrl);
+        if (corsResponse.ok) {
+            return corsResponse;
+        }
+
+        if (corsResponse.status === 403 && settings.corsHelper2) {
+            const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
+            const corsResponse2 = await fetch(corsUrl2);
+            if (corsResponse2.ok) {
+                return corsResponse2;
+            }
+        }
+    }
+
+    throw new Error(`Unable to fetch data at ${url}: ${response.status} ${response.statusText}`);
+}
+
 export async function searchPodcasts(term: string, options: { limit?: number } = {}): Promise<Feed[]> {
     const params = new URLSearchParams({
         media: 'podcast',
@@ -17,10 +44,7 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
         term
     });
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Error fetching podcasts: ${response.statusText}`);
-    }
+    const response = await fetchWithCorsFallback(url);
     const data = await response.json();
 
     // Filtering and sorting on raw iTunesPodcast objects
@@ -74,10 +98,7 @@ export async function searchEpisodes(term: string, options: { limit?: number } =
     });
 
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Error fetching episodes: ${response.statusText}`);
-    }
+    const response = await fetchWithCorsFallback(url);
     const data = await response.json();
     let results = data.results as ITunesEpisode[];
 

@@ -8,7 +8,6 @@
 	import type { Feed } from '$lib/types/db';
 	import { goto } from '$app/navigation';
 	import { parseOwner } from '$lib/utils/feedParser';
-	import { Log } from '$lib/service/LogService';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	const feedId = page.params.id;
@@ -77,8 +76,7 @@
 	}
 
 	function shareFeed(feed: Feed) {
-		const settings = getSettings();
-		shareFeedUtil(feed, settings);
+		shareFeedUtil(feed);
 	}
 </script>
 
