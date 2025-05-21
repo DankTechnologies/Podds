@@ -198,8 +198,6 @@
 	}
 
 	function shareEpisode(episode: Episode) {
-		const settings = getSettings();
-
 		const feed = feeds.find((f) => f.id === episode.feedId);
 		if (!feed) {
 			Log.error('Feed not found for episode, skipping share link');
@@ -512,7 +510,6 @@
 	}
 
 	.download-progress {
-		color: var(--primary);
 		font-size: var(--text-small);
 		min-width: 3ch;
 		padding-right: 0.5rem;

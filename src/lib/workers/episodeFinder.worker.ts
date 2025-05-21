@@ -2,7 +2,7 @@ import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
-const FEED_TIMEOUT_MS = 10000; // 10 seconds per feed
+const FEED_TIMEOUT_MS = 30000; // 30 seconds per feed
 
 // Add error handling for the worker itself
 self.onerror = (error) => {
