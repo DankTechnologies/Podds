@@ -67,16 +67,9 @@
 			{/each}
 		</div>
 	</div>
-{:else}
-	<div class="message">No search history</div>
 {/if}
 
 <style>
-	.message {
-		text-align: center;
-		padding: 2rem;
-	}
-
 	.search-history {
 		display: flex;
 		flex-direction: column;

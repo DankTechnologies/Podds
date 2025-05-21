@@ -181,7 +181,7 @@
 					<div class="feed-card__heading">
 						<div class="feed-card__title">
 							{#if isFeedSubscribed(feed)}
-								<a href="/podcast/{feed.id}">
+								<a href="/podcast/{feed.id}" onclick={(e) => e.stopPropagation()}>
 									<span><Rss size="0.9rem" class="feed-card__title-icon" /></span>
 									<span>{parseTitle(feed.title)}</span>
 								</a>

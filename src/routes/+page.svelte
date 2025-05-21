@@ -137,8 +137,7 @@
 		{/if}
 	{/each}
 </div>
-<!-- {#if feeds.length === 0} -->
-{#if false}
+{#if feeds.length === 0}
 	<div class="no-feeds">
 		<div>Hi there, welcome to podds!</div>
 		{#if isConfigured}
