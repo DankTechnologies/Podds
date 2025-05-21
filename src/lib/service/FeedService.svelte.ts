@@ -48,7 +48,7 @@ export class FeedService {
 
 	async updateAllFeeds() {
 		const settings = getSettings();
-		const feeds = getFeeds();
+		const feeds = getFeeds().filter((x) => x.isSubscribed);
 
 		if (!settings) {
 			Log.warn('Settings not found, skipping update');
