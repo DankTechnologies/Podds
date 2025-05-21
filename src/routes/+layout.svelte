@@ -55,6 +55,10 @@
 				SettingsService.markPwaInstalled();
 			}
 
+			if (import.meta.env.VITE_EXPOSE_GLOBAL_DB === '1') {
+				(window as any).db = db;
+			}
+
 			// share takes care of hiding the loading screen
 			// do this last
 			if (!page.url.pathname.startsWith('/share')) {

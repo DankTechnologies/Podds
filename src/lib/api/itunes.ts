@@ -28,7 +28,7 @@ export async function searchPodcasts(term: string, options: { limit?: number; sk
     results = results
         .reduce((acc, podcast) => {
             const existing = acc.get(podcast.collectionName);
-            return !existing || podcast.collectionId > existing.collectionId
+            return !existing || podcast.trackCount > existing.trackCount
                 ? acc.set(podcast.collectionName, podcast)
                 : acc;
         }, new Map<string, ITunesPodcast>())
