@@ -26,7 +26,7 @@
 		feedIconsById
 	}: {
 		feeds: Feed[];
-		currentFeeds: { id: string }[];
+		currentFeeds: Feed[];
 		feedIconsById?: Map<string, string | undefined>;
 	} = $props();
 
@@ -59,8 +59,12 @@
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
 	}
 
-	function isFeedSubscribed(feed: Feed) {
+	function isFeedKnown(feed: Feed) {
 		return currentFeeds?.some((f) => f.id === feed.id.toString());
+	}
+
+	function isFeedSubscribed(feed: Feed) {
+		return currentFeeds?.some((f) => f.id === feed.id.toString() && f.isSubscribed);
 	}
 
 	async function toggleFeedFocus(feed: Feed) {
@@ -105,6 +109,8 @@
 		e.stopPropagation();
 		if (isFeedSubscribed(feed)) {
 			goto(`/podcast/${feed.id}`);
+		} else if (isFeedKnown(feed)) {
+			feedService.markSubscribed(feed.id.toString());
 		} else {
 			addFeed(feed);
 		}
@@ -181,10 +187,16 @@
 					<div class="feed-card__heading">
 						<div class="feed-card__title">
 							{#if isFeedSubscribed(feed)}
-								<a href="/podcast/{feed.id}" onclick={(e) => e.stopPropagation()}>
+								<button
+									class="feed-link"
+									onclick={(e) => {
+										e.stopPropagation();
+										goto(`/podcast/${feed.id}`);
+									}}
+								>
 									<span><Rss size="0.9rem" class="feed-card__title-icon" /></span>
 									<span>{parseTitle(feed.title)}</span>
-								</a>
+								</button>
 							{:else}
 								{parseTitle(feed.title)}
 							{/if}
@@ -323,7 +335,6 @@
 	}
 
 	.feed-card__title {
-		font-weight: bold;
 		line-height: var(--line-height-normal);
 		font-size: var(--text-medium);
 		text-wrap-style: pretty;
@@ -341,7 +352,8 @@
 		transition: all 0.6s ease-in-out;
 		background: var(--bg-less);
 
-		a {
+		button {
+			font-weight: bold;
 			color: light-dark(var(--grey-700), var(--grey-300));
 			display: flex;
 			align-items: center;
@@ -352,13 +364,16 @@
 			-webkit-touch-callout: none;
 			-webkit-user-select: none;
 			user-select: none;
+			background: none;
+			border: none;
+			padding: 0;
 		}
 
-		a:focus {
+		button:focus {
 			outline: none;
 		}
 
-		a:active {
+		button:active {
 			background: none;
 		}
 
