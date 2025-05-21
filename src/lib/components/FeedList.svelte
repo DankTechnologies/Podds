@@ -178,7 +178,16 @@
 						{/if}
 					</div>
 					<div class="feed-card__heading">
-						<div class="feed-card__title">{parseTitle(feed.title)}</div>
+						<div class="feed-card__title">
+							{#if isFeedSubscribed(feed)}
+								<a href="/podcast/{feed.id}">
+									<span><Antenna size="1rem" class="feed-card__title-icon" /></span>
+									<span>{parseTitle(feed.title)}</span>
+								</a>
+							{:else}
+								{parseTitle(feed.title)}
+							{/if}
+						</div>
 						<div class="feed-card__meta">
 							<div class="meta-with-icon">
 								<List size="0.75rem" />
@@ -316,6 +325,32 @@
 		z-index: 2;
 	}
 
+	.feed-card--subscribed .feed-card__title {
+		gap: 0.5rem;
+		box-shadow: 0.5rem 0.5rem 0 0 var(--success);
+		margin-bottom: 0.75rem;
+		padding: 0.25rem 0.5rem;
+		font-size: var(--text-smallish);
+		border: 1px solid var(--grey-400);
+		border-radius: 0.25rem;
+		transition: all 0.6s ease-in-out;
+		background: var(--bg-less);
+
+		a {
+			color: var(--grey-750);
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+
+		:global(.feed-card__title-icon) {
+			background: var(--success);
+			color: var(--bg-less);
+			border-radius: 50%;
+			padding: 0.25rem;
+		}
+	}
+
 	.feed-card__meta {
 		font-size: var(--text-small);
 		font-family: monospace;
@@ -324,6 +359,10 @@
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
+	}
+
+	.feed-card--subscribed .feed-card__meta {
+		font-size: var(--text-xs);
 	}
 
 	.feed-card--focused .feed-card__meta {
