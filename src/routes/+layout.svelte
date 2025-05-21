@@ -17,6 +17,7 @@
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { trackNetworkState } from '$lib/utils/networkState.svelte';
+	import { runRatchets } from '$lib/stores/ratchets';
 	let feedService = new FeedService();
 	let searchHistoryService = new SearchHistoryService();
 
@@ -45,6 +46,7 @@
 			isDbReady = true;
 			Log.initServiceWorkerLogging();
 			SettingsService.initializeSettings();
+			runRatchets();
 			feedService.startPeriodicUpdates();
 			searchHistoryService.startPeriodicUpdates();
 			EpisodeService.startPeriodicUpdates();

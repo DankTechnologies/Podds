@@ -94,6 +94,7 @@ export interface Settings {
 	goBackOnResumeSeconds?: number;
 	primaryColor?: string;
 	hugged: boolean;
+	ratchet: number;
 }
 
 export interface SearchHistory {

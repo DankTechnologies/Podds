@@ -24,7 +24,8 @@ export const DefaultSettings: Settings = {
 	completedEpisodeRetentionDays: 7,
 	inProgressEpisodeRetentionDays: 14,
 	goBackOnResumeSeconds: 10,
-	hugged: false
+	hugged: false,
+	ratchet: 1
 };
 
 export class SettingsService {
@@ -64,6 +65,10 @@ export class SettingsService {
 
 	static updatePlaybackSpeed(playbackSpeed: number): void {
 		db.settings.updateOne({ id: '1' }, { $set: { playbackSpeed } });
+	}
+
+	static updateRatchet(ratchet: number): void {
+		db.settings.updateOne({ id: '1' }, { $set: { ratchet } });
 	}
 
 	static async clearAllLocalState(): Promise<void> {
