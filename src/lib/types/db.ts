@@ -14,6 +14,7 @@ export interface Feed {
 	lastCheckedAt?: Date;
 	lastSyncedAt?: Date;
 	categories: string[];
+	isSubscribed: 0 | 1;
 }
 
 export interface Episode {

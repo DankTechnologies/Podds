@@ -18,12 +18,7 @@
 
 	let feeds = $derived(
 		getFeeds()
-			.reduce((unique: Feed[], feed) => {
-				if (!unique.some((f) => f.id === feed.id)) {
-					unique.push(feed);
-				}
-				return unique;
-			}, [])
+			.filter((x) => x.isSubscribed)
 			.sort((a, b) => {
 				const titleA = a.title.replace(/^(the|a|an)\s+/i, '');
 				const titleB = b.title.replace(/^(the|a|an)\s+/i, '');

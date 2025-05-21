@@ -145,6 +145,7 @@ async function mapITunesFeedToFeed(feed: ITunesPodcast, options: { skipConvertIc
 
     return {
         id: feed.collectionId.toString(),
+        isSubscribed: 1,
         title: feed.collectionName,
         author: feed.artistName,
         ownerName: feed.artistName,

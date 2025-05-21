@@ -1,12 +1,11 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import { page } from '$app/state';
-	import { getActiveEpisodes, getEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import { onMount } from 'svelte';
-	import { Gift, Trash2, Search, Sprout, Loader2, ArrowUpLeft } from 'lucide-svelte';
+	import { Gift, Search, Sprout, Loader2, ArrowUpLeft, Rss } from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import type { Feed } from '$lib/types/db';
-	import { goto } from '$app/navigation';
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
@@ -19,7 +18,6 @@
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 	let feedService = new FeedService();
-	let isDeleting = $state(false);
 	let retryState = $state<'none' | 'updating' | 'success' | 'failure'>('none');
 
 	let episodes = $derived(
@@ -67,12 +65,9 @@
 		retryState = (await feedService.updateEmptyFeed($state.snapshot(feed))) ? 'success' : 'failure';
 	}
 
-	function deleteFeed(feed: Feed) {
-		isDeleting = true;
-		setTimeout(() => {
-			feedService.deleteFeed(feed.id);
-			goto('/');
-		});
+	function toggleSubscribed(feed: Feed) {
+		if (feed.isSubscribed) feedService.clearSubscribed(feed.id);
+		else feedService.markSubscribed(feed.id);
 	}
 
 	function shareFeed(feed: Feed) {
@@ -80,11 +75,7 @@
 	}
 </script>
 
-{#if isDeleting}
-	<div class="status-screen">
-		<div class="status-message">Deleting...</div>
-	</div>
-{:else if feed}
+{#if feed}
 	<!-- Podcast Header -->
 	<header class="podcast-header">
 		<div class="podcast-header__main">
@@ -119,10 +110,16 @@
 				Share
 			</button>
 			<button
-				class="podcast-header__button podcast-header__button--delete"
-				onclick={() => deleteFeed(feed)}
+				class="podcast-header__button podcast-header__button--subscribe"
+				class:active={feed.isSubscribed}
+				onclick={() => toggleSubscribed(feed)}
 			>
-				<Trash2 size="14" /> Delete
+				{#if feed.isSubscribed}
+					Following
+					<Rss size="14" />
+				{:else}
+					Not Following
+				{/if}
 			</button>
 		</div>
 	</header>
@@ -232,23 +229,23 @@
 		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 	}
 
-	.podcast-header__button--delete {
+	.podcast-header__button--subscribe {
 		margin-left: auto;
-		color: var(--error);
-		opacity: 0.7;
+		transition: all 0.6s ease-in-out;
+		white-space: nowrap;
+		overflow: hidden;
+		width: 7rem;
 	}
 
-	.status-screen {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 100vh;
-		background: var(--bg);
+	.podcast-header__button--subscribe:not(.active) {
+		opacity: 0.4;
+		box-shadow: none;
 	}
 
-	.status-message {
-		font-size: var(--text-3xl);
-		color: var(--primary);
+	.podcast-header__button--subscribe.active {
+		color: light-dark(var(--primary-less), var(--primary-grey-dark));
+		background: var(--bg-less);
+		box-shadow: 0.25rem 0.25rem 0 0 light-dark(var(--primary-less), var(--primary-grey-dark));
 	}
 
 	.search-container {

@@ -246,12 +246,14 @@ export class FeedService {
 		Log.info(`Finished adding ${feeds.length} feeds`);
 	}
 
-	deleteFeed(feedId: string) {
-		Log.info(`Starting deletion of feed ${feedId}`);
-		db.episodes.removeMany({ feedId: feedId });
-		db.activeEpisodes.removeMany({ feedId: feedId });
-		db.feeds.removeOne({ id: feedId });
-		Log.info(`Finished deletion of feed ${feedId}`);
+	clearSubscribed(feedId: string) {
+		Log.info(`Unsubscribe ${feedId}`);
+		db.feeds.updateOne({ id: feedId }, { $set: { isSubscribed: 0 } });
+	}
+
+	markSubscribed(feedId: string) {
+		Log.info(`Subscribe ${feedId}`);
+		db.feeds.updateOne({ id: feedId }, { $set: { isSubscribed: 1 } });
 	}
 
 	exportFeeds(): string {
