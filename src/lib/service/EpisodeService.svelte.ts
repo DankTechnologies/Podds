@@ -188,7 +188,7 @@ export class EpisodeService {
 
 			response.errors.forEach((x) => Log.error(x));
 		} catch (error) {
-			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? error.message : `${error}`}`);
+			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? `${error.message} - ${error.stack}` : `${error}`}`);
 		} finally {
 			worker.terminate();
 		}
@@ -255,7 +255,7 @@ export class EpisodeService {
 				await EpisodeService.applyRetentionPolicy();
 				lastCheckTime = Date.now();
 			} catch (error) {
-				Log.error(`Error applying retention policy: ${error instanceof Error ? error.message : String(error)}`);
+				Log.error(`Error applying retention policy: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 			} finally {
 				isUpdating = false;
 			}

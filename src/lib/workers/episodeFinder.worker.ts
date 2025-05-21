@@ -9,7 +9,7 @@ self.onerror = (error) => {
 	self.postMessage({
 		episodes: [],
 		feeds: [],
-		errors: [`Worker fatal error: ${error instanceof Error ? error.message : String(error)}`]
+		errors: [`Worker fatal error: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`]
 	});
 };
 
@@ -34,7 +34,7 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 		self.postMessage({
 			episodes: [],
 			feeds: [],
-			errors: [`Worker error: ${error instanceof Error ? error.message : String(error)}`]
+			errors: [`Worker error: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`]
 		});
 	}
 };
@@ -127,7 +127,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 			episodes: [],
 			feed: feed, // Return original feed without updating lastCheckedAt
 			errors: [
-				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? error.message : 'Unknown error'}`
+				`Failed to fetch episodes for feed ${feed.title} (${feed.url}): ${error instanceof Error ? `${error.message} - ${error.stack}` : 'Unknown error'}`
 			]
 		};
 	}

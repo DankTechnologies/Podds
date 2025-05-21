@@ -131,7 +131,7 @@ export class SearchHistoryService {
                     Log.debug(`No new episodes found for search term: ${search.term}`);
                 }
             } catch (error) {
-                Log.error(`Error updating search term ${search.term}: ${error instanceof Error ? error.message : String(error)}`);
+                Log.error(`Error updating search term ${search.term}: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
             }
         }
 

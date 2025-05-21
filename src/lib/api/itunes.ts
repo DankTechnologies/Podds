@@ -12,7 +12,7 @@ const apiUrl = 'https://itunes.apple.com/search';
 const ICON_MAX_WIDTH = 300;
 const ICON_MAX_HEIGHT = 300;
 
-export async function searchPodcasts(term: string, options: { limit?: number } = {}): Promise<Feed[]> {
+export async function searchPodcasts(term: string, options: { limit?: number; skipConvertIcon?: boolean } = {}): Promise<Feed[]> {
     const params = new URLSearchParams({
         media: 'podcast',
         entity: 'podcast',
@@ -52,7 +52,7 @@ export async function searchPodcasts(term: string, options: { limit?: number } =
     if (options.limit) {
         results = results.slice(0, options.limit);
     }
-    const feeds = await Promise.all(results.map(mapITunesFeedToFeed)) as Feed[];
+    const feeds = await Promise.all(results.map(feed => mapITunesFeedToFeed(feed, { skipConvertIcon: options.skipConvertIcon }))) as Feed[];
     return feeds;
 }
 
@@ -88,7 +88,7 @@ export async function findPodcastByTitleAndUrl(title: string, url: string): Prom
     return podcasts.sort((a, b) => b.newestItemPubdate.getTime() - a.newestItemPubdate.getTime())[0];
 }
 
-export async function searchEpisodes(term: string, options: { limit?: number } = {}): Promise<Episode[]> {
+export async function searchEpisodes(term: string, options: { limit?: number; skipConvertIcon?: boolean } = {}): Promise<Episode[]> {
     const params = new URLSearchParams({
         media: 'podcast',
         entity: 'podcastEpisode',
@@ -127,19 +127,21 @@ export async function searchEpisodes(term: string, options: { limit?: number } =
     if (options.limit) {
         results = results.slice(0, options.limit);
     }
-    const episodes = await Promise.all(results.map(mapITunesEpisodeToEpisode)) as Episode[];
+    const episodes = await Promise.all(results.map(episode => mapITunesEpisodeToEpisode(episode, { skipConvertIcon: options.skipConvertIcon }))) as Episode[];
     return episodes;
 }
 
-async function mapITunesFeedToFeed(feed: ITunesPodcast): Promise<Feed> {
-    const iconData = await resizeBase64Image(
-        feed.artworkUrl600,
-        ICON_MAX_WIDTH,
-        ICON_MAX_HEIGHT,
-        undefined,
-        undefined,
-        feed.collectionName
-    );
+async function mapITunesFeedToFeed(feed: ITunesPodcast, options: { skipConvertIcon?: boolean } = {}): Promise<Feed> {
+    const iconData = options.skipConvertIcon
+        ? feed.artworkUrl600
+        : await resizeBase64Image(
+            feed.artworkUrl600,
+            ICON_MAX_WIDTH,
+            ICON_MAX_HEIGHT,
+            undefined,
+            undefined,
+            feed.collectionName
+        );
 
     return {
         id: feed.collectionId.toString(),
@@ -154,15 +156,17 @@ async function mapITunesFeedToFeed(feed: ITunesPodcast): Promise<Feed> {
     };
 }
 
-async function mapITunesEpisodeToEpisode(episode: ITunesEpisode): Promise<Episode> {
-    const iconData = await resizeBase64Image(
-        episode.artworkUrl600,
-        ICON_MAX_WIDTH,
-        ICON_MAX_HEIGHT,
-        undefined,
-        undefined,
-        episode.trackName
-    );
+async function mapITunesEpisodeToEpisode(episode: ITunesEpisode, options: { skipConvertIcon?: boolean } = {}): Promise<Episode> {
+    const iconData = options.skipConvertIcon
+        ? episode.artworkUrl600
+        : await resizeBase64Image(
+            episode.artworkUrl600,
+            ICON_MAX_WIDTH,
+            ICON_MAX_HEIGHT,
+            undefined,
+            undefined,
+            episode.trackName
+        );
 
     return {
         id: episode.episodeGuid,
@@ -175,6 +179,21 @@ async function mapITunesEpisodeToEpisode(episode: ITunesEpisode): Promise<Episod
         chaptersUrl: undefined,
         iconData,
     };
+}
+
+export async function convertUrlToBase64(url: string, title: string): Promise<string> {
+    if (!url || url.startsWith('data:')) {
+        return url;
+    }
+
+    return await resizeBase64Image(
+        url,
+        ICON_MAX_WIDTH,
+        ICON_MAX_HEIGHT,
+        undefined,
+        undefined,
+        title
+    );
 }
 
 async function fetchWithCorsFallback(url: string): Promise<Response> {

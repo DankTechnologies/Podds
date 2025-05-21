@@ -25,6 +25,9 @@
 	let currentFeeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 
+	let feedIconsById = $derived(
+		new SvelteMap(feedResults.map((x) => [x.id.toString(), x.iconData]))
+	);
 	let episodeIconsById = $derived(new SvelteMap(episodeResults.map((x) => [x.feedId, x.iconData])));
 
 	$effect(() => {
@@ -42,8 +45,10 @@
 		isLoading = true;
 
 		try {
-			feedResults = await searchPodcasts(queryTrimmed);
-			episodeResults = await searchEpisodes(queryTrimmed);
+			[feedResults, episodeResults] = await Promise.all([
+				searchPodcasts(queryTrimmed, { skipConvertIcon: true }),
+				searchEpisodes(queryTrimmed, { skipConvertIcon: true })
+			]);
 
 			// Set initial view based on results
 			if (feedResults.length > 0) {
@@ -125,7 +130,7 @@
 	</div>
 
 	{#if view === 'feeds' && feedResults.length > 0}
-		<FeedList feeds={feedResults} {currentFeeds} />
+		<FeedList feeds={feedResults} {currentFeeds} {feedIconsById} />
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
 		<div class="episodes-header">

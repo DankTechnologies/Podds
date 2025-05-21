@@ -41,7 +41,7 @@ export class FeedService {
 			finderResponse.errors.forEach((x) => Log.error(x));
 			return false;
 		} catch (e) {
-			Log.error(`Error updating feed ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			Log.error(`Error updating feed ${feed.title}: ${e instanceof Error ? `${e.message} - ${e.stack}` : String(e)}`);
 			return false;
 		}
 	}
@@ -106,7 +106,7 @@ export class FeedService {
 					}
 				}
 			} catch (error) {
-				Log.error(`Error adding episode ${x.title}: ${error instanceof Error ? error.message : String(error)}`);
+				Log.error(`Error adding episode ${x.title}: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 			}
 		});
 
@@ -143,7 +143,7 @@ export class FeedService {
 			Log.info(`Finished adding feed and episodes: ${feed.title}`);
 			return true;
 		} catch (e) {
-			Log.error(`Error adding feed and episodes ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			Log.error(`Error adding feed and episodes ${feed.title}: ${e instanceof Error ? `${e.message} - ${e.stack}` : String(e)}`);
 			return false;
 		}
 	}
@@ -194,7 +194,7 @@ export class FeedService {
 			return false;
 		}
 		catch (e) {
-			Log.error(`Error adding feed ${feed.title}: ${e instanceof Error ? e.message : String(e)}`);
+			Log.error(`Error adding feed ${feed.title}: ${e instanceof Error ? `${e.message} - ${e.stack}` : String(e)}`);
 			return false;
 		}
 	}
@@ -367,7 +367,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 					Log.info(`[${processedCount}/${totalFeeds}] Successfully processed ${title}`);
 				} catch (error) {
-					Log.error(`[${processedCount}/${totalFeeds}] Error processing feed ${title}: ${error instanceof Error ? error.message : String(error)}`);
+					Log.error(`[${processedCount}/${totalFeeds}] Error processing feed ${title}: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 					failedFeeds.push(title || 'Unknown');
 					continue;
 				}
@@ -389,7 +389,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 				skipped: skippedCount
 			});
 		} catch (error) {
-			Log.error(`Error importing feeds: ${error instanceof Error ? error.message : String(error)}`);
+			Log.error(`Error importing feeds: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 			onProgress?.({ current: '', success: 0, total: 0, failed: [], skipped: 0 });
 		} finally {
 			EpisodeUpdate.isUpdating = false;

@@ -40,7 +40,7 @@ self.onmessage = async (e: MessageEvent<EpisodeCleanerRequest>) => {
     } catch (error) {
         self.postMessage({
             deletedUrls: [],
-            errors: [`Worker error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+            errors: [`Worker error: ${error instanceof Error ? `${error.message} - ${error.stack}` : 'Unknown error'}`]
         });
     }
 }; 

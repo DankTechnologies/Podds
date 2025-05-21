@@ -53,14 +53,12 @@ export async function parseFeedUrl(
 		let ownerName: string | undefined = undefined;
 		let author: string | undefined = undefined;
 
-		try {
-			const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-			const result = parser.parse(xmlString);
-			description = result?.rss?.channel?.description?.toString() || undefined;
-			link = result?.rss?.channel?.link?.toString() || undefined;
-			author = result?.rss?.channel?.['itunes:author']?.toString() || undefined;
-			ownerName = result?.rss?.channel?.['itunes:owner']?.['itunes:name']?.toString() || undefined;
-		} catch { }
+		const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+		const result = parser.parse(xmlString);
+		description = result?.rss?.channel?.description?.toString() || undefined;
+		link = result?.rss?.channel?.link?.toString() || undefined;
+		author = result?.rss?.channel?.['itunes:author']?.toString() || undefined;
+		ownerName = result?.rss?.channel?.['itunes:owner']?.['itunes:name']?.toString() || undefined;
 
 		return {
 			episodes,
@@ -106,13 +104,20 @@ async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: n
 	// Ensure items is always an array
 	const itemsArray = Array.isArray(items) ? items : [items];
 
-	const episodes: Episode[] = await Promise.all(itemsArray
-		.filter((item) => {
-			const publishedAt = new Date(item.pubDate);
-			return !since || publishedAt.getTime() / 1000 >= since;
-		})
-		.map(async (item) => {
-			const publishedAt = new Date(decodeHtmlEntities(item.pubDate || new Date()));
+	const episodes: Episode[] = [];
+
+	for (const item of itemsArray) {
+		try {
+			// Check for required fields
+			if (!item.title || !item.pubDate || !item.guid || !item.description) {
+				continue;
+			}
+
+			const publishedAt = new Date(decodeHtmlEntities(item.pubDate));
+			if (since && publishedAt.getTime() / 1000 < since) {
+				continue;
+			}
+
 			const enclosure = Array.isArray(item.enclosure)
 				? item.enclosure.find(
 					(e: { '@_type': string; '@_url': string }) =>
@@ -139,8 +144,7 @@ async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: n
 				durationSeconds = parseInt(durationStr, 10) || 0;
 			}
 
-
-			return {
+			episodes.push({
 				id: item.guid?.['#text'] || crypto.randomUUID(),
 				feedId,
 				title: decodeHtmlEntities((item.title?.toString() || '').trim()),
@@ -149,8 +153,16 @@ async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: n
 				url: enclosure?.['@_url'] || '',
 				durationMin: Math.floor(durationSeconds / 60),
 				chaptersUrl
-			};
-		}));
+			});
+		} catch (error) {
+			// Skip this episode and continue with the next one
+			continue;
+		}
+	}
+
+	if (episodes.length === 0) {
+		throw new Error('No valid episodes could be parsed from the feed');
+	}
 
 	return { episodes, ttlMinutes };
 }

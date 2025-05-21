@@ -59,7 +59,8 @@
 				loadingScreen.remove();
 			}
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load shared content';
+			error =
+				err instanceof Error ? `${err.message} - ${err.stack}` : 'Failed to load shared content';
 			alert(error);
 		}
 	}

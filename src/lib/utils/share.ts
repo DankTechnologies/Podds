@@ -123,7 +123,7 @@ async function shareWithNative(options: ShareOptions): Promise<boolean> {
         return true;
     } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
-            Log.error(`Share failed: ${error.message}`);
+            Log.error(`Share failed: ${error.message} - ${error.stack}`);
         }
         return false;
     }
@@ -134,6 +134,6 @@ async function shareWithClipboard(url: string): Promise<void> {
         await navigator.clipboard.writeText(url);
         alert('Share link copied to clipboard!');
     } catch (error) {
-        Log.error(`Clipboard write failed: ${error instanceof Error ? error.message : String(error)}`);
+        Log.error(`Clipboard write failed: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
     }
 }

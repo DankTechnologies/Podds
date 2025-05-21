@@ -17,13 +17,16 @@
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import type { EpisodeFinderResponse } from '$lib/types/episodeFinder';
+	import { convertUrlToBase64 } from '$lib/api/itunes';
 
 	let {
 		feeds,
-		currentFeeds
+		currentFeeds,
+		feedIconsById
 	}: {
 		feeds: Feed[];
 		currentFeeds: { id: string }[];
+		feedIconsById?: Map<string, string | undefined>;
 	} = $props();
 
 	let feedDataById = $state(new SvelteMap<string, Feed>());
@@ -40,12 +43,16 @@
 		feedStates.set(feed.id.toString(), 'adding');
 
 		if (feedDataById.has(feed.id.toString()) && episodeDataByFeedId.has(feed.id.toString())) {
+			const feedToAdd = feedDataById.get(feed.id.toString())!;
+			feedToAdd.iconData = await convertUrlToBase64(feedToAdd.iconData, feedToAdd.title);
 			success = feedService.addFeedAndEpisodes(
-				feedDataById.get(feed.id.toString())!,
+				feedToAdd,
 				episodeDataByFeedId.get(feed.id.toString())!
 			);
 		} else {
-			success = await feedService.addFeed($state.snapshot(feed));
+			const feedToAdd = $state.snapshot(feed);
+			feedToAdd.iconData = await convertUrlToBase64(feedToAdd.iconData, feedToAdd.title);
+			success = await feedService.addFeed(feedToAdd);
 		}
 
 		feedStates.set(feed.id.toString(), success ? 'success' : 'failure');
@@ -141,13 +148,21 @@
 						role="button"
 						tabindex="0"
 					>
-						<img
-							src={`data:${feed.iconData}`}
-							alt={feed.title}
-							class="feed-card__image fade-in"
-							loading={isAppleDevice ? 'eager' : 'lazy'}
-							decoding={isAppleDevice ? 'auto' : 'async'}
-						/>
+						{#if feedIconsById?.has(feed.id.toString())}
+							<img
+								src={feedIconsById.get(feed.id.toString())}
+								alt={feed.title}
+								class="feed-card__image fade-in"
+								loading={isAppleDevice ? 'eager' : 'lazy'}
+								decoding={isAppleDevice ? 'auto' : 'async'}
+							/>
+						{:else}
+							<div class="feed-card__image">
+								<div class="fallback">
+									<span>{feed.title[0]?.toUpperCase() || '?'}</span>
+								</div>
+							</div>
+						{/if}
 						{#if isFeedSubscribed(feed)}
 							<div class="added-overlay">
 								<CheckCircle class="added-overlay-icon circle-icon" size="28" />
@@ -274,6 +289,16 @@
 		object-fit: cover;
 		aspect-ratio: 1;
 		border-radius: 0.25rem;
+	}
+
+	.feed-card__image .fallback {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 3rem;
+		color: var(--text-less);
 	}
 
 	.feed-card__heading {
