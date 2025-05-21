@@ -234,7 +234,6 @@
 		transition: all 0.6s ease-in-out;
 		white-space: nowrap;
 		overflow: hidden;
-		width: 7rem;
 	}
 
 	.podcast-header__button--subscribe:not(.active) {
@@ -243,9 +242,9 @@
 	}
 
 	.podcast-header__button--subscribe.active {
-		color: light-dark(var(--primary-less), var(--primary-grey-dark));
+		color: var(--primary-less);
 		background: var(--bg-less);
-		box-shadow: 0.25rem 0.25rem 0 0 light-dark(var(--primary-less), var(--primary-grey-dark));
+		box-shadow: 0.25rem 0.25rem 0 0 var(--primary-less);
 	}
 
 	.search-container {

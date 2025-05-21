@@ -10,7 +10,8 @@
 		CirclePlus,
 		CheckCircle,
 		LoaderPinwheel,
-		Antenna
+		Antenna,
+		Rss
 	} from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
@@ -181,7 +182,7 @@
 						<div class="feed-card__title">
 							{#if isFeedSubscribed(feed)}
 								<a href="/podcast/{feed.id}">
-									<span><Antenna size="1rem" class="feed-card__title-icon" /></span>
+									<span><Rss size="0.9rem" class="feed-card__title-icon" /></span>
 									<span>{parseTitle(feed.title)}</span>
 								</a>
 							{:else}
@@ -251,6 +252,10 @@
 		background: var(--bg-less);
 		border-bottom: 0.1rem solid light-dark(var(--primary), var(--primary-more));
 		transition: border-bottom 150ms ease-in-out;
+	}
+
+	.feed-card--focused.feed-card--subscribed {
+		border-bottom-color: var(--success);
 	}
 
 	:global(.feed-card__loading) {
@@ -330,24 +335,40 @@
 		box-shadow: 0.5rem 0.5rem 0 0 var(--success);
 		margin-bottom: 0.75rem;
 		padding: 0.25rem 0.5rem;
-		font-size: var(--text-smallish);
-		border: 1px solid var(--grey-400);
+		letter-spacing: 0.02rem;
+		border: 1px solid light-dark(var(--grey-400), var(--grey-800));
 		border-radius: 0.25rem;
 		transition: all 0.6s ease-in-out;
 		background: var(--bg-less);
 
 		a {
-			color: var(--grey-750);
+			color: light-dark(var(--grey-700), var(--grey-300));
 			display: flex;
 			align-items: center;
 			gap: 0.75rem;
+			text-decoration: none;
+			outline: none;
+			-webkit-tap-highlight-color: transparent;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		a:focus {
+			outline: none;
+		}
+
+		a:active {
+			background: none;
 		}
 
 		:global(.feed-card__title-icon) {
 			background: var(--success);
-			color: var(--bg-less);
+			color: light-dark(var(--bg-less), var(--grey-100));
+			stroke-width: 3.5;
 			border-radius: 50%;
 			padding: 0.25rem;
+			scale: 1.05;
 		}
 	}
 

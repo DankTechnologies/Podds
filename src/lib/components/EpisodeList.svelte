@@ -12,7 +12,8 @@
 		Trash2,
 		Gift,
 		AudioLines,
-		Frown
+		Frown,
+		Antenna
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
@@ -56,10 +57,14 @@
 		return activeEpisodes.find((x) => x.id === episode.id);
 	}
 
+	function isFeedKnown(episode: Episode): boolean {
+		return feeds.find((x) => x.id === episode.feedId) !== undefined;
+	}
+
 	async function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
-		if (!feeds.find((x) => x.id === episode.feedId)) {
+		if (!isFeedKnown(episode)) {
 			const feed = await findPodcastByEpisode(episode);
 			if (feed) {
 				feedService.addFeed(feed);
@@ -101,7 +106,7 @@
 	async function downloadEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
-		if (!feeds.find((x) => x.id === episode.feedId)) {
+		if (!isFeedKnown(episode)) {
 			const feed = await findPodcastByEpisode(episode);
 			if (feed) {
 				feedService.addFeed(feed);
@@ -211,6 +216,7 @@
 			class="episode-card fade-in"
 			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
+			class:episode-card--known-feed={isSearch && isFeedKnown(episode)}
 			class:is-podcast-page={isPodcastPage}
 			data-episode-id={episode.id}
 		>
@@ -261,6 +267,10 @@
 							{:else if getActiveEpisode(episode)?.isDownloaded}
 								<div>
 									<Download size="14" />
+								</div>
+							{:else if isSearch && isFeedKnown(episode)}
+								<div>
+									<Antenna size="14" />
 								</div>
 							{/if}
 							<div>
@@ -346,6 +356,10 @@
 	.episode-card--focused {
 		border-bottom: 0.4rem solid light-dark(var(--primary), var(--primary-more));
 		transition: border-bottom 150ms ease-in-out;
+	}
+
+	.episode-card--focused.episode-card--known-feed {
+		border-bottom: 0.4rem solid var(--success);
 	}
 
 	.episode-card--playing {
@@ -460,6 +474,11 @@
 		}
 	}
 
+	.episode-card--known-feed .episode-card__description,
+	.episode-card--known-feed .episode-controls__description {
+		border-left-color: var(--success);
+	}
+
 	.episode-card__description {
 		margin: 0.5rem 0;
 	}
@@ -486,6 +505,10 @@
 
 	.episode-card--focused .episode-card__time {
 		color: var(--primary-more);
+	}
+
+	.episode-card--focused.episode-card--known-feed .episode-card__time {
+		color: var(--success);
 	}
 
 	.download-progress {
