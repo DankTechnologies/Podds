@@ -156,12 +156,9 @@ async function parseEpisodesFromXml(feedId: string, xmlString: string, since?: n
 			});
 		} catch (error) {
 			// Skip this episode and continue with the next one
+			console.error(error);
 			continue;
 		}
-	}
-
-	if (episodes.length === 0) {
-		throw new Error('No valid episodes could be parsed from the feed');
 	}
 
 	return { episodes, ttlMinutes };
