@@ -28,7 +28,7 @@
 		if (href === '/') {
 			return page.url.pathname === '/' || page.url.pathname.startsWith('/podcast');
 		}
-		return page.url.pathname === href;
+		return page.url.pathname.startsWith(href);
 	});
 
 	let hasNewResults = $derived(getSearchHistory().some((search) => search.hasNewResults));
