@@ -13,7 +13,8 @@
 		Gift,
 		AudioLines,
 		Frown,
-		Antenna
+		Antenna,
+		LoaderPinwheel
 	} from 'lucide-svelte';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { AudioService } from '$lib/service/AudioService.svelte';
@@ -24,6 +25,7 @@
 	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
 	import { findPodcastByEpisode } from '$lib/api/itunes';
+	import { goto } from '$app/navigation';
 
 	let {
 		episodes,
@@ -44,6 +46,7 @@
 	} = $props();
 
 	let downloadProgress = $state(new SvelteMap<string, number>());
+	let loadingFeedId = $state<string | null>(null);
 	let focusedEpisodeId = $state<string | null>(null);
 	let isReordering = $state(false);
 	let feedService = new FeedService();
@@ -206,6 +209,25 @@
 
 		shareEpisodeUtil(episode, feed);
 	}
+
+	async function handleFeedClick(e: Event, episode: Episode) {
+		e.preventDefault();
+		e.stopPropagation();
+
+		if (isFeedKnown(episode)) {
+			goto(`/podcast/${episode.feedId}`);
+		} else {
+			loadingFeedId = episode.feedId;
+			const feed = await findPodcastByEpisode(episode);
+
+			if (feed) {
+				feed.isSubscribed = 0;
+				await feedService.addFeed(feed);
+				loadingFeedId = null;
+				goto(`/podcast/${feed.id}`);
+			}
+		}
+	}
 </script>
 
 <ul class="episode-list" role="list">
@@ -221,6 +243,10 @@
 			{#if getActiveEpisode(episode)?.isPlaying}
 				<AudioLines strokeWidth="2" class="background-play" />
 			{/if}
+			{#if loadingFeedId === episode.feedId}
+				<LoaderPinwheel class="feed-card__loading" />
+			{/if}
+
 			<button
 				class="episode-card__wrapper"
 				type="button"
@@ -283,7 +309,22 @@
 								</div>
 							{/if}
 						</time>
-						<div class="episode-card__title">{episode.title}</div>
+						<div class="episode-card__title">
+							{#if isSearch && episode.title.startsWith('[')}
+								{@const feedTitle = episode.title.match(/^\[(.+?)\]/)?.[1]}
+								{@const episodeTitle = episode.title.replace(/^\[.+?\]\s/, '')}
+								<div class="episode-title">
+									<a href="/" onclick={(e) => handleFeedClick(e, episode)}>
+										{feedTitle}
+									</a>
+									<div>
+										{episodeTitle}
+									</div>
+								</div>
+							{:else}
+								{episode.title}
+							{/if}
+						</div>
 						{#if isShare}
 							<div class="episode-card__description">{@html episode.content}</div>
 						{/if}
@@ -391,6 +432,28 @@
 		}
 		100% {
 			opacity: 0.08;
+		}
+	}
+
+	:global(.feed-card__loading) {
+		position: absolute;
+		right: 0.5rem;
+		top: 1rem;
+		width: 7rem;
+		height: 7rem;
+		pointer-events: none;
+		color: var(--bg-less);
+		opacity: 0.5;
+		animation: spin 1.25s linear infinite;
+		z-index: 1;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
 		}
 	}
 
@@ -587,6 +650,16 @@
 		}
 		to {
 			opacity: 1;
+		}
+	}
+
+	.episode-title {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+
+		a {
+			width: fit-content;
 		}
 	}
 </style>

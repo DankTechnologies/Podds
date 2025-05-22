@@ -126,6 +126,23 @@
 
 		return await feedService.runEpisodeFinder(finderRequest);
 	}
+
+	async function handleFeedClick(feed: Feed, e: Event) {
+		e.preventDefault();
+		e.stopPropagation();
+
+		if (isFeedKnown(feed)) {
+			goto(`/podcast/${feed.id}`);
+		} else {
+			loadingFeedId = feed.id.toString();
+			const feedToAdd = $state.snapshot(feed);
+			feedToAdd.isSubscribed = 0;
+			feedToAdd.iconData = await convertUrlToBase64(feedToAdd.iconData, feedToAdd.title);
+			await feedService.addFeed(feedToAdd);
+			loadingFeedId = null;
+			goto(`/podcast/${feed.id}`);
+		}
+	}
 </script>
 
 <ul class="feed-list" role="list">
@@ -198,7 +215,9 @@
 									<span>{parseTitle(feed.title)}</span>
 								</button>
 							{:else}
-								{parseTitle(feed.title)}
+								<a href="/" class="feed-link" onclick={(e) => handleFeedClick(feed, e)}>
+									{parseTitle(feed.title)}
+								</a>
 							{/if}
 						</div>
 						<div class="feed-card__meta">
@@ -555,5 +574,10 @@
 		font-size: var(--text-small);
 		font-family: monospace;
 		color: var(--error);
+	}
+
+	.feed-link {
+		font-weight: bold;
+		text-decoration: none;
 	}
 </style>
