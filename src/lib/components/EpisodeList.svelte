@@ -64,6 +64,10 @@
 		return feeds.find((x) => x.id === episode.feedId) !== undefined;
 	}
 
+	function isFeedSubscribed(episode: Episode): boolean {
+		return feeds.find((x) => x.id === episode.feedId && x.isSubscribed === 1) !== undefined;
+	}
+
 	async function playEpisode(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
@@ -292,7 +296,7 @@
 								<div>
 									<Download size="14" />
 								</div>
-							{:else if isSearch && isFeedKnown(episode)}
+							{:else if isSearch && isFeedSubscribed(episode)}
 								<div>
 									<Antenna size="14" />
 								</div>
