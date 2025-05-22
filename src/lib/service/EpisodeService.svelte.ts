@@ -45,7 +45,7 @@ export class EpisodeService {
 			isDownloaded: isDownloaded ? 1 : 0,
 			isPlaying: isPlaying ? 1 : 0,
 			url: episode.url,
-			title: episode.title,
+			title: episode.title.replace(/^\[.+?\]\s/, ''),
 			content: episode.content,
 			feedTitle: feed?.title ?? '',
 			chapters

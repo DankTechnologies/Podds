@@ -19,17 +19,17 @@ export async function searchPodcasts(term: string, options: { limit?: number; sk
         term
     });
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetchWithCorsFallback(url);
-    const data = await response.json();
+    const data = await fetchWithCorsFallback(url);
 
     const lowerTerm = term.trim().toLowerCase();
     let results = data.results as ITunesPodcast[];
 
     results = results
         .reduce((acc, podcast) => {
-            const existing = acc.get(podcast.collectionName);
+            // eliminiate duplicates with same name + feed URL
+            const existing = acc.get(podcast.collectionName + podcast.feedUrl);
             return !existing || podcast.trackCount > existing.trackCount
-                ? acc.set(podcast.collectionName, podcast)
+                ? acc.set(podcast.collectionName + podcast.feedUrl, podcast)
                 : acc;
         }, new Map<string, ITunesPodcast>())
         .values()
@@ -96,8 +96,7 @@ export async function searchEpisodes(term: string, options: { limit?: number; sk
     });
 
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetchWithCorsFallback(url);
-    const data = await response.json();
+    const data = await fetchWithCorsFallback(url);
     let results = data.results as ITunesEpisode[];
 
     const terms = term
@@ -197,13 +196,18 @@ export async function convertUrlToBase64(url: string, title: string): Promise<st
     );
 }
 
-async function fetchWithCorsFallback(url: string): Promise<Response> {
+async function fetchWithCorsFallback(url: string): Promise<{ results: any[] }> {
     const settings = getSettings();
 
     try {
         const response = await fetch(url);
         if (response.ok) {
-            return response;
+            const data = await response.json();
+            if (!data.results || data.results.length === 0) {
+                Log.debug(`Direct fetch returned no results for ${url}, trying CORS proxy`);
+                throw new Error('No results in response');
+            }
+            return data;
         }
     } catch (error) {
         Log.debug(`Failed to fetch ${url}: ${error}`);
@@ -213,7 +217,12 @@ async function fetchWithCorsFallback(url: string): Promise<Response> {
         const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
         const corsResponse = await fetch(corsUrl);
         if (corsResponse.ok) {
-            return corsResponse;
+            const data = await corsResponse.json();
+            if (!data.results || data.results.length === 0) {
+                Log.debug(`CORS proxy returned no results for ${url}, trying CORS proxy 2`);
+                throw new Error('No results in response');
+            }
+            return data;
         }
     } catch (error) {
         Log.debug(`Failed to fetch ${url}: ${error}`);
@@ -224,7 +233,12 @@ async function fetchWithCorsFallback(url: string): Promise<Response> {
             const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
             const corsResponse2 = await fetch(corsUrl2);
             if (corsResponse2.ok) {
-                return corsResponse2;
+                const data = await corsResponse2.json();
+                if (!data.results || data.results.length === 0) {
+                    Log.debug(`CORS proxy 2 returned no results for ${url}`);
+                    throw new Error('No results in response');
+                }
+                return data;
             }
         } catch (error) {
             Log.debug(`Failed to fetch ${url}: ${error}`);

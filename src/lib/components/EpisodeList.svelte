@@ -67,7 +67,7 @@
 		if (!isFeedKnown(episode)) {
 			const feed = await findPodcastByEpisode(episode);
 			if (feed) {
-				feedService.addFeed(feed);
+				await feedService.addFeed(feed);
 			} else {
 				Log.error(`Failed to add feed for episode ${episode.title}`);
 			}
@@ -109,7 +109,7 @@
 		if (!isFeedKnown(episode)) {
 			const feed = await findPodcastByEpisode(episode);
 			if (feed) {
-				feedService.addFeed(feed);
+				await feedService.addFeed(feed);
 			} else {
 				Log.error(`Failed to add feed for episode ${episode.title}`);
 			}
