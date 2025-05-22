@@ -193,16 +193,26 @@
 	}
 </script>
 
-<div
-	class="player"
-	class:is-apple-device={isAppleDevice}
-	onclick={() => (showDetailedControls = !showDetailedControls)}
-	onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
-	role="button"
-	tabindex="0"
->
+<div class="player" class:is-apple-device={isAppleDevice}>
+	<svg class="player__pattern" xmlns="http://www.w3.org/2000/svg" viewBox="222 50 400 200"
+		><defs
+			><pattern id="a" width="70" height="8" patternUnits="userSpaceOnUse"
+				><rect width="100%" height="100%" fill="var(--pattern-bg)" /><path
+					fill="none"
+					stroke="var(--pattern-stroke)"
+					d="M-.02 22c8.373 0 11.938-4.695 16.32-9.662C20.785 7.258 25.728 2 35 2s14.215 5.258 18.7 10.338C58.082 17.305 61.647 22 70.02 22M-.02 14.002C8.353 14 11.918 9.306 16.3 4.339 20.785-.742 25.728-6 35-6S49.215-.742 53.7 4.339c4.382 4.967 7.947 9.661 16.32 9.664M70 6.004c-8.373-.001-11.918-4.698-16.3-9.665C49.215-8.742 44.272-14 35-14S20.785-8.742 16.3-3.661C11.918 1.306 8.353 6-.02 6.002"
+				/></pattern
+			></defs
+		><rect width="800%" height="800%" fill="url(#a)" /></svg
+	>
 	<div class="player__controls">
-		<div class="player__artwork">
+		<div
+			class="player__artwork"
+			onclick={() => (showDetailedControls = !showDetailedControls)}
+			onkeydown={(e) => e.key === 'Enter' && (showDetailedControls = !showDetailedControls)}
+			role="button"
+			tabindex="0"
+		>
 			<img
 				src={`data:${feedIconsById.get(episode.feedId)}`}
 				alt=""
@@ -290,7 +300,15 @@
 		left: 0;
 		right: 0;
 		z-index: 49;
-		background: linear-gradient(to bottom, var(--bg-less) 0%, var(--bg) 60%, var(--bg) 100%);
+		background: light-dark(var(--grey-200), var(--grey-800));
+		--pattern-bg: light-dark(var(--grey-100), var(--grey-900));
+		--pattern-stroke: light-dark(var(--primary-grey-light), var(--primary));
+	}
+
+	.player__pattern {
+		position: absolute;
+		opacity: 0.15;
+		pointer-events: none;
 	}
 
 	.is-apple-device {
@@ -350,11 +368,14 @@
 		align-items: center;
 		padding: 1rem;
 		height: 3.25rem;
+		z-index: 1;
 	}
 
 	.player__artwork {
-		width: 3.25rem;
-		height: 3.25rem;
+		width: 3.5rem;
+		height: 3.5rem;
+		border: 0.5rem solid light-dark(var(--grey-200), var(--grey-800));
+		border-radius: 0.25rem;
 	}
 
 	.player__artwork img {
@@ -362,22 +383,22 @@
 		height: 100%;
 		object-fit: cover;
 		transition: opacity 0.3s ease;
-		border-radius: 0.5rem;
+		border-radius: 0.25rem;
 	}
 
 	.player__button {
 		border: none;
 		background: none;
-		color: light-dark(var(--primary-grey-dark), var(--primary-black));
 		border-radius: 5rem;
+		color: light-dark(var(--primary-grey-dark), var(--primary-black));
 		transition:
-			box-shadow 0.05s,
-			transform 0.05s;
+			box-shadow 0.2s,
+			transform 0.2s;
 	}
 
 	.player__button:active {
-		box-shadow: 0 0 2rem var(--bg-less);
-		transform: scale(0.95);
+		box-shadow: 0 0 1.5rem var(--bg-less);
+		transform: scale(1.1);
 	}
 
 	.stack-cell {
