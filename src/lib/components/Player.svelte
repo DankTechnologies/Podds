@@ -372,9 +372,9 @@
 	}
 
 	.player__artwork {
-		width: 3.5rem;
-		height: 3.5rem;
-		border: 0.5rem solid light-dark(var(--grey-200), var(--grey-800));
+		width: 4rem;
+		height: 4rem;
+		border: 0.6rem solid light-dark(var(--grey-200), var(--grey-800));
 		border-radius: 0.25rem;
 	}
 
