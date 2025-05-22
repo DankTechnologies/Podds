@@ -120,14 +120,14 @@
 		<div class="episodes-header">
 			<button
 				class="monitor-button"
-				class:monitored={searchHistory.find((h) => h.term === $page.params.term)?.monitored}
+				class:active={searchHistory.find((h) => h.term === $page.params.term)?.monitored}
 				onclick={() =>
 					handleToggleMonitor(searchHistory.find((h) => h.term === $page.params.term)?.id ?? '')}
 			>
 				{#if searchHistory.find((h) => h.term === $page.params.term)?.monitored}
-					<BellRing size="16" /> Track New Episodes - ON
+					<BellRing size="14" /> Tracking
 				{:else}
-					<BellOff size="16" /> Track New Episodes - OFF
+					Not Tracking
 				{/if}
 			</button>
 		</div>
@@ -279,13 +279,38 @@
 		padding: 1rem;
 		display: flex;
 		justify-content: flex-end;
+		background-color: var(--bg-less);
 	}
 
-	.episodes-header .monitor-button {
+	.monitor-button {
+		display: flex;
+		font-size: var(--text-small);
+		font-weight: 600;
+		align-items: center;
+		gap: 0.5rem;
+		border: none;
+		padding: 0.5rem;
+		cursor: pointer;
+		border-radius: 0.25rem;
+		background: var(--bg);
+		color: var(--text);
+		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
+		transition: all 0.6s ease-in-out;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.monitor-button:not(.active) {
+		opacity: 0.4;
+		box-shadow: none;
+	}
+
+	.monitor-button.active {
+		color: var(--primary-less);
 		background: var(--bg-less);
+		box-shadow: 0.25rem 0.25rem 0 0 var(--primary-less);
 	}
 
-	.monitor-button,
 	.delete-button {
 		display: flex;
 		font-size: var(--text-small);
@@ -300,10 +325,5 @@
 		color: var(--text);
 		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
 		opacity: 0.5;
-	}
-
-	.monitor-button.monitored {
-		opacity: 1;
-		color: var(--success);
 	}
 </style>
