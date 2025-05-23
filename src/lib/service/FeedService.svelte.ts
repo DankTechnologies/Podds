@@ -50,11 +50,6 @@ export class FeedService {
 		const settings = getSettings();
 		const feeds = getFeeds().filter((x) => x.isSubscribed);
 
-		if (!settings) {
-			Log.warn('Settings not found, skipping update');
-			return;
-		}
-
 		if (feeds.length === 0) {
 			Log.warn('No feeds found, skipping update');
 			return;
@@ -76,7 +71,14 @@ export class FeedService {
 		// so we need to subtract a day to ensure we get all episodes
 		const since = timestampLastSync - ONE_DAY_IN_SECONDS;
 
-		Log.info('Starting update of all feeds');
+		Log.info('Subscribed feeds will be updated in 5 seconds...');
+
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		if (!isOnline()) {
+			Log.info('Skipping feed update due to no network connection');
+			return;
+		}
 
 		const finderRequest: EpisodeFinderRequest = {
 			feeds,
