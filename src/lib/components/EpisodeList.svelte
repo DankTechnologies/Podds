@@ -199,7 +199,9 @@
 	function getEpisodeDurationDisplay(episode: Episode): string {
 		const activeEpisode = getActiveEpisode(episode);
 
-		return !activeEpisode || activeEpisode.isCompleted || activeEpisode.playbackPosition === 0
+		return !activeEpisode ||
+			activeEpisode.isCompleted ||
+			(activeEpisode.playbackPosition === 0 && !activeEpisode.isPlaying)
 			? formatEpisodeDuration(episode.durationMin)
 			: `${formatEpisodeDuration(activeEpisode.minutesLeft)} left`;
 	}
@@ -290,13 +292,14 @@
 								<div>
 									<Play size="14" />
 								</div>
-							{:else if getActiveEpisode(episode)?.isDownloaded}
-								<div>
-									<Download size="14" />
-								</div>
 							{:else if isSearch && isFeedSubscribed(episode)}
 								<div>
 									<Antenna size="14" />
+								</div>
+							{/if}
+							{#if getActiveEpisode(episode)?.isDownloaded}
+								<div>
+									<Download size="14" />
 								</div>
 							{/if}
 							<div>
