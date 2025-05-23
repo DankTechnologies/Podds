@@ -272,8 +272,8 @@ export class EpisodeService {
 			}
 		});
 
-		// Run first check after 5 seconds
-		setTimeout(sync, 5000);
+		// Run first check after 60 seconds, not urgent
+		setTimeout(sync, 60000);
 
 		// Register periodic updates
 		setInterval(sync, CHECK_INTERVAL_MS);

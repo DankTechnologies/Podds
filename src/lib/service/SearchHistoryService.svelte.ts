@@ -175,8 +175,8 @@ export class SearchHistoryService {
             }
         });
 
-        // Delay first sync by 5 seconds, defer to feed sync
-        setTimeout(sync, 5000);
+        // Delay first sync by 30 seconds, not urgent 
+        setTimeout(sync, 30000);
 
         // Register periodic updates
         setInterval(sync, CHECK_INTERVAL_MS);
