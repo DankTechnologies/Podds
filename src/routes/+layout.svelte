@@ -11,7 +11,7 @@
 	import { trackThemePreference } from '$lib/utils/themePreference.svelte';
 	import { onMount } from 'svelte';
 	import { requestStoragePersistence } from '$lib/utils/storage';
-	import { SettingsService } from '$lib/service/SettingsService.svelte';
+	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { isPwa } from '$lib/utils/osCheck';
 	import { registerServiceWorker } from '$lib/utils/storage';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
@@ -19,6 +19,7 @@
 	import { trackNetworkState } from '$lib/utils/networkState.svelte';
 	import { runRatchets } from '$lib/stores/ratchets';
 	import { onNavigate } from '$app/navigation';
+	import { onUpdateReady } from '$lib/utils/versionUpdate';
 	let feedService = new FeedService();
 	let searchHistoryService = new SearchHistoryService();
 
@@ -44,6 +45,10 @@
 				await navigation.complete;
 			});
 		});
+	});
+
+	onUpdateReady(() => {
+		SessionInfo.hasUpdate = true;
 	});
 
 	onMount(() => {

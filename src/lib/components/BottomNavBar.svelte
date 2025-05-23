@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { SessionInfo } from '$lib/service/SettingsService.svelte';
 	import { CassetteTape, Hotel, ListMusic, Radar } from 'lucide-svelte';
-	import { onUpdateReady } from '$lib/utils/versionUpdate';
 	import { getFeeds, getSearchHistory, getSettings } from '$lib/stores/db.svelte';
 	import { getIsLightMode } from '$lib/utils/themePreference.svelte';
 	import type { ActiveEpisode } from '$lib/types/db';
@@ -14,10 +12,6 @@
 	const ICON_SIZE = '2rem';
 
 	let { episode }: { episode: ActiveEpisode | undefined } = $props();
-
-	onUpdateReady(() => {
-		SessionInfo.hasUpdate = true;
-	});
 
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $derived(getSettings());
