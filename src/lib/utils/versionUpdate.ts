@@ -9,6 +9,14 @@ export function onUpdateReady(callback: () => void): void {
 		return;
 	}
 
+	// First check if there's already a waiting worker
+	navigator.serviceWorker.getRegistration().then((registration) => {
+		if (registration?.waiting) {
+			Log.debug('Found waiting service worker on initial check');
+			callback();
+		}
+	});
+
 	navigator.serviceWorker.ready
 		.then((registration) => {
 			Log.debug('Service worker is ready');
@@ -22,13 +30,14 @@ export function onUpdateReady(callback: () => void): void {
 					return;
 				}
 
-				newWorker.onstatechange = function () {
+				// Use addEventListener instead of onstatechange
+				newWorker.addEventListener('statechange', function () {
 					Log.debug(`Service worker state changed to ${this.state}`);
 					if (this.state === 'installed' && navigator.serviceWorker.controller) {
 						Log.debug('New service worker ready to take over');
 						callback();
 					}
-				};
+				});
 			});
 		})
 		.catch((error) => {
