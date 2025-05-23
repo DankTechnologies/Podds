@@ -3,6 +3,8 @@ import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/epi
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
 const FEED_TIMEOUT_MS = 30000; // 30 seconds per feed
+const BATCH_SIZE = 10; // Process 10 feeds at a time
+const BATCH_DELAY_MS = 200; // 200ms delay between batches
 
 // Add error handling for the worker itself
 self.onerror = (error) => {
@@ -17,10 +19,25 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 	try {
 		const { feeds, since, corsHelper, corsHelper2 } = e.data;
 
-		// Fetch all feeds concurrently
-		const results = await Promise.all(
-			feeds.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
-		);
+		// Process feeds in batches
+		const results: Array<{
+			episodes: Episode[];
+			feed: Feed;
+			errors: string[];
+		}> = [];
+
+		for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
+			const batch = feeds.slice(i, i + BATCH_SIZE);
+			const batchResults = await Promise.all(
+				batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
+			);
+			results.push(...batchResults);
+
+			// Add delay between batches to prevent overwhelming the network
+			if (i + BATCH_SIZE < feeds.length) {
+				await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+			}
+		}
 
 		const response: EpisodeFinderResponse = {
 			episodes: results.flatMap(r => r.episodes),
