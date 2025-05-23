@@ -104,7 +104,7 @@
 					handleDownloadComplete(episode);
 					AudioService.play(episode.url, 0);
 				},
-				(err) => handleDownloadError(episode.id!, err),
+				(err) => handleDownloadError(episode, err),
 				(progress) => downloadProgress.set(episode.id!, progress)
 			);
 		}
@@ -126,12 +126,12 @@
 		downloadAudio(
 			episode.url,
 			() => handleDownloadComplete(episode),
-			(err) => handleDownloadError(episode.id!, err),
+			(err) => handleDownloadError(episode, err),
 			(progress) => downloadProgress.set(episode.id!, progress === 100 ? 99 : progress) // avoid brief 100% flash
 		);
 	}
 
-	function removeEpisode(episode: Episode) {
+	function removeDownload(episode: Episode) {
 		toggleEpisodeFocus(episode);
 
 		if (getActiveEpisode(episode)?.isPlaying) {
@@ -139,7 +139,7 @@
 			EpisodeService.clearPlayingEpisodes();
 		}
 
-		EpisodeService.removeActiveEpisode(episode.id, episode.url);
+		EpisodeService.clearDownloaded(episode);
 	}
 
 	function handleDownloadComplete(episode: Episode) {
@@ -147,10 +147,10 @@
 		downloadProgress.delete(episode.id);
 	}
 
-	function handleDownloadError(episodeId: string, err: Error | ErrorEvent) {
-		downloadProgress.set(episodeId, -1);
-		EpisodeService.clearDownloaded(episodeId);
-		Log.error(`Download failed for episode ${episodeId}: ${err.message ?? err.toString()}`);
+	function handleDownloadError(episode: Episode, err: Error | ErrorEvent) {
+		downloadProgress.set(episode.id, -1);
+		EpisodeService.clearDownloaded(episode);
+		Log.error(`Download failed for episode ${episode.id}: ${err.message ?? err.toString()}`);
 	}
 
 	function toggleEpisodeFocus(episode: Episode) {
@@ -373,7 +373,7 @@
 					{#if getActiveEpisode(episode)?.isDownloaded}
 						<button
 							class="episode-controls__button episode-controls__button--delete"
-							onclick={() => removeEpisode(episode)}
+							onclick={() => removeDownload(episode)}
 						>
 							<Trash2 size="16" />
 						</button>

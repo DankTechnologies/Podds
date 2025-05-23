@@ -78,11 +78,6 @@ export class EpisodeService {
 		}
 	}
 
-	static removeActiveEpisode(id: string, url: string): void {
-		db.activeEpisodes.removeOne({ id });
-		this.deletedCachedEpisodes([url]);
-	}
-
 	static findActiveEpisode(episodeId: string): ActiveEpisode | undefined {
 		return db.activeEpisodes.findOne({ id: episodeId });
 	}
@@ -149,8 +144,9 @@ export class EpisodeService {
 		}
 	}
 
-	static clearDownloaded(episodeId: string): void {
-		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isDownloaded: 0 } });
+	static clearDownloaded(episode: Episode): void {
+		db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isDownloaded: 0 } });
+		this.deleteCachedEpisodes([episode.url]);
 	}
 
 	static markCompleted(episodeId: string): void {
@@ -174,7 +170,7 @@ export class EpisodeService {
 		});
 	}
 
-	private static async deletedCachedEpisodes(urls: string[]): Promise<void> {
+	static async deleteCachedEpisodes(urls: string[]): Promise<void> {
 		const worker = new Worker(new URL('../workers/episodeCleaner.worker.ts', import.meta.url), {
 			type: 'module'
 		});
@@ -196,10 +192,6 @@ export class EpisodeService {
 
 	private static findEpisodesForRetention(): { completed: ActiveEpisode[]; inProgress: ActiveEpisode[] } {
 		const settings = getSettings();
-		if (!settings) {
-			Log.warn('Settings not found, skipping retention check');
-			return { completed: [], inProgress: [] };
-		}
 
 		const now = new Date();
 		const completedRetentionDays = settings.completedEpisodeRetentionDays ?? 7;
@@ -224,16 +216,15 @@ export class EpisodeService {
 	private static async applyRetentionPolicy(): Promise<void> {
 		const { completed, inProgress } = this.findEpisodesForRetention();
 
-		// Remove completed episodes
 		for (const episode of completed) {
 			Log.info(`Removing completed episode due to retention policy: ${episode.title}`);
-			this.removeActiveEpisode(episode.id, episode.url);
+			await this.deleteCachedEpisodes([episode.url]);
 		}
 
 		// Remove in-progress episodes
 		for (const episode of inProgress) {
 			Log.info(`Removing in-progress episode due to retention policy: ${episode.title}`);
-			this.removeActiveEpisode(episode.id, episode.url);
+			await this.deleteCachedEpisodes([episode.url]);
 		}
 	}
 

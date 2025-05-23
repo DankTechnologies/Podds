@@ -65,10 +65,6 @@ export class SearchHistoryService {
 
     async updateMonitoredSearches() {
         const settings = getSettings();
-        if (!settings) {
-            Log.warn('Settings not found, skipping search updates');
-            return;
-        }
 
         const monitoredSearches = SearchHistoryService.getMonitoredSearchHistory();
 
