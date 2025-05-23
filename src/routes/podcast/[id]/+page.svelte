@@ -115,8 +115,8 @@
 				onclick={() => toggleSubscribed(feed)}
 			>
 				{#if feed.isSubscribed}
-					Following
 					<Rss size="14" />
+					Following
 				{:else}
 					Not Following
 				{/if}
