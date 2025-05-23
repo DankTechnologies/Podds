@@ -237,7 +237,7 @@
 <ul class="episode-list" role="list">
 	{#each episodes as episode, index (episode.id)}
 		<li
-			class="episode-card fade-in"
+			class="episode-card"
 			class:episode-card--playing={getActiveEpisode(episode)?.isPlaying}
 			class:episode-card--focused={focusedEpisodeId === episode.id}
 			class:episode-card--known-feed={isSearch && isFeedKnown(episode)}
@@ -263,8 +263,6 @@
 								src={feedIconsById.get(episode.feedId)}
 								alt={episode.title}
 								class="episode-card__image"
-								loading={isAppleDevice ? 'eager' : 'lazy'}
-								decoding={isAppleDevice ? 'auto' : 'async'}
 							/>
 						{:else}
 							<div class="episode-card__image">
@@ -642,19 +640,6 @@
 
 	.episode-controls--no-transition {
 		transition: none !important;
-	}
-
-	.fade-in {
-		animation: fadeIn 0.2s ease-in;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
 	}
 
 	.episode-title {

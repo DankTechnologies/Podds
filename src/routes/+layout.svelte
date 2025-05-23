@@ -18,6 +18,7 @@
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { trackNetworkState } from '$lib/utils/networkState.svelte';
 	import { runRatchets } from '$lib/stores/ratchets';
+	import { onNavigate } from '$app/navigation';
 	let feedService = new FeedService();
 	let searchHistoryService = new SearchHistoryService();
 
@@ -33,6 +34,17 @@
 	requestStoragePersistence();
 	trackThemePreference();
 	trackNetworkState();
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
+	});
 
 	onMount(() => {
 		Promise.all([
@@ -85,4 +97,59 @@
 </main>
 
 <style>
+	@keyframes grow-x {
+		from {
+			transform: scaleX(0);
+		}
+		to {
+			transform: scaleX(1);
+		}
+	}
+
+	@keyframes shrink-x {
+		from {
+			transform: scaleX(1);
+		}
+		to {
+			transform: scaleX(0);
+		}
+	}
+
+	::view-transition-old(feed-icon) {
+		animation: 0.25s linear both shrink-x;
+	}
+
+	::view-transition-new(feed-icon) {
+		animation: 0.25s 0.25s linear both grow-x;
+	}
+
+	@keyframes old-out {
+		0% {
+			opacity: 1;
+		}
+
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes new-in {
+		0% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
+
+	::view-transition-old(root) {
+		animation-name: old-out;
+		animation-duration: 0.4s;
+	}
+
+	::view-transition-new(root) {
+		animation-name: new-in;
+		animation-duration: 0.4s;
+	}
 </style>

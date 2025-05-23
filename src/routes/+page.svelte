@@ -98,6 +98,14 @@
 
 		return numRows > lastFullRow ? startOfLastRow : feeds.length;
 	}
+
+	function handlePodcastClick(e: MouseEvent, id: string) {
+		const img = (e.currentTarget as HTMLElement).querySelector('img');
+		if (img) {
+			img.style.viewTransitionName = `feed-icon`;
+		}
+		goto(`/podcast/${id}`);
+	}
 </script>
 
 <div class="grid">
@@ -125,13 +133,11 @@
 			</div>
 		{:else}
 			<div class="grid-item">
-				<button onclick={() => goto(`/podcast/${x.id}`)} aria-label={`Go to ${x.title} podcast`}>
-					<img
-						src={`data:${x.iconData}`}
-						alt={x.title}
-						loading={isAppleDevice ? 'eager' : 'lazy'}
-						decoding={isAppleDevice ? 'auto' : 'async'}
-					/>
+				<button
+					onclick={(e) => handlePodcastClick(e, x.id)}
+					aria-label={`Go to ${x.title} podcast`}
+				>
+					<img src={`data:${x.iconData}`} alt={x.title} />
 				</button>
 			</div>
 		{/if}
@@ -179,6 +185,8 @@
 
 	.grid-item {
 		line-height: 0;
+		aspect-ratio: 1;
+		position: relative;
 	}
 
 	.grid-item button {
@@ -188,13 +196,17 @@
 		line-height: 0;
 		height: 100%;
 		width: 100%;
+		position: relative;
 	}
 
 	.grid-item img {
 		width: 100%;
-		aspect-ratio: 1;
+		height: 100%;
 		object-fit: cover;
 		border-radius: 0.125rem;
+		position: absolute;
+		top: 0;
+		left: 0;
 	}
 
 	.subnav-container {

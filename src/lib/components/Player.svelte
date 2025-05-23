@@ -213,12 +213,7 @@
 			role="button"
 			tabindex="0"
 		>
-			<img
-				src={`data:${feedIconsById.get(episode.feedId)}`}
-				alt=""
-				loading={isAppleDevice ? 'eager' : 'lazy'}
-				decoding={isAppleDevice ? 'auto' : 'async'}
-			/>
+			<img src={`data:${feedIconsById.get(episode.feedId)}`} alt="" />
 		</div>
 
 		<button class="player__button" onclick={(e) => handleBack(e)}>
@@ -303,6 +298,7 @@
 		background: light-dark(var(--grey-200), var(--grey-800));
 		--pattern-bg: light-dark(var(--grey-100), var(--grey-900));
 		--pattern-stroke: light-dark(var(--primary-grey-light), var(--primary));
+		view-transition-name: player;
 	}
 
 	.player__pattern {

@@ -177,8 +177,6 @@
 								src={feedIconsById.get(feed.id.toString())}
 								alt={feed.title}
 								class="feed-card__image fade-in"
-								loading={isAppleDevice ? 'eager' : 'lazy'}
-								decoding={isAppleDevice ? 'auto' : 'async'}
 							/>
 						{:else}
 							<div class="feed-card__image">

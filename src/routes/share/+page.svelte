@@ -159,13 +159,7 @@
 	{:else if feed}
 		<header class="podcast-header">
 			<div class="podcast-header__main">
-				<img
-					class="podcast-header__image"
-					src={`data:${feed.iconData}`}
-					alt={feed.title}
-					loading={isAppleDevice ? 'eager' : 'lazy'}
-					decoding={isAppleDevice ? 'auto' : 'async'}
-				/>
+				<img class="podcast-header__image" src={`data:${feed.iconData}`} alt={feed.title} />
 				<div class="podcast-header__content">
 					<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
 					<div class="podcast-header__description">{@html feed.description}</div>

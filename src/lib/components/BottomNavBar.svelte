@@ -115,6 +115,7 @@
 		z-index: 50;
 		height: 4rem;
 		background-color: var(--bg-less);
+		view-transition-name: nav;
 	}
 
 	.is-apple-device {

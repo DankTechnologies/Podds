@@ -38,7 +38,16 @@
 	let activeEpisodes = $derived(getActiveEpisodes().filter((episode) => episode.feedId === feedId));
 
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
+
 	onMount(() => {
+		// Remove the view transition name after the transition completes
+		requestAnimationFrame(() => {
+			const img = document.querySelector('.podcast-header__image');
+			if (img) {
+				(img as HTMLElement).style.viewTransitionName = '';
+			}
+		});
+
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -81,10 +90,9 @@
 		<div class="podcast-header__main">
 			<img
 				class="podcast-header__image"
+				style={`view-transition-name: feed-icon;`}
 				src={`data:${feed.iconData}`}
 				alt={feed.title}
-				loading={isAppleDevice ? 'eager' : 'lazy'}
-				decoding={isAppleDevice ? 'auto' : 'async'}
 			/>
 			<div class="podcast-header__content">
 				<div class="podcast-header__owner">{parseOwner(feed.author, feed.ownerName)}</div>
