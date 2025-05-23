@@ -239,6 +239,7 @@
 
 	.podcast-header__button--subscribe {
 		margin-left: auto;
+		transform: translateY(-2px);
 		transition: all 0.6s ease-in-out;
 		white-space: nowrap;
 		overflow: hidden;
