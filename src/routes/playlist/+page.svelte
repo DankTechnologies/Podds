@@ -4,6 +4,8 @@
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import type { Episode } from '$lib/types/db';
 
+	const SWIPE_THRESHOLD = 50; // minimum distance for a swipe
+
 	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
 			.filter(
@@ -59,6 +61,9 @@
 	let wiggleUpNext = $state(false);
 	let wiggleListenedTo = $state(false);
 
+	let touchStartX = $state(0);
+	let touchEndX = $state(0);
+
 	function handlePlayNext(episode: Episode) {
 		const episodeIds = upNextEpisodes.map((e) => e.id);
 
@@ -71,6 +76,31 @@
 
 		episodeIds.unshift(episode.id);
 		EpisodeService.reorderEpisodes(episodeIds);
+	}
+
+	function handleTouchStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX;
+	}
+
+	function handleTouchMove(e: TouchEvent) {
+		touchEndX = e.touches[0].clientX;
+	}
+
+	function handleTouchEnd() {
+		const swipeDistance = touchEndX - touchStartX;
+
+		if (Math.abs(swipeDistance) > SWIPE_THRESHOLD) {
+			if (swipeDistance > 0 && view === 'upNext') {
+				// Swipe right, switch to listenedTo
+				view = 'listenedTo';
+			} else if (swipeDistance < 0 && view === 'listenedTo') {
+				// Swipe left, switch to upNext
+				view = 'upNext';
+			}
+		}
+
+		touchStartX = 0;
+		touchEndX = 0;
 	}
 
 	$effect(() => {
@@ -99,7 +129,12 @@
 	});
 </script>
 
-<div class="playlist-view-controls">
+<div
+	class="playlist-view-controls"
+	ontouchstart={handleTouchStart}
+	ontouchmove={handleTouchMove}
+	ontouchend={handleTouchEnd}
+>
 	<button
 		class="playlist-view-button"
 		class:active={view === 'listenedTo'}
@@ -160,6 +195,8 @@
 		top: 0;
 		z-index: 10;
 		border-bottom: 4px solid var(--primary-less);
+		touch-action: pan-y pinch-zoom; /* Allow vertical scrolling but prevent horizontal browser gestures */
+		user-select: none; /* Prevent text selection during swipe */
 	}
 
 	.playlist-view-button {
