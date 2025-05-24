@@ -2,9 +2,8 @@ import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
 
-const FEED_TIMEOUT_MS = 30000; // 30 seconds per feed
-const BATCH_SIZE = 10; // Process 10 feeds at a time
-const BATCH_DELAY_MS = 200; // 200ms delay between batches
+const FEED_TIMEOUT_MS = 5000;
+const BATCH_SIZE = 15;
 
 // Add error handling for the worker itself
 self.onerror = (error) => {
@@ -32,11 +31,6 @@ self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
 				batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
 			);
 			results.push(...batchResults);
-
-			// Add delay between batches to prevent overwhelming the network
-			if (i + BATCH_SIZE < feeds.length) {
-				await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
-			}
 		}
 
 		const response: EpisodeFinderResponse = {
