@@ -25,7 +25,8 @@ export const DefaultSettings: Settings = {
 	inProgressEpisodeRetentionDays: 14,
 	goBackOnResumeSeconds: 10,
 	hugged: false,
-	ratchet: 1
+	ratchet: 1,
+	playlistView: 'upNext'
 };
 
 export class SettingsService {
@@ -69,6 +70,10 @@ export class SettingsService {
 
 	static updateRatchet(ratchet: number): void {
 		db.settings.updateOne({ id: '1' }, { $set: { ratchet } });
+	}
+
+	static updatePlaylistView(playlistView: 'listenedTo' | 'upNext'): void {
+		db.settings.updateOne({ id: '1' }, { $set: { playlistView } });
 	}
 
 	static async clearAllLocalState(): Promise<void> {

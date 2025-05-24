@@ -95,6 +95,7 @@ export interface Settings {
 	primaryColor?: string;
 	hugged: boolean;
 	ratchet: number;
+	playlistView: 'listenedTo' | 'upNext';
 }
 
 export interface SearchHistory {

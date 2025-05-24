@@ -22,10 +22,10 @@
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
-	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { page } from '$app/state';
 	import { findPodcastByEpisode } from '$lib/api/itunes';
 	import { goto } from '$app/navigation';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 
 	let {
 		episodes,
@@ -120,6 +120,10 @@
 			} else {
 				Log.error(`Failed to add feed for episode ${episode.title}`);
 			}
+		}
+
+		if (!isPlaylist) {
+			SettingsService.updatePlaylistView('upNext');
 		}
 
 		downloadProgress.set(episode.id, 0);

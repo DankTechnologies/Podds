@@ -1,9 +1,15 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
-	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
+	import {
+		getActiveEpisodes,
+		getEpisodes,
+		getFeedIconsById,
+		getSettings
+	} from '$lib/stores/db.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import type { Episode } from '$lib/types/db';
 	import { onMount } from 'svelte';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 
 	const SWIPE_THRESHOLD = 50; // minimum distance for a swipe
 	const ITEMS_PER_PAGE = 20;
@@ -59,7 +65,7 @@
 	let playingEpisode = $derived(getActiveEpisodes().find((x) => x.isPlaying));
 
 	let feedIconsById = $derived(getFeedIconsById());
-	let view = $state('upNext');
+	let view = $derived(getSettings().playlistView);
 
 	let previousUpNextCount = $state(-1);
 	let previousListenedToCount = $state(-1);
@@ -97,10 +103,10 @@
 		if (Math.abs(swipeDistance) > SWIPE_THRESHOLD) {
 			if (swipeDistance > 0 && view === 'upNext') {
 				// Swipe right, switch to listenedTo
-				view = 'listenedTo';
+				SettingsService.updatePlaylistView('listenedTo');
 			} else if (swipeDistance < 0 && view === 'listenedTo') {
 				// Swipe left, switch to upNext
-				view = 'upNext';
+				SettingsService.updatePlaylistView('upNext');
 			}
 		}
 
@@ -171,7 +177,7 @@
 		class="playlist-view-button"
 		class:active={view === 'listenedTo'}
 		class:wiggle={wiggleListenedTo}
-		onclick={() => (view = 'listenedTo')}
+		onclick={() => SettingsService.updatePlaylistView('listenedTo')}
 	>
 		Recently Listened To
 	</button>
@@ -179,7 +185,7 @@
 		class="playlist-view-button"
 		class:active={view === 'upNext'}
 		class:wiggle={wiggleUpNext}
-		onclick={() => (view = 'upNext')}
+		onclick={() => SettingsService.updatePlaylistView('upNext')}
 	>
 		Up Next
 		<span class="playlist-view-button-count">{upNextEpisodes.length}</span>
