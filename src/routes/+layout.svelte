@@ -37,7 +37,12 @@
 	trackNetworkState();
 
 	onNavigate((navigation) => {
-		if (!document.startViewTransition || isAppleDevice) return;
+		if (
+			!document.startViewTransition ||
+			isAppleDevice ||
+			navigation.from?.route.id === navigation.to?.route.id
+		)
+			return;
 
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
