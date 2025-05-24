@@ -40,7 +40,8 @@
 		if (
 			!document.startViewTransition ||
 			isAppleDevice ||
-			navigation.from?.route.id === navigation.to?.route.id
+			navigation.from?.route.id === navigation.to?.route.id ||
+			!(navigation.to?.route.id === '/' || navigation.to?.route.id?.startsWith('/podcast'))
 		)
 			return;
 
