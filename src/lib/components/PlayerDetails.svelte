@@ -90,6 +90,22 @@
 			<BottomSheet.Sheet>
 				<BottomSheet.Handle />
 				<BottomSheet.Content>
+					<svg class="background-noise" xmlns="http://www.w3.org/2000/svg"
+						><defs
+							><pattern
+								id="b"
+								width="36"
+								height="36"
+								patternTransform="scale(5)"
+								patternUnits="userSpaceOnUse"
+								><rect width="100%" height="100%" fill="var(--background)" /><path
+									fill="none"
+									stroke="var(--foreground)"
+									d="M3.86 18.709a5.457 5.457 0 0 1-7.72 0l-14.848-14.85a5.46 5.46 0 0 1 0-7.719L-3.86-18.708a5.46 5.46 0 0 1 7.719 0L18.708-3.86a5.46 5.46 0 0 1 0 7.72zm36 0a5.457 5.457 0 0 1-7.72 0L17.292 3.859a5.46 5.46 0 0 1 0-7.719L32.14-18.708a5.46 5.46 0 0 1 7.72 0L54.707-3.86a5.46 5.46 0 0 1 0 7.72zm-36 36a5.457 5.457 0 0 1-7.72 0l-14.848-14.85a5.46 5.46 0 0 1 0-7.719L-3.86 17.292a5.46 5.46 0 0 1 7.719 0L18.708 32.14a5.46 5.46 0 0 1 0 7.72zm36 0a5.457 5.457 0 0 1-7.72 0l-14.848-14.85a5.46 5.46 0 0 1 0-7.719L32.14 17.292a5.46 5.46 0 0 1 7.72 0L54.707 32.14a5.46 5.46 0 0 1 0 7.72z"
+								/></pattern
+							></defs
+						><rect width="800%" height="800%" fill="url(#b)" /></svg
+					>
 					<div class="content">
 						<div class="header">
 							<div class="episode-title">
@@ -132,73 +148,75 @@
 								{@html episode.content}
 							</div>
 						{/if}
-						<div class="progress-container">
-							<div class="time">
-								<div>
-									{formatPlaybackPosition(currentTime)}
-								</div>
-								<div>
-									-{formatPlaybackPosition(remainingTime)}
-								</div>
-							</div>
-							<input
-								class="progress-bar"
-								type="range"
-								min="0"
-								bind:value={currentTime}
-								max={duration}
-								onchange={onSeek}
-								onclick={(e) => e.stopPropagation()}
-								onmousedown={(e) => e.stopPropagation()}
-								onmousemove={(e) => e.stopPropagation()}
-								onmouseup={(e) => e.stopPropagation()}
-								ontouchstart={(e) => e.stopPropagation()}
-								ontouchmove={(e) => e.stopPropagation()}
-								ontouchend={(e) => e.stopPropagation()}
-							/>
-						</div>
-						<div class="controls">
-							<div class="buttons">
-								<button class="button playback-speed" onclick={onSpeedChange}>
+						<div class="progress-controls-container">
+							<div class="progress-container">
+								<div class="time">
 									<div>
-										<Gauge size="1.5rem" />
+										{formatPlaybackPosition(currentTime)}
 									</div>
-									<div class="playback-speed-text">{playbackSpeed}x</div>
-								</button>
-								<button class="button" onclick={onBack}>
-									<div class="stack-cell">
+									<div>
+										-{formatPlaybackPosition(remainingTime)}
+									</div>
+								</div>
+								<input
+									class="progress-bar"
+									type="range"
+									min="0"
+									bind:value={currentTime}
+									max={duration}
+									onchange={onSeek}
+									onclick={(e) => e.stopPropagation()}
+									onmousedown={(e) => e.stopPropagation()}
+									onmousemove={(e) => e.stopPropagation()}
+									onmouseup={(e) => e.stopPropagation()}
+									ontouchstart={(e) => e.stopPropagation()}
+									ontouchmove={(e) => e.stopPropagation()}
+									ontouchend={(e) => e.stopPropagation()}
+								/>
+							</div>
+							<div class="controls">
+								<div class="buttons">
+									<button class="button playback-speed" onclick={onSpeedChange}>
 										<div>
-											<RotateCcw size="2.5rem" />
+											<Gauge size="1.5rem" />
 										</div>
-										<div class="time-text">{skipBackwardButtonSeconds ?? 10}</div>
-									</div>
-								</button>
-								<button class="button play-pause" onclick={onPlayPause}>
-									<div class="stack-cell">
-										<div class="play-pause__circle"></div>
-										<div class="play-pause__icon">
-											{#if !episode.isDownloaded}
-												<Loader2 class="play-pause__icon--loading" size="3rem" />
-											{:else if paused}
-												<Play class="play-pause__icon--play" size="3rem" />
-											{:else}
-												<Pause class="play-pause__icon--pause" size="3rem" />
-											{/if}
+										<div class="playback-speed-text">{playbackSpeed}x</div>
+									</button>
+									<button class="button" onclick={onBack}>
+										<div class="stack-cell">
+											<div>
+												<RotateCcw size="2.5rem" />
+											</div>
+											<div class="time-text">{skipBackwardButtonSeconds ?? 10}</div>
 										</div>
-									</div>
-								</button>
+									</button>
+									<button class="button play-pause" onclick={onPlayPause}>
+										<div class="stack-cell">
+											<div class="play-pause__circle"></div>
+											<div class="play-pause__icon">
+												{#if !episode.isDownloaded}
+													<Loader2 class="play-pause__icon--loading" size="3rem" />
+												{:else if paused}
+													<Play class="play-pause__icon--play" size="3rem" />
+												{:else}
+													<Pause class="play-pause__icon--pause" size="3rem" />
+												{/if}
+											</div>
+										</div>
+									</button>
 
-								<button class="button" onclick={onForward}>
-									<div class="stack-cell">
-										<div>
-											<RotateCw size="2.5rem" />
+									<button class="button" onclick={onForward}>
+										<div class="stack-cell">
+											<div>
+												<RotateCw size="2.5rem" />
+											</div>
+											<div class="time-text">{skipForwardButtonSeconds ?? 30}</div>
 										</div>
-										<div class="time-text">{skipForwardButtonSeconds ?? 30}</div>
-									</div>
-								</button>
-								<button class="button stop" onclick={handleStop}>
-									<X size="1.5rem" />
-								</button>
+									</button>
+									<button class="button stop" onclick={handleStop}>
+										<X size="1.5rem" />
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -230,6 +248,23 @@
 	.bottom-sheet :global(.bottom-sheet-content) {
 		height: 100%;
 		padding: 0;
+	}
+
+	.background-noise {
+		--foreground: var(--primary);
+		--background: light-dark(var(--grey-200), var(--grey-100));
+		position: absolute;
+		opacity: 0.06;
+		z-index: -1;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.background-noise {
+			opacity: 0.12;
+		}
 	}
 
 	.content {
@@ -339,10 +374,21 @@
 		justify-content: space-between;
 	}
 
+	.progress-controls-container {
+		background: light-dark(
+			color-mix(in oklch, var(--primary-grey-light) 10%, transparent),
+			color-mix(in oklch, var(--bg-less) 10%, transparent)
+		);
+		backdrop-filter: blur(4px);
+		padding: 1rem 0;
+		margin-bottom: -2rem;
+		border-radius: 0.25rem;
+	}
+
 	.progress-container {
 		display: flex;
 		flex-direction: column;
-		padding: 0 1rem;
+		padding: 0 1rem 2rem 1rem;
 	}
 
 	.time {
@@ -424,7 +470,6 @@
 		margin: -1rem 0;
 		border-radius: 1rem;
 		align-items: center;
-		background: light-dark(var(--grey-150), var(--bg-less));
 	}
 
 	.button {
