@@ -73,13 +73,6 @@ export class FeedService {
 
 		Log.info('Subscribed feeds will be updated in 5 seconds...');
 
-		await new Promise(resolve => setTimeout(resolve, 5000));
-
-		if (!isOnline()) {
-			Log.info('Skipping feed update due to no network connection');
-			return;
-		}
-
 		const finderRequest: EpisodeFinderRequest = {
 			feeds,
 			since,
@@ -429,14 +422,16 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			if (document.visibilityState === 'visible') {
 				// If it's been more than 1 minute since last check, run it now
 				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-					Log.debug('App became visible, running feed update');
-					sync();
+					setTimeout(() => {
+						Log.debug('App became visible, running feed update');
+						sync();
+					}, 5000);
 				}
 			}
 		});
 
-		// Delay first sync by 1 second
-		setTimeout(sync, 1000);
+		// Delay first sync by 5 seconds
+		setTimeout(sync, 5000);
 
 		setInterval(sync, CHECK_INTERVAL_MS);
 	}
