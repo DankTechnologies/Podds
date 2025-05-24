@@ -3,8 +3,13 @@
 	import { getActiveEpisodes, getEpisodes, getFeedIconsById } from '$lib/stores/db.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import type { Episode } from '$lib/types/db';
+	import { onMount } from 'svelte';
 
 	const SWIPE_THRESHOLD = 50; // minimum distance for a swipe
+	const ITEMS_PER_PAGE = 20;
+
+	let limit = $state<number>(ITEMS_PER_PAGE);
+	let observerTarget = $state<HTMLElement | null>(null);
 
 	let listenedToActiveEpisodes = $derived(
 		getActiveEpisodes()
@@ -12,7 +17,7 @@
 				(episode) => (episode.playbackPosition > 0 || episode.isPlaying) && !episode.wasAddedNext
 			)
 			.sort((a, b) => b.lastUpdatedAt.getTime() - a.lastUpdatedAt.getTime())
-			.slice(0, 10)
+			.slice(0, limit)
 	);
 
 	let listenedToEpisodes = $derived(
@@ -23,7 +28,7 @@
 				const bIndex = listenedToActiveEpisodes.findIndex((x) => x.id === a.id);
 				return bIndex - aIndex;
 			})
-			.slice(0, 10)
+			.slice(0, limit)
 	);
 
 	// sort by isPlaying, then by sortOrder
@@ -127,6 +132,33 @@
 			setTimeout(() => (wiggleListenedTo = false), 300);
 		}
 	});
+
+	async function loadMoreEpisodes() {
+		limit += ITEMS_PER_PAGE;
+	}
+
+	onMount(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting && listenedToEpisodes?.length) {
+						loadMoreEpisodes();
+					}
+				});
+			},
+			{ rootMargin: '200px' }
+		);
+
+		if (observerTarget) {
+			observer.observe(observerTarget);
+		}
+
+		return () => {
+			if (observerTarget) {
+				observer.disconnect();
+			}
+		};
+	});
 </script>
 
 <div
@@ -184,6 +216,8 @@
 		{/if}
 	</div>
 {/if}
+
+<div bind:this={observerTarget}></div>
 
 <style>
 	.playlist-view-controls {
