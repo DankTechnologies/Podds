@@ -141,7 +141,7 @@
 	</div>
 	{#if isConfigured}
 		<div>
-			<label for="importFeeds">Import / Export Podcasts</label>
+			<label id="import" for="importFeeds">Import / Export Podcasts</label>
 			<div class="section-help-text">
 				<Signpost size="24" /> Most podcast apps have a Backup/Export setting that writes your podcasts
 				to a file. You can <b>import</b> that file here, to move over all your podcasts.

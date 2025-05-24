@@ -2,9 +2,12 @@
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { LandPlot, Rocket, Loader2, X } from 'lucide-svelte';
 	import { getSettings } from '$lib/stores/db.svelte';
+	import { page } from '$app/state';
 
 	let settings = $derived(getSettings());
 	let isPwaConfigured = $derived(settings.isPwaInstalled);
+
+	let isPodcastsPage = $derived(page.url.pathname === '/');
 
 	// @ts-ignore
 	let showAndroidInstallButton = $state(window.deferredInstallPrompt !== undefined);
@@ -80,7 +83,7 @@
 				</button>
 			{/if}
 		{/if}
-		{#if isAppleWeb}
+		{#if isAppleWeb && !isPodcastsPage}
 			<button class="install-button" onclick={onIosInstall}>
 				<LandPlot size="16" />
 				Install podds
@@ -144,6 +147,7 @@
 		justify-content: space-between;
 		padding: 0.25rem 1rem 0.25rem 0.25rem;
 		align-items: center;
+		view-transition-name: setup-wizard;
 	}
 
 	.setup-wizard.is-pwa {

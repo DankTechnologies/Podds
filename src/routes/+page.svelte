@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds } from '$lib/stores/db.svelte';
 	import type { Feed } from '$lib/types/db';
 	import type { GridItem } from '$lib/types/grid';
 	import { isShortcut } from '$lib/types/grid';
@@ -11,10 +11,7 @@
 	import { decodeShareLink } from '$lib/utils/share';
 
 	let isApplePwa = $derived(isAppleDevice && isPwa);
-
-	let settings = $derived(getSettings());
-
-	let isConfigured = $derived(settings.corsHelper);
+	let isAppleWeb = $derived(isAppleDevice && !isPwa);
 
 	let feeds = $derived(
 		getFeeds()
@@ -108,54 +105,70 @@
 	}
 </script>
 
-<div class="grid">
-	{#each feedsAndShortcuts as x}
-		{#if isShortcut(x)}
-			<div class="subnav-container">
-				<button
-					class="subnav"
-					onclick={() => {
-						if (x.url) {
-							goto(x.url);
-						} else if (x.action) {
-							x.action();
-						}
-					}}
-				>
-					<x.svg size="128" />
-					{#if x.id === 'update'}
-						<span class="subnav-title-center">{x.id}</span>
-					{/if}
-					{#if x.id === 'receive'}
-						<span class="subnav-title-bottom-center">{x.id}</span>
-					{/if}
-				</button>
-			</div>
-		{:else}
-			<div class="grid-item">
-				<button
-					onclick={(e) => handlePodcastClick(e, x.id)}
-					aria-label={`Go to ${x.title} podcast`}
-				>
-					<img src={`data:${x.iconData}`} alt={x.title} />
-				</button>
-			</div>
-		{/if}
-	{/each}
-</div>
-{#if feeds.length === 0}
-	<div class="no-feeds">
+{#if isAppleWeb}
+	<div class="ios-web">
 		<div>Hi there, welcome to podds!</div>
-		{#if isConfigured}
-			<div>You're all set up to <a href="/search">search</a> for podcasts</div>
-			<div>
-				or <a href="/settings?section=basic">import</a> from another podcast app
-			</div>
-		{:else}
-			<div>Follow <a href="/settings?section=help">these steps</a> to get it set up</div>
-		{/if}
-		<div><img alt="smiley" src="/gpa-smiley.svg" />Have fun!</div>
+		<div>Install the app to get started</div>
+		<div class="instructions-install-text">You only need to do this once</div>
+		<ol class="instructions-list">
+			<li>
+				Tap the <img src="/ios-share.svg" alt="Share button" class="icon" /> button
+			</li>
+			<li>
+				Tap <img src="/ios-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
+				<div class="instructions-list-item-text">scroll down to find it</div>
+			</li>
+			<li>
+				Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
+				<div class="instructions-list-item-text">on your home screen</div>
+			</li>
+		</ol>
 	</div>
+{:else}
+	<div class="grid">
+		{#each feedsAndShortcuts as x}
+			{#if isShortcut(x)}
+				<div class="subnav-container">
+					<button
+						class="subnav"
+						onclick={() => {
+							if (x.url) {
+								goto(x.url);
+							} else if (x.action) {
+								x.action();
+							}
+						}}
+					>
+						<x.svg size="128" />
+						{#if x.id === 'update'}
+							<span class="subnav-title-center">{x.id}</span>
+						{/if}
+						{#if x.id === 'receive'}
+							<span class="subnav-title-bottom-center">{x.id}</span>
+						{/if}
+					</button>
+				</div>
+			{:else}
+				<div class="grid-item">
+					<button
+						onclick={(e) => handlePodcastClick(e, x.id)}
+						aria-label={`Go to ${x.title} podcast`}
+					>
+						<img src={`data:${x.iconData}`} alt={x.title} />
+					</button>
+				</div>
+			{/if}
+		{/each}
+	</div>
+	{#if feeds.length === 0}
+		<div class="no-feeds">
+			<div>Hi there, welcome to podds!</div>
+			<div>You're all set up to <a href="/search">search</a> for podcasts</div>
+			<div>or <a href="/settings?section=basic#import">import</a> from another podcast app</div>
+			<div class="smiley-wrapper"><img alt="smiley" src="/gpa-smiley.svg" /></div>
+			<div>Have fun!</div>
+		</div>
+	{/if}
 {/if}
 
 <svg width="0" height="0">
@@ -256,6 +269,15 @@
 		transform: translate(-50%, -22%);
 	}
 
+	.ios-web {
+		display: flex;
+		margin-top: 2rem;
+		font-size: var(--text-large);
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
 	.no-feeds {
 		display: flex;
 		margin-top: 2rem;
@@ -265,8 +287,36 @@
 		gap: 1.5rem;
 	}
 
-	.no-feeds img {
-		height: 1rem;
-		margin-right: 0.5rem;
+	.smiley-wrapper {
+		scale: 1.2;
+		margin: 0.5rem 0 0 0;
+	}
+
+	.instructions-install-text {
+		font-size: var(--text-xs);
+	}
+
+	.instructions-list {
+		line-height: 3;
+		scale: 1.2;
+		z-index: -1;
+		padding: 1rem 3rem;
+		border-radius: 0.25rem;
+		background: var(--bg-less);
+	}
+
+	.instructions-list-item-text {
+		font-size: var(--text-xs);
+		margin-top: -1rem;
+	}
+
+	.icon {
+		height: 1.5rem;
+		border: 1px solid light-dark(var(--grey), var(--grey-700));
+		padding: 0.25rem;
+		margin: 0 0.25rem;
+		border-radius: 0.25rem;
+		vertical-align: middle;
+		background: var(--grey-100);
 	}
 </style>
