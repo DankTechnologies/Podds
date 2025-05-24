@@ -12,7 +12,7 @@
 	import { onMount } from 'svelte';
 	import { requestStoragePersistence } from '$lib/utils/storage';
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
-	import { isPwa } from '$lib/utils/osCheck';
+	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { registerServiceWorker } from '$lib/utils/storage';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
@@ -37,7 +37,7 @@
 	trackNetworkState();
 
 	onNavigate((navigation) => {
-		if (!document.startViewTransition) return;
+		if (!document.startViewTransition || isAppleDevice) return;
 
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
@@ -150,11 +150,11 @@
 
 	::view-transition-old(root) {
 		animation-name: old-out;
-		animation-duration: 0.4s;
+		animation-duration: 0.25s;
 	}
 
 	::view-transition-new(root) {
 		animation-name: new-in;
-		animation-duration: 0.4s;
+		animation-duration: 0.25s;
 	}
 </style>
