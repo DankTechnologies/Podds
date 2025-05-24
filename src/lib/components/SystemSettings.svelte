@@ -119,7 +119,7 @@
 						id="logSearch"
 						type="text"
 						spellcheck="false"
-						placeholder="regex works"
+						placeholder="filter logs"
 						bind:value={searchQuery}
 					/>
 				</div>

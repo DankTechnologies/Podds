@@ -73,7 +73,7 @@ export class SearchHistoryService {
             return;
         }
 
-        Log.info('Starting update of monitored searches');
+        Log.debug('Starting update of monitored searches');
 
         for (const search of monitoredSearches) {
             try {
@@ -89,7 +89,7 @@ export class SearchHistoryService {
                     continue;
                 }
 
-                Log.info(`Checking for new episodes for search term: ${search.term}`);
+                Log.debug(`Checking for new episodes for search term: ${search.term}`);
 
                 // Search for new episodes
                 const episodes = await searchEpisodes(search.term);
@@ -131,7 +131,7 @@ export class SearchHistoryService {
             }
         }
 
-        Log.info('Finished update of monitored searches');
+        Log.debug('Finished update of monitored searches');
     }
 
     startPeriodicUpdates() {

@@ -71,7 +71,7 @@ export class FeedService {
 		// so we need to subtract a day to ensure we get all episodes
 		const since = timestampLastSync - ONE_DAY_IN_SECONDS;
 
-		Log.info('Subscribed feeds will be updated in 5 seconds...');
+		Log.debug('Start updating subscribed feeds...');
 
 		const finderRequest: EpisodeFinderRequest = {
 			feeds,
@@ -124,7 +124,7 @@ export class FeedService {
 
 		SettingsService.updateLastSyncAt();
 
-		Log.info('Finished update of all feeds');
+		Log.debug('Finished updating subscribed feeds');
 	}
 
 
@@ -242,13 +242,13 @@ export class FeedService {
 	}
 
 	clearSubscribed(feedId: string) {
-		Log.info(`Unsubscribe ${feedId}`);
 		db.feeds.updateOne({ id: feedId }, { $set: { isSubscribed: 0 } });
+		Log.info(`Unsubscribed from ${feedId}`);
 	}
 
 	markSubscribed(feedId: string) {
-		Log.info(`Subscribe ${feedId}`);
 		db.feeds.updateOne({ id: feedId }, { $set: { isSubscribed: 1 } });
+		Log.info(`Subscribed to ${feedId}`);
 	}
 
 	exportFeeds(): string {
@@ -308,7 +308,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 			const failedFeeds: string[] = [];
 			let skippedCount = 0;
 
-			Log.info(`Starting import of ${totalFeeds} feeds`);
+			Log.info(`Starting import of ${totalFeeds} feeds...`);
 
 			// Sort outlines by title, ignoring leading articles (the, a, an)
 			const sortedOutlines = Array.from(outlines).sort((a, b) => {
