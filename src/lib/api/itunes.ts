@@ -36,9 +36,9 @@ export async function searchPodcasts(term: string, options: { limit?: number; sk
         .values()
         .toArray()
         .sort((a, b) => {
-            // 1. Exact match on collectionName or collectionId
-            const aExact = a.collectionName.toLowerCase() === lowerTerm || a.collectionId.toString() === term;
-            const bExact = b.collectionName.toLowerCase() === lowerTerm || b.collectionId.toString() === term;
+            // 1. Exact match on collectionName or collectionId, but only if trackCount >= 3
+            const aExact = (a.collectionName.toLowerCase() === lowerTerm || a.collectionId.toString() === term) && a.trackCount >= 3;
+            const bExact = (b.collectionName.toLowerCase() === lowerTerm || b.collectionId.toString() === term) && b.trackCount >= 3;
             if (aExact && !bExact) return -1;
             if (!aExact && bExact) return 1;
             // 2. collectionName contains term
