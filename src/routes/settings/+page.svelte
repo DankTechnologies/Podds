@@ -12,7 +12,7 @@
 
 	type Section = 'general' | 'api' | 'system' | 'love' | 'help';
 
-	let hasActiveEpisode = $derived(getActiveEpisodes().length > 0);
+	let tenPlays = $derived(getActiveEpisodes().length >= 10);
 	let settings = $state<Settings>(getSettings());
 
 	// Default to 'general', will be updated in onMount from URL
@@ -64,7 +64,7 @@
 			onclick={() => setActiveSection('help')}>Help</button
 		>
 	{/if}
-	{#if hasActiveEpisode && !settings.hugged}
+	{#if tenPlays && !settings.hugged}
 		<button
 			class="nav-item"
 			class:active={activeSection === 'love'}
