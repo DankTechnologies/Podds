@@ -295,7 +295,7 @@
 		left: 0;
 		right: 0;
 		z-index: 49;
-		background: light-dark(var(--grey-200), var(--grey-825));
+		background: light-dark(var(--grey-200), var(--grey-850));
 		--pattern-bg: light-dark(var(--grey-100), var(--grey-900));
 		--pattern-stroke: light-dark(var(--primary-grey-light), var(--primary));
 		view-transition-name: player;
@@ -370,7 +370,7 @@
 	.player__artwork {
 		width: 4rem;
 		height: 4rem;
-		border: 0.6rem solid light-dark(var(--grey-200), var(--grey-800));
+		padding: 0.6rem;
 		border-radius: 0.25rem;
 	}
 
