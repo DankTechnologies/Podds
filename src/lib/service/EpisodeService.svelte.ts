@@ -237,7 +237,7 @@ export class EpisodeService {
 
 		const sync = async () => {
 			if (isUpdating) {
-				Log.warn('Skipping retention check due to active update');
+				Log.debug('Skipping retention check due to active update');
 				return;
 			}
 
@@ -257,8 +257,10 @@ export class EpisodeService {
 			if (document.visibilityState === 'visible') {
 				// If it's been more than 30 minutes since last check, run it now
 				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-					Log.debug('App became visible, running retention policy check');
-					sync();
+					setTimeout(() => {
+						Log.debug('App became visible, running retention policy check');
+						sync();
+					}, 10000);
 				}
 			}
 		});

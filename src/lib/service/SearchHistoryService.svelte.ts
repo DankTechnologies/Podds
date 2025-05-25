@@ -142,7 +142,7 @@ export class SearchHistoryService {
 
         const sync = async () => {
             if (isUpdating) {
-                Log.warn('Skipping search updates due to active update');
+                Log.debug('Skipping search updates due to active update');
                 return;
             }
 
@@ -165,8 +165,10 @@ export class SearchHistoryService {
             if (document.visibilityState === 'visible') {
                 // If it's been more than 30 minutes since last check, run it now
                 if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-                    Log.debug('App became visible, running search updates');
-                    sync();
+                    setTimeout(() => {
+                        Log.debug('App became visible, running search updates');
+                        sync();
+                    }, 10000);
                 }
             }
         });

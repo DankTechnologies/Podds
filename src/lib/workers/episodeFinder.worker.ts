@@ -65,15 +65,15 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 	feed: Feed;
 	errors: string[];
 }> {
-	const timeoutPromise = new Promise<never>((_, reject) =>
-		setTimeout(() => reject(new Error(`Feed ${feed.title} fetch timed out after ${FEED_TIMEOUT_MS / 1000}s`)), FEED_TIMEOUT_MS)
-	);
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), FEED_TIMEOUT_MS);
 
 	try {
 		// Check if we should skip this feed based on TTL
 		if (feed.lastCheckedAt && feed.ttlMinutes) {
 			const minutesSinceLastCheck = (new Date().getTime() - feed.lastCheckedAt.getTime()) / 60000; // Convert to minutes
 			if (minutesSinceLastCheck < feed.ttlMinutes) {
+				clearTimeout(timeoutId);
 				return {
 					episodes: [],
 					feed: feed,
@@ -92,48 +92,44 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 			headers['If-Modified-Since'] = feed.lastModified.toUTCString();
 		}
 
-		const resultPromise = parseFeedUrl(feed.id, feed.url, corsHelper, corsHelper2, since, headers).then(
-			(result) => {
+		const result = await parseFeedUrl(feed.id, feed.url, corsHelper, corsHelper2, since, headers, controller.signal);
 
-				if (result.status === 200) {
-					updatedFeed.lastSyncedAt = new Date();
+		if (result.status === 200) {
+			updatedFeed.lastSyncedAt = new Date();
 
-					if (result.lastModified) {
-						updatedFeed.lastModified = new Date(result.lastModified);
-					}
-					// Update TTL if provided in feed
-					if (result.ttlMinutes) {
-						updatedFeed.ttlMinutes = result.ttlMinutes;
-					}
-
-					if (result.description) {
-						updatedFeed.description = result.description;
-					}
-
-					if (result.link) {
-						updatedFeed.link = result.link;
-					}
-
-					if (result.author) {
-						updatedFeed.author = result.author;
-					}
-
-					if (result.ownerName) {
-						updatedFeed.ownerName = result.ownerName;
-					}
-				}
-
-				return {
-					episodes: result.episodes,
-					feed: updatedFeed,
-					errors: []
-				};
+			if (result.lastModified) {
+				updatedFeed.lastModified = new Date(result.lastModified);
 			}
-		);
+			// Update TTL if provided in feed
+			if (result.ttlMinutes) {
+				updatedFeed.ttlMinutes = result.ttlMinutes;
+			}
 
-		const result = await Promise.race([resultPromise, timeoutPromise]);
-		return result;
+			if (result.description) {
+				updatedFeed.description = result.description;
+			}
+
+			if (result.link) {
+				updatedFeed.link = result.link;
+			}
+
+			if (result.author) {
+				updatedFeed.author = result.author;
+			}
+
+			if (result.ownerName) {
+				updatedFeed.ownerName = result.ownerName;
+			}
+		}
+
+		clearTimeout(timeoutId);
+		return {
+			episodes: result.episodes,
+			feed: updatedFeed,
+			errors: []
+		};
 	} catch (error) {
+		clearTimeout(timeoutId);
 		return {
 			episodes: [],
 			feed: feed, // Return original feed without updating lastCheckedAt

@@ -23,10 +23,11 @@ export async function parseFeedUrl(
 	corsHelper: string,
 	corsHelper2: string | undefined,
 	since?: number,
-	headers?: Record<string, string>
+	headers?: Record<string, string>,
+	signal?: AbortSignal
 ): Promise<ParseFeedResult> {
 	async function fetchFeed(fetchUrl: string): Promise<ParseFeedResult> {
-		const response = await fetch(fetchUrl, { headers });
+		const response = await fetch(fetchUrl, { headers, signal });
 
 		if (response.status === 304) {
 			return {

@@ -82,15 +82,11 @@ export class FeedService {
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
 
-		finderResponse.errors.forEach((x) => Log.error(x));
-
 		Log.debug(`Found ${finderResponse.episodes.length} episodes during sync`);
 
 		finderResponse.episodes.forEach((x) => {
 			try {
-				// episode id (guid) isn't supposed to change but it does in practice on some feeds
-				// url is more reliable
-				const match = db.episodes.findOne({ url: x.url });
+				const match = db.episodes.findOne({ id: x.id });
 
 				if (!match) {
 					Log.info(`Adding ${x.title}`);
@@ -122,7 +118,19 @@ export class FeedService {
 			});
 		});
 
-		SettingsService.updateLastSyncAt();
+		const errorPercentage = (finderResponse.errors.length / feeds.length) * 100;
+		if (errorPercentage > 50) {
+			Log.warn(`${errorPercentage}% of feed updates failed`);
+
+		} else {
+			SettingsService.updateLastSyncAt();
+
+			if (finderResponse.errors.length > 0) {
+				db.logs.batch(() => {
+					finderResponse.errors.forEach((x) => Log.error(x));
+				});
+			}
+		}
 
 		Log.debug('Finished updating subscribed feeds');
 	}
@@ -399,7 +407,7 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 
 		const sync = async () => {
 			if (EpisodeUpdate.isUpdating) {
-				Log.warn('Skipping feed updates due to active update');
+				Log.debug('Skipping feed updates due to active update');
 				return;
 			}
 
@@ -425,13 +433,13 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					setTimeout(() => {
 						Log.debug('App became visible, running feed update');
 						sync();
-					}, 5000);
+					}, 10000);
 				}
 			}
 		});
 
-		// Delay first sync by 5 seconds
-		setTimeout(sync, 5000);
+		// Delay first sync
+		setTimeout(sync, 8000);
 
 		setInterval(sync, CHECK_INTERVAL_MS);
 	}

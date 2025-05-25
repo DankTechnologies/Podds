@@ -39,7 +39,6 @@ export class SettingsService {
 				settings.corsHelper = DefaultSettings.corsHelper;
 				settings.corsHelper2 = DefaultSettings.corsHelper2;
 				SettingsService.saveSettings(settings);
-				Log.info('Updated CORS helpers');
 			}
 		} else {
 			db.settings.insert(DefaultSettings);
@@ -49,7 +48,6 @@ export class SettingsService {
 
 	static saveSettings(settings: Settings): void {
 		db.settings.updateOne({ id: '1' }, { $set: { ...settings } });
-		Log.info('Updated settings');
 	}
 
 	static markPwaInstalled(): void {
