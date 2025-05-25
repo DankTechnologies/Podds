@@ -62,7 +62,22 @@
 	<div class="setup-wizard" class:is-pwa={isPwa}>
 		<div class="logo-container">
 			<img src="/podds.svg" alt="Podds" class="logo" />
-			<div class="logo-text">podds</div>
+			<svg class="wave" xmlns="http://www.w3.org/2000/svg"
+				><defs
+					><pattern
+						id="c"
+						width="60"
+						height="60"
+						patternTransform="rotate(5)scale(3)"
+						patternUnits="userSpaceOnUse"
+						><rect width="100%" height="100%" fill="var(--wave-bg)" /><path
+							fill="none"
+							stroke="var(--wave-fg)"
+							d="M10 60V30m10 0v30m10 0H0V30M50 0v30m-10 0V0M30 0h30v30M30 40h30m0 10H30m0-20h30v30H30zM0 10h30m0 10H0M0 0h30v30H0z"
+						/></pattern
+					></defs
+				><rect width="800%" height="800%" fill="url(#c)" /></svg
+			>
 		</div>
 		{#if isAndroidWeb}
 			{#if showAndroidInstallButton}
@@ -89,63 +104,63 @@
 				Install podds
 			</button>
 		{/if}
-
-		{#if showIosInstructions}
-			<dialog class="instructions" open>
-				<div class="instructions-header">
-					<div class="instructions-header-title">Install podds app</div>
-					<button class="instructions-close-button" onclick={closeIosInstructions}
-						><X size="24" /></button
-					>
-				</div>
-				<div class="instructions-install-text">You only need to do this once</div>
-				<ol class="instructions-list">
-					<li>
-						Tap the <img src="/ios-share.svg" alt="Share button" class="icon" /> button
-					</li>
-					<li>
-						Tap <img src="/ios-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
-						<div class="instructions-list-item-text">scroll down to find it</div>
-					</li>
-					<li>
-						Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
-						<div class="instructions-list-item-text">on your home screen</div>
-					</li>
-				</ol>
-			</dialog>
-		{/if}
-		{#if showAndroidInstructions}
-			<dialog class="instructions" open>
-				<div class="instructions-header">
-					<div class="instructions-header-title">Install podds app</div>
-					<button class="instructions-close-button" onclick={closeAndroidInstructions}
-						><X size="24" /></button
-					>
-				</div>
-				<div class="instructions-install-text">You only need to do this once</div>
-				<ol class="instructions-list">
-					<li>
-						Tap the <img src="/android-more.svg" alt="Share button" class="icon" /> button
-					</li>
-					<li>
-						Tap <img src="/android-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
-					</li>
-					<li>
-						Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
-						<div class="instructions-list-item-text">on your home screen</div>
-					</li>
-				</ol>
-			</dialog>
-		{/if}
 	</div>
+{/if}
+
+{#if showIosInstructions}
+	<dialog class="instructions" open>
+		<div class="instructions-header">
+			<div class="instructions-header-title">Install podds app</div>
+			<button class="instructions-close-button" onclick={closeIosInstructions}
+				><X size="24" /></button
+			>
+		</div>
+		<div class="instructions-install-text">You only need to do this once</div>
+		<ol class="instructions-list">
+			<li>
+				Tap the <img src="/ios-share.svg" alt="Share button" class="icon" /> button
+			</li>
+			<li>
+				Tap <img src="/ios-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
+				<div class="instructions-list-item-text">scroll down to find it</div>
+			</li>
+			<li>
+				Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
+				<div class="instructions-list-item-text">on your home screen</div>
+			</li>
+		</ol>
+	</dialog>
+{/if}
+{#if showAndroidInstructions}
+	<dialog class="instructions" open>
+		<div class="instructions-header">
+			<div class="instructions-header-title">Install podds app</div>
+			<button class="instructions-close-button" onclick={closeAndroidInstructions}
+				><X size="24" /></button
+			>
+		</div>
+		<div class="instructions-install-text">You only need to do this once</div>
+		<ol class="instructions-list">
+			<li>
+				Tap the <img src="/android-more.svg" alt="Share button" class="icon" /> button
+			</li>
+			<li>
+				Tap <img src="/android-add-to-home-screen.svg" alt="Add to Home Screen" class="icon" />
+			</li>
+			<li>
+				Tap the <img src="/podds.svg" alt="Podds" class="icon" /> button
+				<div class="instructions-list-item-text">on your home screen</div>
+			</li>
+		</ol>
+	</dialog>
 {/if}
 
 <style>
 	.setup-wizard {
-		background: var(--primary);
 		display: flex;
 		justify-content: space-between;
-		padding: 0.25rem 1rem 0.25rem 0.25rem;
+		padding: 0.25rem 1rem 0.25rem 0.5rem;
+		height: 4rem;
 		align-items: center;
 		view-transition-name: setup-wizard;
 	}
@@ -161,15 +176,22 @@
 	}
 
 	.logo {
-		height: 3rem;
+		height: 4rem;
+		opacity: 1;
 	}
 
-	.logo-text {
-		font-size: var(--text-2xl);
-		letter-spacing: 0.15em;
-		font-weight: bold;
-		color: var(--grey-100);
-		transform: rotate(-3deg);
+	.wave {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 4.5rem;
+		width: 100%;
+		z-index: -1;
+		border-bottom: 3px solid light-dark(var(--grey-750), var(--primary-more));
+		opacity: 0.7;
+		filter: contrast(125%);
+		--wave-bg: light-dark(var(--bg-less), var(--bg-less));
+		--wave-fg: light-dark(var(--grey-750), var(--primary-more));
 	}
 
 	.install-button {
