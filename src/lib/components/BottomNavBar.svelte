@@ -183,7 +183,9 @@
 		height: 5px;
 		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
 		border-radius: 50%;
-		transition: all 0.3s ease-in-out;
+		transition:
+			opacity 0.3s ease-in-out,
+			transform 0.3s ease-in-out;
 	}
 
 	/* right "eye" */
@@ -197,22 +199,43 @@
 		height: 5px;
 		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
 		border-radius: 50%;
-		transition: all 0.3s ease-in-out;
+		transition:
+			opacity 0.3s ease-in-out,
+			transform 0.3s ease-in-out;
 	}
 
-	/* pulsing "eyes" */
+	/* pulsing left "eye" */
 	.nav-item.is-updating[data-nav='/new-episodes'] .nav-item__icon-wrapper::before {
-		content: '';
 		z-index: -1;
+		content: '';
 		position: absolute;
-		top: 9px;
-		left: 2px;
-		right: 2px;
-		height: 8px;
+		top: 11px;
+		left: 8px;
+		right: 19px;
+		height: 5px;
 		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
-		border-radius: 2rem;
-		animation: pulse-new-episodes 2s ease-in-out infinite;
-		transition: all 0.3s ease-in-out;
+		border-radius: 50%;
+		animation: pulse-new-episodes 2s ease-in-out infinite both;
+		transition:
+			opacity 0.3s ease-in-out,
+			transform 0.3s ease-in-out;
+	}
+
+	/* pulsing right "eye" */
+	.nav-item.is-updating[data-nav='/new-episodes'] .nav-item__icon-wrapper::after {
+		z-index: -1;
+		content: '';
+		position: absolute;
+		top: 11px;
+		left: 19px;
+		right: 8px;
+		height: 5px;
+		background-color: light-dark(var(--primary-grey-light), var(--primary-more));
+		border-radius: 50%;
+		animation: pulse-new-episodes 2s ease-in-out infinite both;
+		transition:
+			opacity 0.3s ease-in-out,
+			transform 0.3s ease-in-out;
 	}
 
 	@keyframes pulse-new-episodes {
