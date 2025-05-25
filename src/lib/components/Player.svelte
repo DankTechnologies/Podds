@@ -11,6 +11,7 @@
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { slide } from 'svelte/transition';
 
 	const ICON_SIZE = '2rem';
 	const PLAYBACK_SPEEDS = [1.0, 1.25, 1.5, 1.75, 2.0];
@@ -193,7 +194,12 @@
 	}
 </script>
 
-<div class="player" class:is-apple-device={isAppleDevice}>
+<div
+	class="player"
+	class:is-apple-device={isAppleDevice}
+	in:slide={{ duration: 300, axis: 'y' }}
+	out:slide={{ duration: 300, axis: 'y' }}
+>
 	<svg class="player__pattern" xmlns="http://www.w3.org/2000/svg" viewBox="222 50 400 200"
 		><defs
 			><pattern id="a" width="70" height="8" patternUnits="userSpaceOnUse"
