@@ -295,7 +295,7 @@
 		left: 0;
 		right: 0;
 		z-index: 49;
-		background: light-dark(var(--grey-200), var(--grey-800));
+		background: light-dark(var(--grey-200), var(--grey-825));
 		--pattern-bg: light-dark(var(--grey-100), var(--grey-900));
 		--pattern-stroke: light-dark(var(--primary-grey-light), var(--primary));
 		view-transition-name: player;
