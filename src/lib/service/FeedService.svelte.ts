@@ -119,6 +119,7 @@ export class FeedService {
 		});
 
 		const errorPercentage = (finderResponse.errors.length / feeds.length) * 100;
+
 		if (errorPercentage > 50) {
 			Log.warn(`${errorPercentage}% of feed updates failed`);
 
@@ -126,9 +127,7 @@ export class FeedService {
 			SettingsService.updateLastSyncAt();
 
 			if (finderResponse.errors.length > 0) {
-				db.logs.batch(() => {
-					finderResponse.errors.forEach((x) => Log.error(x));
-				});
+				Log.error(finderResponse.errors.join('\n'));
 			}
 		}
 
