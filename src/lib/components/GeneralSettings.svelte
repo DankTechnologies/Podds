@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import {
-		Download,
-		Upload,
 		Loader2,
 		Signpost,
 		RotateCw,
 		RotateCcw,
 		Route,
 		Play,
-		Check
+		Check,
+		DoorOpen,
+		Caravan
 	} from 'lucide-svelte';
 	import type { Settings } from '$lib/types/db';
 	import type { ImportProgress } from '$lib/types/ImportProgress';
@@ -163,11 +163,11 @@
 					{#if isImporting}
 						<Loader2 size="16" class="spinner" /> Importing...
 					{:else}
-						<Upload size="16" /> Import
+						<DoorOpen size="16" /> Import
 					{/if}
 				</button>
 				<button type="button" onclick={onExportFeeds} disabled={isImporting}>
-					<Download size="16" /> Export
+					<Caravan size="16" /> Export
 				</button>
 			</div>
 			{#if importProgress}
