@@ -29,8 +29,10 @@
 		const { outcome } = await window.deferredInstallPrompt.userChoice;
 		if (outcome === 'accepted') {
 			window.addEventListener('appinstalled', () => {
-				showAndroidInstallButton = false;
-				showAndroidLaunchButton = true;
+				setTimeout(() => {
+					showAndroidInstallButton = false;
+					showAndroidLaunchButton = true;
+				}, 3000);
 			});
 		}
 		// @ts-ignore
