@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
+	import { SettingsService } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -7,10 +7,9 @@
 	import ApiSettings from '$lib/components/ApiSettings.svelte';
 	import SystemSettings from '$lib/components/SystemSettings.svelte';
 	import Love from '$lib/components/Love.svelte';
-	import Help from '$lib/components/Help.svelte';
 	import { getActiveEpisodes, getSettings } from '$lib/stores/db.svelte';
 
-	type Section = 'general' | 'api' | 'system' | 'love' | 'help';
+	type Section = 'general' | 'advanced' | 'system' | 'love';
 
 	let tenPlays = $derived(getActiveEpisodes().length >= 10);
 	let settings = $state<Settings>(getSettings());
@@ -21,7 +20,7 @@
 	// Update active section when page URL changes
 	$effect(() => {
 		const section = page.url.searchParams.get('section');
-		if (section === 'api' || section === 'system' || section === 'love' || section === 'help') {
+		if (section === 'advanced' || section === 'system' || section === 'love') {
 			activeSection = section;
 		} else {
 			activeSection = 'general';
@@ -52,18 +51,11 @@
 		class:active={activeSection === 'system'}
 		onclick={() => setActiveSection('system')}>System</button
 	>
-	{#if settings.isAdvanced}
-		<button
-			class="nav-item"
-			class:active={activeSection === 'api'}
-			onclick={() => setActiveSection('api')}>API</button
-		>
-		<button
-			class="nav-item"
-			class:active={activeSection === 'help'}
-			onclick={() => setActiveSection('help')}>Help</button
-		>
-	{/if}
+	<button
+		class="nav-item"
+		class:active={activeSection === 'advanced'}
+		onclick={() => setActiveSection('advanced')}>Advanced</button
+	>
 	{#if tenPlays && !settings.hugged}
 		<button
 			class="nav-item"
@@ -79,7 +71,7 @@
 		<GeneralSettings bind:settings {onSave} />
 	{/if}
 
-	{#if activeSection === 'api'}
+	{#if activeSection === 'advanced'}
 		<ApiSettings bind:settings {onSave} />
 	{/if}
 
@@ -89,10 +81,6 @@
 
 	{#if activeSection === 'love'}
 		<Love />
-	{/if}
-
-	{#if activeSection === 'help'}
-		<Help />
 	{/if}
 </div>
 

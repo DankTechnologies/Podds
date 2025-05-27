@@ -125,6 +125,20 @@
 		</ol>
 	</div>
 {:else}
+	{#if feeds.length === 0}
+		<div class="no-feeds">
+			<div class="welcome">Welcome to podds!</div>
+			<div class="free"><span>podcasts, simple and free</span></div>
+			<div>You're all set up to <b><a href="/search">search</a></b> for podcasts</div>
+			<div>
+				or <b><a href="/settings?section=basic#import">import</a></b> podcasts from another app
+			</div>
+			<div class="credits">
+				<div>from Dank Technologies</div>
+				<div>more info @ <a href="https://github.com/DankTechnologies/Podds">GitHub</a></div>
+			</div>
+		</div>
+	{/if}
 	<div class="grid">
 		{#each feedsAndShortcuts as x}
 			{#if isShortcut(x)}
@@ -160,15 +174,6 @@
 			{/if}
 		{/each}
 	</div>
-	{#if feeds.length === 0}
-		<div class="no-feeds">
-			<div>Hi there, welcome to podds!</div>
-			<div>You're all set up to <a href="/search">search</a> for podcasts</div>
-			<div>or <a href="/settings?section=basic#import">import</a> from another podcast app</div>
-			<div class="smiley-wrapper"><img alt="smiley" src="/gpa-smiley.svg" /></div>
-			<div>Have fun!</div>
-		</div>
-	{/if}
 {/if}
 
 <svg width="0" height="0">
@@ -280,16 +285,56 @@
 
 	.no-feeds {
 		display: flex;
-		margin-top: 2rem;
+		font-family: monospace;
+		padding: 2rem;
 		font-size: var(--text-large);
 		flex-direction: column;
-		align-items: center;
-		gap: 1.5rem;
+		gap: 2.5rem;
 	}
 
-	.smiley-wrapper {
-		scale: 1.2;
-		margin: 0.5rem 0 0 0;
+	.welcome {
+		font-size: var(--text-2xl);
+		letter-spacing: 2px;
+		transform: rotate(2deg);
+	}
+
+	.free {
+		margin: -1.5rem 0 1.5rem 0;
+		font-size: var(--text-smaller);
+		font-weight: bold;
+		letter-spacing: 4px;
+	}
+
+	.free span {
+		position: relative;
+		display: inline-block;
+		transform: rotate(-0.3deg);
+	}
+
+	.free span::after {
+		content: '';
+		position: absolute;
+		left: -1rem;
+		width: 110%;
+		bottom: -0.2rem;
+		padding: 0 0.5rem;
+		transform: rotate(0.6deg);
+		border-radius: 0.25rem;
+		height: 0.9rem;
+		background-color: light-dark(
+			color-mix(in oklch, var(--primary) 30%, transparent),
+			color-mix(in oklch, var(--primary) 60%, transparent)
+		);
+		z-index: -1;
+	}
+
+	.credits {
+		padding: 2rem 2rem 0 2rem;
+		gap: 0.5rem;
+		font-size: var(--text-smaller);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
 	}
 
 	.instructions-install-text {

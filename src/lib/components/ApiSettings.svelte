@@ -53,7 +53,7 @@
 
 <section class="section">
 	<div>
-		<label for="corsHelper">CORS Helper</label>
+		<label for="corsHelper">CORS Proxy</label>
 		<input
 			id="corsHelper"
 			class="api-input"
@@ -65,7 +65,7 @@
 		/>
 	</div>
 	<div>
-		<label for="corsHelper2">CORS Helper 2</label>
+		<label for="corsHelper2">CORS Proxy 2</label>
 		<input
 			id="corsHelper2"
 			class="api-input"
@@ -91,7 +91,7 @@
 		<label for="connectionStatus">Connection Status</label>
 		<div class="status-container">
 			<div class="status-item">
-				<span class="status-label">CORS Helper:</span>
+				<span class="status-label">CORS Proxy:</span>
 				<div
 					role="status"
 					class="status"
@@ -111,7 +111,7 @@
 				</div>
 			</div>
 			<div class="status-item">
-				<span class="status-label">CORS Helper 2:</span>
+				<span class="status-label">CORS Proxy 2:</span>
 				<div
 					role="status"
 					class="status"

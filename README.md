@@ -1,17 +1,76 @@
-<p align="center">
-  <img src="static/podds.svg" alt="Podds logo" height="80" />
-</p>
 
 <h1 align="center" style="font-family:monospace; letter-spacing:0.2em; font-weight:bold; transform:rotate(-3deg); color:#fff;">
   podds
 </h1>
-
 <p align="center">
-  <b>Podds</b> is a podcast web app you can run for your family and friends, free of ads and data mining.
+  <img src="static/podds.svg" alt="Podds logo" height="160" />
+</p>
+<p align="center">
+  podcasts, simple and free
 </p>
 
 ---
 
 ## What is Podds?
 
-See the [podds.io help page](https://podds.io/settings?section=help) to learn more and host your own branch if interested.
+Podds is a local-first podcast web app geared towards simplicity and speed. I built it as a weekend project that took 6 months, as is tradition.
+
+There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  Instead, podds runs on your device and uses the open web for easy distribution.  
+
+You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, and so on.  All of your data stays on your device.
+
+## Tech Stack
+
+Data
+
+* [SignalDB](https://signaldb.js.org/)
+* [CORS Proxies](https://httptoolkit.com/blog/cors-proxies/)
+* [iTunes Search API](https://performance-partners.apple.com/search-api)
+
+UI
+
+* [Svelte](https://svelte.dev/)
+* [Svelte Bottom Sheet](https://github.com/AuxiDev/svelte-bottom-sheet)
+* [Lucide Icons](https://lucide.dev/)
+* [Pattern Monster](https://pattern.monster/)
+
+## CORS Proxies
+
+Podds is configured with two [CORS proxies](https://httptoolkit.com/blog/cors-proxies/), a primary and optional backup.  They help podds fetch podcast RSS feeds, images, and MP3 files from the servers that host the podcasts you subscribe to.  
+
+Without CORS proxies, the browser will block network requests to other servers unless they allow CORS.  When you write server-side web software, CORS is typically disabled by default, and you have to opt-in.  In practice, most podcast servers do not opt-into CORS.  
+
+> CORS proxies help web apps get equal-footing with native apps (Android, iOS), especially when 3rd-party data needs to be fetched
+
+### Default Proxies
+
+By default, podds ships with CORS proxies that I manage.  The primary is a [Cloudflare Worker](cors-proxies/cloudflare/worker.js) and the backup is in [Node](cors-proxies/node/server.js) and self-hosted.  
+
+You're welcome to use my proxies!  I will try to keep the lights on, one way or another, and adapt + improve the proxies as I go.
+
+### Bring Your Own Proxy
+
+However, you can create and configure your own CORS proxies, which I recommend for several reasons
+
+🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** - when you use a public CORS proxy, you trust its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better questions are _what if I don't have to trust DanK at all?_ or _what's the cost to not trust DanK?_. I have answers for those questions below.
+
+📜 **[The Long Now](https://www.inkandswitch.com/essay/local-first/#5-the-long-now)** - maybe my CORS proxies hit quotas or fall over, maybe free tiers go away, maybe I'm hit by a bus.  None of that should prevent you from continuing to use podds
+
+🚲 **It's Easy** - the [Cloudflare Worker](#the-cloudflare-worker-way) way takes a few minutes.  Create account, copy+paste the worker code, configure URL in podds.  Done.
+
+### The Cloudflare Worker Way
+
+> zero-cost, no credit card, email verification
+
+Create a [Cloudflare account](https://dash.cloudflare.com/sign-up), then create + deploy a worker with the _Hello World_ template. Click **Edit Code** and paste in this [worker.js](/cors-proxies/cloudflare/worker.js) script.
+
+The free tier quota is 100k requests per day, as of April 2025. It should suffice for dozens to hundreds of users depending upon number of subscribed feeds and overall podds usage throughout a day.  
+
+### The Self-Hosted Way
+
+This repo contains an equivalent [NodeJS app](/cors-proxies/node/server.js) and [Dockerfile](/cors-proxies/node/Dockerfile). Plumbing out to the internet is left as an exercise for the self-hoster.  
+
+Some good resources
+
+* [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)
+* [r/selfhosted](https://www.reddit.com/r/selfhosted/)
