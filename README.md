@@ -77,4 +77,5 @@ Some good resources
 
 * [Maggie Appleton - Home-Cooked Software and Barefoot Developers](https://maggieappleton.com/home-cooked-software)
 * [Johannes Schickling - local-first podcast](https://www.localfirst.fm/)
+* [SLC - Simple, Lovable, Complete](https://longform.asmartbear.com/slc/)
 * [Linear](https://linear.app)
