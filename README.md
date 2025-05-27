@@ -11,7 +11,7 @@
 
 ## What is Podds?
 
-Podds is a local-first podcast web app geared towards simplicity, speed, and sharing. I built it as a weekend project that took 6 months, as is tradition.
+[Podds](https://podds.io) is a local-first podcast web app geared towards simplicity, speed, and sharing. I built it as a weekend project that took 6 months, as is tradition.
 
 There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  Instead, podds runs on your device and uses the open web for easy distribution.  
 
