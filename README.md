@@ -17,6 +17,10 @@ There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  
 
 You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, and so on.  All of your data stays on your device.
 
+
+https://github.com/user-attachments/assets/08efcb85-75ba-4d68-b9a2-3dde7e718e30
+
+
 ## Tech Stack
 
 Data
