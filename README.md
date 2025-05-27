@@ -1,7 +1,5 @@
 
-<h1 align="center" style="font-family:monospace; letter-spacing:0.2em; font-weight:bold; transform:rotate(-3deg); color:#fff;">
-  podds
-</h1>
+<h1 align="center">podds</h1>
 <p align="center">
   <img src="static/podds.svg" alt="Podds logo" height="160" />
 </p>
