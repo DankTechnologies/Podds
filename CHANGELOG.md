@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/DankTechnologies/Podds/compare/v1.2.1...v1.2.2) (2025-05-27)
+
+
+### Bug Fixes
+
+* add link ([38b84b8](https://github.com/DankTechnologies/Podds/commit/38b84b8c5769aa3a1a3b8fc3a2f0caaca3bab07d))
+
 ## [1.2.1](https://github.com/DankTechnologies/Podds/compare/v1.2.0...v1.2.1) (2025-05-27)
 
 
