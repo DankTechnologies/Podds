@@ -19,11 +19,10 @@ export async function searchPodcasts(term: string, options: { limit?: number; sk
         term
     });
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetchWithCorsFallback(url);
-    const data = await response.json();
+    const data = await fetchWithCorsFallback(url);
+    let results = data.results as ITunesPodcast[];
 
     const lowerTerm = term.trim().toLowerCase();
-    let results = data.results as ITunesPodcast[];
 
     results = results
         .reduce((acc, podcast) => {
@@ -97,8 +96,7 @@ export async function searchEpisodes(term: string, options: { limit?: number; sk
     });
 
     const url = `${apiUrl}?${params.toString()}`;
-    const response = await fetchWithCorsFallback(url);
-    const data = await response.json();
+    const data = await fetchWithCorsFallback(url);
     let results = data.results as ITunesEpisode[];
 
     const terms = term
@@ -198,13 +196,18 @@ export async function convertUrlToBase64(url: string, title: string): Promise<st
     );
 }
 
-async function fetchWithCorsFallback(url: string): Promise<Response> {
+async function fetchWithCorsFallback(url: string): Promise<any> {
     const settings = getSettings();
 
     try {
         const response = await fetch(url);
         if (response.ok) {
-            return response;
+            const data = await response.json();
+
+            if (!data.results || data.results.length === 0) {
+                throw new Error('No results found');
+            }
+            return data;
         }
     } catch (error) {
         Log.debug(`Failed to fetch ${url}: ${error}`);
@@ -214,7 +217,7 @@ async function fetchWithCorsFallback(url: string): Promise<Response> {
         const corsUrl = `${settings.corsHelper}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
         const corsResponse = await fetch(corsUrl);
         if (corsResponse.ok) {
-            return corsResponse;
+            return await corsResponse.json();
         }
     } catch (error) {
         Log.debug(`Failed to fetch ${url}: ${error}`);
@@ -225,7 +228,7 @@ async function fetchWithCorsFallback(url: string): Promise<Response> {
             const corsUrl2 = `${settings.corsHelper2}?url=${encodeURIComponent(url)}&nocache=${Date.now()}`;
             const corsResponse2 = await fetch(corsUrl2);
             if (corsResponse2.ok) {
-                return corsResponse2;
+                return await corsResponse2.json();
             }
         } catch (error) {
             Log.debug(`Failed to fetch ${url}: ${error}`);
