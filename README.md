@@ -72,3 +72,9 @@ Some good resources
 
 * [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)
 * [r/selfhosted](https://www.reddit.com/r/selfhosted/)
+
+## Inspired By
+
+* [Maggie Appleton - Home-Cooked Software and Barefoot Developers](https://maggieappleton.com/home-cooked-software)
+* [Johannes Schickling - local-first podcast](https://www.localfirst.fm/)
+* [Linear](https://linear.app)
