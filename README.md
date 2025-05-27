@@ -11,7 +11,7 @@
 
 ## What is Podds?
 
-Podds is a local-first podcast web app geared towards simplicity and speed. I built it as a weekend project that took 6 months, as is tradition.
+Podds is a local-first podcast web app geared towards simplicity, speed, and sharing. I built it as a weekend project that took 6 months, as is tradition.
 
 There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  Instead, podds runs on your device and uses the open web for easy distribution.  
 
@@ -34,7 +34,9 @@ UI
 
 ## CORS Proxies
 
-Podds is configured with two [CORS proxies](https://httptoolkit.com/blog/cors-proxies/), a primary and optional backup.  They help podds fetch podcast RSS feeds, images, and MP3 files from the servers that host the podcasts you subscribe to.  
+> what is a [CORS Proxy](https://httptoolkit.com/blog/cors-proxies/)
+
+Podds is configured with two CORS proxies - a primary and (optional) backup.  They help podds sync podcast feeds, download artwork and audio files, and help with iTunes searches since it gets crabby sometimes.  
 
 Without CORS proxies, the browser will block network requests to other servers unless they allow CORS.  When you write server-side web software, CORS is typically disabled by default, and you have to opt-in.  In practice, most podcast servers do not opt-into CORS.  
 
@@ -48,7 +50,7 @@ You're welcome to use my proxies!  I will try to keep the lights on, one way or 
 
 ### Bring Your Own Proxy
 
-However, you can create and configure your own CORS proxies, which I recommend for several reasons
+You can create and use your own CORS proxies with podds, which I recommend for several reasons
 
 🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** - when you use a public CORS proxy, you trust its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better questions are _what if I don't have to trust DanK at all?_ or _what's the cost to not trust DanK?_. I have answers for those questions below.
 
