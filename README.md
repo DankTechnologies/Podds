@@ -4,7 +4,7 @@
   <img src="static/podds.svg" alt="Podds logo" height="160" />
 </p>
 <p align="center">
-  podcasts, simple and free
+  <a href="https://podds.io">podcasts, simple and free</a>
 </p>
 
 ---
