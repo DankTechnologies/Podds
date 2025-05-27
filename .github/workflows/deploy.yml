@@ -1,0 +1,30 @@
+name: Semantic Versioning
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: paulhatch/semantic-version@latest
+        id: version
+        with:
+          tag_prefix: v
+          major_pattern: '(BREAKING CHANGE|major):'
+          minor_pattern: '(feat|minor):'
+      - name: Create Tag
+        if: ${{ steps.version.outputs.tag != '' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
