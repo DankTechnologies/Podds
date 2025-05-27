@@ -13,6 +13,7 @@
 	} from 'lucide-svelte';
 	import type { Settings } from '$lib/types/db';
 	import type { ImportProgress } from '$lib/types/ImportProgress';
+	import { APP_VERSION } from '$lib/utils/version';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -53,6 +54,9 @@
 	}
 </script>
 
+<div class="version-display">
+	podds v{APP_VERSION}
+</div>
 <section class="section">
 	<div>
 		<label id="playbackControlsLabel" for="skipBackwardButtonSeconds">Playback Controls</label>
@@ -221,6 +225,16 @@
 </section>
 
 <style>
+	.version-display {
+		text-align: right;
+		margin: -1.5rem 0.5rem 1.5rem 0;
+		transform: rotate(4deg);
+		opacity: 0.6;
+		color: light-dark(var(--primary), var(--primary-more));
+		font-size: var(--text-xs);
+		font-family: monospace;
+	}
+
 	.section {
 		display: flex;
 		flex-direction: column;
