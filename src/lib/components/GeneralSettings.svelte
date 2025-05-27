@@ -55,7 +55,7 @@
 </script>
 
 <div class="version-display">
-	podds v{APP_VERSION}
+	podds {APP_VERSION}
 </div>
 <section class="section">
 	<div>
