@@ -3,6 +3,8 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"author": "Dank Technologies <dan@danktech.io>",
+	"license": "MIT",  
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
