@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/DankTechnologies/Podds/compare/v1.2.3...v1.2.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* **itunes:** fallback to CORS proxy if itunes returns OK but no results ([27a56cb](https://github.com/DankTechnologies/Podds/commit/27a56cb829e74f93d83a6728e11aef74a204a41c))
+
 ## [1.2.3](https://github.com/DankTechnologies/Podds/compare/v1.2.2...v1.2.3) (2025-05-27)
 
 
