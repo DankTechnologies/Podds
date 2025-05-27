@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
-	import { Loader2, FlaskRound } from 'lucide-svelte';
+	import { Loader2, FlaskRound, RotateCcw } from 'lucide-svelte';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -16,6 +17,25 @@
 	let corsStatus = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let corsStatus2 = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let isValid = $derived(corsStatus === 'success');
+
+	function handleCorsChange() {
+		const isCustom =
+			settings.corsHelper !== DefaultSettings.corsHelper ||
+			settings.corsHelper2 !== DefaultSettings.corsHelper2;
+		settings.isCustomCorsHelpers = isCustom;
+		onSave?.();
+	}
+
+	function handleReset() {
+		SettingsService.resetCorsHelpers();
+		settings = {
+			...settings,
+			corsHelper: DefaultSettings.corsHelper,
+			corsHelper2: DefaultSettings.corsHelper2,
+			isCustomCorsHelpers: false
+		};
+		onSave?.();
+	}
 
 	async function testCorsHelpers() {
 		if (settings.corsHelper) {
@@ -60,7 +80,7 @@
 			spellcheck="false"
 			type="text"
 			bind:value={settings.corsHelper}
-			onchange={onSave}
+			onchange={handleCorsChange}
 			required
 		/>
 	</div>
@@ -72,7 +92,7 @@
 			spellcheck="false"
 			type="text"
 			bind:value={settings.corsHelper2}
-			onchange={onSave}
+			onchange={handleCorsChange}
 			required
 		/>
 	</div>
@@ -143,6 +163,9 @@
 			{:else}
 				<FlaskRound size="16" /> Test Connection
 			{/if}
+		</button>
+		<button type="button" onclick={handleReset} class="reset-button"
+			><RotateCcw size="16" /> Reset to Default
 		</button>
 	</div>
 </section>
@@ -259,5 +282,10 @@
 	.status-label {
 		min-width: 120px;
 		font-weight: 500;
+	}
+
+	.actions button.reset-button {
+		background: var(--error);
+		color: white;
 	}
 </style>

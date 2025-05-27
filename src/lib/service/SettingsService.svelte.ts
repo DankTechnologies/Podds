@@ -74,6 +74,19 @@ export class SettingsService {
 		db.settings.updateOne({ id: '1' }, { $set: { playlistView } });
 	}
 
+	static resetCorsHelpers(): void {
+		db.settings.updateOne(
+			{ id: '1' },
+			{
+				$set: {
+					corsHelper: DefaultSettings.corsHelper,
+					corsHelper2: DefaultSettings.corsHelper2,
+					isCustomCorsHelpers: false
+				}
+			}
+		);
+	}
+
 	static async clearAllLocalState(): Promise<void> {
 		// Clear only mp3-cache
 		if ('caches' in window) {
