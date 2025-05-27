@@ -34,13 +34,11 @@ UI
 
 ## CORS Proxies
 
-> what is a [CORS Proxy](https://httptoolkit.com/blog/cors-proxies/)
+> CORS proxies help web apps get equal-footing with native apps (Android, iOS), especially when 3rd-party data needs to be fetched
 
-Podds is configured with two CORS proxies - a primary and (optional) backup.  They help podds sync podcast feeds, download artwork and audio files, and help with iTunes searches since it gets crabby sometimes.  
+Podds is configured with two [CORS proxies](https://httptoolkit.com/blog/cors-proxies/) - a primary and (optional) backup.  They help podds sync podcast feeds, download artwork and audio files, and help with iTunes searches since it gets crabby sometimes.  
 
 Without CORS proxies, the browser will block network requests to other servers unless they allow CORS.  When you write server-side web software, CORS is typically disabled by default, and you have to opt-in.  In practice, most podcast servers do not opt-into CORS.  
-
-> CORS proxies help web apps get equal-footing with native apps (Android, iOS), especially when 3rd-party data needs to be fetched
 
 ### Default Proxies
 
