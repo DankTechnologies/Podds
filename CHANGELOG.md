@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/DankTechnologies/Podds/compare/v1.2.0...v1.2.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* remove extra v in version template ([f5c72b2](https://github.com/DankTechnologies/Podds/commit/f5c72b28170aefe1a10a7b4a1d80207b586cdd86))
+
 # [1.2.0](https://github.com/DankTechnologies/Podds/compare/v1.1.0...v1.2.0) (2025-05-27)
 
 
