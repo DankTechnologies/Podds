@@ -22,6 +22,7 @@ You can import podcasts from another app or use the Search page to find both pod
 Data
 
 * [SignalDB](https://signaldb.js.org/)
+* [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser)
 * [CORS Proxies](https://httptoolkit.com/blog/cors-proxies/)
 * [iTunes Search API](https://performance-partners.apple.com/search-api)
 
