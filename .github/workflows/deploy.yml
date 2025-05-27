@@ -1,49 +1,30 @@
-name: Version and Tag
+name: Release
 
 on:
   push:
     branches: [main]
 
 jobs:
-  version:
+  release:
+    name: Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Get latest version
-        id: get_version
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-      - name: Calculate next version
-        id: next_version
-        run: |
-          LATEST_TAG=${{ steps.get_version.outputs.latest_tag }}
-          MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | tr -d 'v')
-          MINOR=$(echo $LATEST_TAG | cut -d. -f2)
-          PATCH=$(echo $LATEST_TAG | cut -d. -f3)
-
-          # Check commit messages since last tag
-          if git log $LATEST_TAG..HEAD --grep="^BREAKING CHANGE\|^major:" -q; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif git log $LATEST_TAG..HEAD --grep="^feat\|^minor:" -q; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
-
-          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-      - name: Create and push tag
-        if: ${{ steps.next_version.outputs.new_version != steps.get_version.outputs.latest_tag }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag ${{ steps.next_version.outputs.new_version }}
-          git push origin ${{ steps.next_version.outputs.new_version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm semantic-release

@@ -12,10 +12,7 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test": "vitest",
-		"version": "pnpm version",
-		"release:patch": "pnpm version patch && git push && git push --tags",
-		"release:minor": "pnpm version minor && git push && git push --tags",
-		"release:major": "pnpm version major && git push && git push --tags"
+		"semantic-release": "semantic-release"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.8",
@@ -34,7 +31,10 @@
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.29.0",
 		"vite": "^6.2.5",
-		"vitest": "^3.1.1"
+		"vitest": "^3.1.1",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/git": "^10.0.1",
+		"semantic-release": "^24.2.5"
 	},
 	"dependencies": {
 		"@signaldb/core": "^1.3.1",
