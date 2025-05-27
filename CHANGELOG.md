@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/DankTechnologies/Podds/compare/v1.1.0...v1.2.0) (2025-05-27)
+
+
+### Features
+
+* add automatic release configuration ([fe16320](https://github.com/DankTechnologies/Podds/commit/fe16320777f997ab5e33406afd2048576e97e6eb))
+
 # [1.1.0](https://github.com/DankTechnologies/Podds/compare/v1.0.0...v1.1.0) (2025-05-27)
 
 
