@@ -1,5 +1,5 @@
 
-<h1 align="center">podds</h1>
+<h1 align="center">Podds</h1>
 <p align="center">
   <img src="static/podds.svg" alt="Podds logo" height="160" />
 </p>
