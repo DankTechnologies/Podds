@@ -51,7 +51,7 @@ You're welcome to use my proxies!  I will try to keep the lights on, one way or 
 
 You can create and use your own CORS proxies with podds, which I recommend for several reasons
 
-🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** - when you use a public CORS proxy, you trust its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better questions are _what if I don't have to trust DanK at all?_ or _what's the cost to not trust DanK?_. I have answers for those questions below.
+🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** - when you use a public CORS proxy, you trust its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better question is _how can I use podds but not have to trust DanK at all?_. I have answers for those questions below.
 
 📜 **[The Long Now](https://www.inkandswitch.com/essay/local-first/#5-the-long-now)** - maybe my CORS proxies hit quotas or fall over, maybe free tiers go away, maybe I'm hit by a bus.  None of that should prevent you from continuing to use podds
 
