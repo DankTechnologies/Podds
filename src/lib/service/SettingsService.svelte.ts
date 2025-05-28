@@ -32,27 +32,36 @@ export const DefaultSettings: Settings = {
 
 export class SettingsService {
 	static initializeSettings(): void {
+		let isFirstVisit = false;
+		let needsSave = false;
+
 		let settings = db.settings.findOne({ id: '1' });
 
-		if (settings) {
+		if (settings === undefined) {
+			isFirstVisit = true;
+			settings = DefaultSettings;
+		}
 
-			// update public CORS proxies if they've changed
-			if (!settings.isCustomCorsHelpers && (settings.corsHelper !== DefaultSettings.corsHelper || settings.corsHelper2 !== DefaultSettings.corsHelper2)) {
-				settings.corsHelper = DefaultSettings.corsHelper;
-				settings.corsHelper2 = DefaultSettings.corsHelper2;
-				SettingsService.saveSettings(settings);
-			}
+		// update public CORS proxies if they've changed
+		if (!settings.isCustomCorsHelpers && (settings.corsHelper !== DefaultSettings.corsHelper || settings.corsHelper2 !== DefaultSettings.corsHelper2)) {
+			settings.corsHelper = DefaultSettings.corsHelper;
+			settings.corsHelper2 = DefaultSettings.corsHelper2;
+			needsSave = true;
+		}
 
-			// update custom CORS proxies when part of share links
-			const shareData = getShareData();
-			if (shareData?.corsHelper) {
-				settings.corsHelper = shareData.corsHelper;
-				settings.corsHelper2 = shareData.corsHelper2;
-				SettingsService.saveSettings(settings);
-			}
-		} else {
+		// update custom CORS proxies when present in share links, i.e. someone with custom CORS proxies shared with you
+		const shareData = getShareData();
+		if (shareData?.corsHelper) {
+			settings.corsHelper = shareData.corsHelper;
+			settings.corsHelper2 = shareData.corsHelper2;
+			needsSave = true;
+		}
+
+		if (isFirstVisit) {
 			db.settings.insert(DefaultSettings);
 			Log.info('Added initial settings');
+		} else if (needsSave) {
+			SettingsService.saveSettings(settings);
 		}
 	}
 
