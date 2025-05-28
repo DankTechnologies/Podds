@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/DankTechnologies/Podds/compare/v1.2.4...v1.2.5) (2025-05-28)
+
+
+### Bug Fixes
+
+* CSS fixes ([ebd1106](https://github.com/DankTechnologies/Podds/commit/ebd11062207f143ccefe8b6f3439690263d5b4f4))
+
 ## [1.2.4](https://github.com/DankTechnologies/Podds/compare/v1.2.3...v1.2.4) (2025-05-27)
 
 
