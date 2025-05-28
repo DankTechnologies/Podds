@@ -15,11 +15,11 @@
 
 There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  Instead, podds runs on your device and uses the open web for easy distribution.  
 
-You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, and so on.  All of your data stays on your device.
+You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, chapter support, and so on.  All of your data stays on your device.
 
+Try it out at [podds.io](https://podds.io)
 
-https://github.com/user-attachments/assets/08efcb85-75ba-4d68-b9a2-3dde7e718e30
-
+https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334
 
 ## Tech Stack
 
