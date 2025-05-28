@@ -15,15 +15,16 @@
 
 There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS or costs.  Instead, podds runs on your device and uses the open web for easy distribution.  
 
-You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, chapter support, and so on.  All of your data stays on your device.
+You can [import](https://podds.io/settings?section=basic#import) podcasts from another app or use the [search](https://podds.io/search) page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, chapter support, and so on.  All of your data stays on your device.
 
-Try it out at [podds.io](https://podds.io)
+**Try it out at [podds.io](https://podds.io)**
 
 ## Videos and Screenshots
 
-<video src="https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334" width="50%"/>
-![Screenshot_20250527-145400](https://github.com/user-attachments/assets/9dc09ff0-678b-48d8-bcae-397399b45bda)
-![Screenshot_20250527-145328](https://github.com/user-attachments/assets/43466f00-302c-4e9c-8205-e562b71f4757)
+<video src="https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334" width="30%"></video>
+<img src="https://github.com/user-attachments/assets/9dc09ff0-678b-48d8-bcae-397399b45bda" width="30%"></img>
+<img src="https://github.com/user-attachments/assets/43466f00-302c-4e9c-8205-e562b71f4757" width="30%"></img>
+<img src="https://github.com/user-attachments/assets/f2fbf8e0-825e-48a5-939c-a0f7665ded25" width="30%"></img>
 
 ## Tech Stack
 
