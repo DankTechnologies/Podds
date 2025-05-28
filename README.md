@@ -19,7 +19,11 @@ You can import podcasts from another app or use the Search page to find both pod
 
 Try it out at [podds.io](https://podds.io)
 
+## Videos and Screenshots
+
 <video src="https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334" width="50%"/>
+![Screenshot_20250527-145400](https://github.com/user-attachments/assets/9dc09ff0-678b-48d8-bcae-397399b45bda)
+![Screenshot_20250527-145328](https://github.com/user-attachments/assets/43466f00-302c-4e9c-8205-e562b71f4757)
 
 ## Tech Stack
 
