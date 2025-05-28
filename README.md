@@ -13,7 +13,7 @@
 
 [Podds](https://podds.io) is a local-first podcast web app geared towards simplicity, speed, and sharing. I built it as a weekend project that took 6 months, as is tradition.
 
-There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS.  Instead, podds runs on your device and uses the open web for easy distribution.  
+There's no ads, no signups or accounts, no app stores or gatekeepers, no SaaS or costs.  Instead, podds runs on your device and uses the open web for easy distribution.  
 
 You can import podcasts from another app or use the Search page to find both podcasts and episodes.  Podds takes care of the rest, finding new episodes, handling downloads and playback, saving searches, chapter support, and so on.  All of your data stays on your device.
 
@@ -55,11 +55,11 @@ You're welcome to use my proxies!  I will try to keep the lights on, one way or 
 
 You can create and use your own CORS proxies with podds, which I recommend for several reasons
 
-🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** - when you use a public CORS proxy, you trust its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better question is _how can I use podds but not have to trust DanK at all?_. I have answers for those questions below.
+🔒 **[Privacy](https://www.inkandswitch.com/essay/local-first/#6-security-and-privacy-by-default)** => when you use a public CORS proxy, you are trusting its owner, because they sit between you and the target server.  Instead of _should I trust DanK_, the better question is _how can I not have to trust DanK in the first place?_, and the answer is to run your own CORS proxy
 
-📜 **[The Long Now](https://www.inkandswitch.com/essay/local-first/#5-the-long-now)** - maybe my CORS proxies hit quotas or fall over, maybe free tiers go away, maybe I'm hit by a bus.  None of that should prevent you from continuing to use podds
+📜 **[The Long Now](https://www.inkandswitch.com/essay/local-first/#5-the-long-now)** => maybe my CORS proxies hit quotas or fall over, maybe free tiers go away, maybe I'm hit by a bus.  None of that should prevent you from continuing to use podds
 
-🚲 **It's Easy** - the [Cloudflare Worker](#the-cloudflare-worker-way) way takes a few minutes.  Create account, copy+paste the worker code, configure URL in podds.  Done.
+🚲 **It's Easy** => the [Cloudflare Worker](#the-cloudflare-worker-way) way takes a few minutes.  Create account, copy+paste the worker code, configure URL in the podds settings.  Done.
 
 ### The Cloudflare Worker Way
 
