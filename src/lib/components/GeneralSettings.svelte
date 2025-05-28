@@ -281,7 +281,6 @@
 	.actions button {
 		display: flex;
 		width: fit-content;
-		font-size: var(--text-smallish);
 		font-weight: 600;
 		align-items: center;
 		background: var(--bg-less);
@@ -368,7 +367,7 @@
 
 	.import-progress {
 		font-family: monospace;
-		font-size: var(--text-smallish);
+		font-size: var(--text-smaller);
 		padding: 1rem;
 		background-color: var(--bg-less);
 		min-height: 8rem;
@@ -388,7 +387,7 @@
 
 		label {
 			flex: 1;
-			font-size: var(--text-smallish);
+			font-size: var(--text-smaller);
 			font-weight: normal;
 			padding-bottom: 0;
 			display: flex;

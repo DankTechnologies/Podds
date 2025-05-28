@@ -152,23 +152,23 @@
 			</div>
 		</div>
 	</div>
-	<div class="actions">
-		<button
-			type="button"
-			onclick={handleTest}
-			disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
-		>
-			{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
-				<Loader2 size="16" class="spinner" /> Testing...
-			{:else}
-				<FlaskRound size="16" /> Test Connection
-			{/if}
-		</button>
-		<button type="button" onclick={handleReset} class="reset-button"
-			><RotateCcw size="16" /> Reset to Default
-		</button>
-	</div>
 </section>
+<div class="actions">
+	<button
+		type="button"
+		onclick={handleTest}
+		disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
+	>
+		{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
+			<Loader2 size="16" class="spinner" /> Testing...
+		{:else}
+			<FlaskRound size="16" /> Run Tests
+		{/if}
+	</button>
+	<button type="button" onclick={handleReset} class="reset-button"
+		><RotateCcw size="16" /> Reset to Defaults
+	</button>
+</div>
 
 <style>
 	.section {
@@ -231,20 +231,20 @@
 
 	.actions {
 		display: flex;
-		gap: 1rem;
+		margin-top: 2rem;
+		gap: 2rem;
 	}
 
 	.actions button {
 		display: flex;
-		width: fit-content;
-		font-size: var(--text-smallish);
+		min-width: 8rem;
+		font-size: var(--text-smaller);
 		font-weight: 600;
 		align-items: center;
 		gap: 0.5rem;
 		border: none;
 		padding: 0.5rem 1rem;
 		border-radius: 0.25rem;
-		flex: 1;
 		background: var(--bg-less);
 		color: var(--text);
 		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
@@ -270,6 +270,7 @@
 	.status-container {
 		display: flex;
 		flex-direction: column;
+		padding: 0.25rem 0.75rem;
 		gap: 0.5rem;
 	}
 
@@ -281,11 +282,10 @@
 
 	.status-label {
 		min-width: 120px;
-		font-weight: 500;
 	}
 
 	.actions button.reset-button {
 		background: var(--error);
-		color: white;
+		color: var(--grey-100);
 	}
 </style>

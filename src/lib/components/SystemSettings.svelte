@@ -180,7 +180,7 @@
 
 		label {
 			flex: 2;
-			font-size: var(--text-smallish);
+			font-size: var(--text-smaller);
 			font-weight: normal;
 			padding-bottom: 0;
 			display: flex;
@@ -207,7 +207,7 @@
 				border-radius: 0.25rem;
 				background-color: var(--bg-less);
 				border: 1px solid var(--bg-less);
-				font-size: var(--text-smallish);
+				font-size: var(--text-smaller);
 			}
 		}
 
@@ -236,7 +236,7 @@
 	.storage-stats {
 		background-color: var(--bg-less);
 		font-family: monospace;
-		font-size: var(--text-smallish);
+		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
 		padding: 1rem;
 	}
