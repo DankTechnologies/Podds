@@ -121,7 +121,7 @@ export class FeedService {
 		const errorPercentage = (finderResponse.errors.length / feeds.length) * 100;
 
 		if (errorPercentage > 50) {
-			Log.warn(`${errorPercentage}% of feed updates failed`);
+			Log.debug(`${errorPercentage}% of feed updates failed, will try again next in ${CHECK_INTERVAL_MS / 1000} seconds`);
 
 		} else {
 			SettingsService.updateLastSyncAt();
@@ -129,9 +129,9 @@ export class FeedService {
 			if (finderResponse.errors.length > 0) {
 				Log.error(finderResponse.errors.join('\n'));
 			}
-		}
 
-		Log.debug('Finished updating subscribed feeds');
+			Log.debug('Finished updating subscribed feeds');
+		}
 	}
 
 
