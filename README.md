@@ -19,7 +19,7 @@ You can import podcasts from another app or use the Search page to find both pod
 
 Try it out at [podds.io](https://podds.io)
 
-<p align="center" style="width: 500px">https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334</p>
+<span align="center">https://github.com/user-attachments/assets/32f7ff84-c52a-4286-80e6-474973dac334</span>
 
 ## Tech Stack
 
