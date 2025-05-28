@@ -361,7 +361,7 @@
 		:global(svg) {
 			float: left;
 			margin-right: 0.5rem;
-			color: light-dark(var(--primary), var(--primary-more));
+			color: var(--primary);
 		}
 	}
 

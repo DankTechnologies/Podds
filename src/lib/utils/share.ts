@@ -1,3 +1,4 @@
+import { getSettings } from '$lib/stores/db.svelte';
 import type { Feed, Episode } from '$lib/types/db';
 
 export interface ShareConfig {
@@ -70,9 +71,18 @@ export function decodeShareLink(hash: string): ShareConfig {
 }
 
 export async function shareFeed(feed: Feed): Promise<void> {
-    const url = encodeShareLink({
-        feedId: feed.id
-    });
+    const settings = getSettings();
+
+    const shareConfig: ShareConfig = {
+        feedId: feed.id,
+    };
+
+    if (settings.isCustomCorsHelpers) {
+        shareConfig.corsHelper = settings.corsHelper;
+        shareConfig.corsHelper2 = settings.corsHelper2;
+    }
+
+    const url = encodeShareLink(shareConfig);
 
     const success = await shareWithNative({
         title: `🎙️ ${feed.title}`,
@@ -86,10 +96,20 @@ export async function shareFeed(feed: Feed): Promise<void> {
 }
 
 export async function shareEpisode(episode: Episode, feed: Feed): Promise<void> {
-    const url = encodeShareLink({
+    const settings = getSettings();
+
+    const shareConfig: ShareConfig = {
         feedId: feed.id,
         episodePublishedAt: episode.publishedAt.getTime() / 1000
-    });
+    };
+
+    if (settings.isCustomCorsHelpers) {
+        shareConfig.corsHelper = settings.corsHelper;
+        shareConfig.corsHelper2 = settings.corsHelper2;
+    }
+
+    const url = encodeShareLink(shareConfig);
+
 
     const success = await shareWithNative({
         title: `🎙️ "${episode.title}" on ${feed.title}`,

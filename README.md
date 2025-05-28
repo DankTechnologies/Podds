@@ -91,12 +91,13 @@ This repo contains an equivalent [NodeJS app](/cors-proxies/node/server.js) and 
 
 Some good resources
 
-* [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)
-* [r/selfhosted](https://www.reddit.com/r/selfhosted/)
+- [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted)
+- [r/selfhosted](https://www.reddit.com/r/selfhosted/)
 
 ## Inspired By
 
-* [Maggie Appleton - Home-Cooked Software and Barefoot Developers](https://maggieappleton.com/home-cooked-software)
-* [Johannes Schickling - local-first podcast](https://www.localfirst.fm/)
-* [SLC - Simple, Lovable, Complete](https://longform.asmartbear.com/slc/)
-* [Linear](https://linear.app)
+- [Maggie Appleton - Home-Cooked Software and Barefoot Developers](https://maggieappleton.com/home-cooked-software)
+- [Open Web Advocacy - Walled Gardens Report](https://open-web-advocacy.org/walled-gardens-report/)
+- [Johannes Schickling - local-first podcast](https://www.localfirst.fm/)
+- [SLC - Simple, Lovable, Complete](https://longform.asmartbear.com/slc/)
+- [Linear](https://linear.app)
