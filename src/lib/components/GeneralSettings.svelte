@@ -387,7 +387,6 @@
 
 		label {
 			flex: 1;
-			font-size: var(--text-smaller);
 			font-weight: normal;
 			padding-bottom: 0;
 			display: flex;

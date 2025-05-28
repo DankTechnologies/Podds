@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
-	import { Loader2, FlaskRound, RotateCcw } from 'lucide-svelte';
+	import { Loader2, FlaskRound, RotateCcw, Rss, Waypoints } from 'lucide-svelte';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -73,81 +73,89 @@
 
 <section class="section">
 	<div>
-		<label for="corsHelper">CORS Proxy</label>
-		<input
-			id="corsHelper"
-			class="api-input"
-			spellcheck="false"
-			type="text"
-			bind:value={settings.corsHelper}
-			onchange={handleCorsChange}
-			required
-		/>
-	</div>
-	<div>
-		<label for="corsHelper2">CORS Proxy 2</label>
-		<input
-			id="corsHelper2"
-			class="api-input"
-			spellcheck="false"
-			type="text"
-			bind:value={settings.corsHelper2}
-			onchange={handleCorsChange}
-			required
-		/>
-	</div>
-	<div>
-		<label for="corsTestUrl">Test URL</label>
-		<input
-			id="corsTestUrl"
-			class="api-input"
-			spellcheck="false"
-			type="text"
-			bind:value={corsTestUrl}
-			placeholder="URL to test CORS helper with"
-		/>
-	</div>
-	<div>
-		<label for="connectionStatus">Connection Status</label>
-		<div class="status-container">
-			<div class="status-item">
-				<span class="status-label">CORS Proxy:</span>
-				<div
-					role="status"
-					class="status"
-					class:success={corsStatus === 'success'}
-					class:error={corsStatus === 'error'}
-					class:testing={corsStatus === 'testing'}
-				>
-					{#if corsStatus === 'untested'}
-						Not tested
-					{:else if corsStatus === 'testing'}
-						Testing...
-					{:else if corsStatus === 'success'}
-						Connection successful
-					{:else}
-						Connection failed
-					{/if}
-				</div>
+		<div class="section-header">CORS Proxies</div>
+		<div class="cors-container">
+			<div class="input-group">
+				<label for="corsHelper" class="label-with-icon">
+					<Waypoints class="icon" size={16} /> Primary
+				</label>
+				<input
+					id="corsHelper"
+					class="api-input"
+					spellcheck="false"
+					type="text"
+					bind:value={settings.corsHelper}
+					onchange={handleCorsChange}
+					required
+				/>
 			</div>
-			<div class="status-item">
-				<span class="status-label">CORS Proxy 2:</span>
-				<div
-					role="status"
-					class="status"
-					class:success={corsStatus2 === 'success'}
-					class:error={corsStatus2 === 'error'}
-					class:testing={corsStatus2 === 'testing'}
-				>
-					{#if corsStatus2 === 'untested'}
-						Not tested
-					{:else if corsStatus2 === 'testing'}
-						Testing...
-					{:else if corsStatus2 === 'success'}
-						Connection successful
-					{:else}
-						Connection failed
-					{/if}
+			<div class="input-group">
+				<label for="corsHelper2" class="label-with-icon">
+					<Waypoints class="icon" size={16} /> Backup
+				</label>
+				<input
+					id="corsHelper2"
+					class="api-input"
+					spellcheck="false"
+					type="text"
+					bind:value={settings.corsHelper2}
+					onchange={handleCorsChange}
+					required
+				/>
+			</div>
+			<div class="input-group">
+				<label for="corsTestUrl" class="label-with-icon">
+					<Rss class="icon" size={16} /> Test RSS Feed
+				</label>
+				<input
+					id="corsTestUrl"
+					class="api-input"
+					spellcheck="false"
+					type="text"
+					bind:value={corsTestUrl}
+					placeholder="URL to test CORS helper with"
+				/>
+			</div>
+			<div class="status-container">
+				<div class="status-item">
+					<span class="status-label">Primary Proxy:</span>
+					<div
+						role="status"
+						class="status"
+						class:success={corsStatus === 'success'}
+						class:error={corsStatus === 'error'}
+						class:testing={corsStatus === 'testing'}
+					>
+						{#if corsStatus === 'untested'}
+							Not tested
+						{:else if corsStatus === 'testing'}
+							Testing...
+						{:else if corsStatus === 'success'}
+							Works!
+						{:else}
+							No luck
+						{/if}
+					</div>
+				</div>
+				<div class="status-item">
+					<span class="status-label">Backup Proxy:</span>
+					<div
+						role="status"
+						class="status"
+						class:success={corsStatus2 === 'success'}
+						class:error={corsStatus2 === 'error'}
+						class:testing={corsStatus2 === 'testing'}
+					>
+						{#if corsStatus2 === 'untested'}
+							Not tested
+						{:else if corsStatus2 === 'testing'}
+							Testing...
+						{:else if corsStatus2 === 'success'}
+							Works!
+						{:else}
+							No luck
+						{/if}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -166,7 +174,7 @@
 		{/if}
 	</button>
 	<button type="button" onclick={handleReset} class="reset-button"
-		><RotateCcw size="16" /> Reset to Defaults
+		><RotateCcw size="16" /> Use Public Proxies
 	</button>
 </div>
 
@@ -182,30 +190,55 @@
 			gap: 1rem;
 		}
 
-		& > div > label {
+		& > div > .section-header {
 			background-color: light-dark(var(--grey-200), var(--grey-800));
 			color: light-dark(var(--primary-grey-dark), var(--text));
 			padding: 0.25rem 0.75rem;
 			border-radius: 0.25rem;
 			letter-spacing: 0.05em;
+			font-weight: 600;
+			font-size: var(--text-large);
 		}
 
 		label {
 			font-weight: 600;
 			font-size: var(--text-large);
 		}
+	}
 
-		input {
-			background-color: var(--bg-less);
-			border: 1px solid var(--bg-less);
-			color: var(--text);
+	.cors-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.input-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.label-with-icon {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+
+		:global(.icon) {
+			color: var(--primary);
+			transition: color 0.2s ease;
 		}
 	}
 
-	input,
-	button {
+	input {
+		background-color: var(--bg-less);
+		border: 1px solid var(--bg-less);
+		color: var(--text);
 		padding: 0.5em;
 		border-radius: 0.25rem;
+	}
+
+	.api-input {
+		font-family: monospace;
 	}
 
 	.status {
@@ -224,11 +257,6 @@
 		color: var(--primary);
 	}
 
-	.api-input {
-		font-size: var(--text-small);
-		font-family: monospace;
-	}
-
 	.actions {
 		display: flex;
 		margin-top: 2rem;
@@ -237,8 +265,7 @@
 
 	.actions button {
 		display: flex;
-		min-width: 8rem;
-		font-size: var(--text-smaller);
+		min-width: 8.5rem;
 		font-weight: 600;
 		align-items: center;
 		gap: 0.5rem;
@@ -282,10 +309,5 @@
 
 	.status-label {
 		min-width: 120px;
-	}
-
-	.actions button.reset-button {
-		background: var(--error);
-		color: var(--grey-100);
 	}
 </style>
