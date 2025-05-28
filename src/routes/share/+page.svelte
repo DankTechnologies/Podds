@@ -6,7 +6,7 @@
 	import { db, getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { goto } from '$app/navigation';
 	import { Podcast, Play, Download, Dot, Package, PackageCheck, PackageOpen } from 'lucide-svelte';
-	import { decodeShareLink, getShareData, type ShareConfig } from '$lib/utils/share';
+	import { decodeShareLink, getShareData, getUrlHash, type ShareConfig } from '$lib/utils/share';
 	import { formatEpisodeDate, formatEpisodeDuration } from '$lib/utils/time';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { downloadAudio } from '$lib/utils/downloadAudio';
@@ -16,7 +16,7 @@
 	import { searchPodcasts } from '$lib/api/itunes';
 	import type { EpisodeFinderResponse } from '$lib/types/episodeFinder';
 
-	let shareDataCopied = $state(false);
+	let urlHashCopied = $state(false);
 	let config = $state<ShareConfig | null>(null);
 	let error = $state<string | null>(null);
 	let feed = $state.raw<Feed | null>(null);
@@ -27,7 +27,7 @@
 	let feedExists = $derived(feeds.find((f) => f.id === config?.feedId) !== undefined);
 	let activeEpisodes = $derived(getActiveEpisodes());
 	let settings = $derived(getSettings());
-	let shareData = $state<string | null>(null);
+	let urlHash = $state<string | null>(null);
 
 	let targetEpisode = $derived(
 		episodes.find((e) => e.publishedAt.getTime() / 1000 === config?.episodePublishedAt)
@@ -45,13 +45,13 @@
 
 	async function initialize() {
 		try {
-			shareDataCopied = false;
-			shareData = getShareData();
-			if (!shareData) {
+			urlHashCopied = false;
+			urlHash = getUrlHash();
+			if (!urlHash) {
 				throw new Error('No share data found');
 			}
 
-			config = decodeShareLink(shareData);
+			config = decodeShareLink(urlHash);
 			await getFeedAndEpisodes(config!.feedId);
 
 			const loadingScreen = document.getElementById('appLoading');
@@ -146,10 +146,10 @@
 		);
 	}
 
-	function copyShareData() {
-		if (!shareData) return;
-		navigator.clipboard.writeText(shareData);
-		shareDataCopied = true;
+	function copyUrlHashToClipboard() {
+		if (!urlHash) return;
+		navigator.clipboard.writeText(urlHash);
+		urlHashCopied = true;
 	}
 </script>
 
@@ -194,11 +194,11 @@
 					{#if isAppleWeb}
 						<button
 							class="action-button"
-							class:copied={shareDataCopied}
-							disabled={shareDataCopied}
-							onclick={copyShareData}
+							class:copied={urlHashCopied}
+							disabled={urlHashCopied}
+							onclick={copyUrlHashToClipboard}
 						>
-							{#if shareDataCopied}
+							{#if urlHashCopied}
 								<PackageCheck size="24" />
 							{:else}
 								<Package size="24" />
@@ -219,7 +219,7 @@
 						</button>
 					{/if}
 				</div>
-				{#if shareDataCopied}
+				{#if urlHashCopied}
 					<div class="share-data-copied">
 						Open <img src="/podds.svg" alt="Podds" class="share-data-icon" /> app and tap the
 						<span class="share-data-icon"><PackageOpen size="24" /></span> button
@@ -232,11 +232,11 @@
 				{#if isAppleWeb}
 					<button
 						class="action-button"
-						class:copied={shareDataCopied}
-						disabled={shareDataCopied}
-						onclick={copyShareData}
+						class:copied={urlHashCopied}
+						disabled={urlHashCopied}
+						onclick={copyUrlHashToClipboard}
 					>
-						{#if shareDataCopied}
+						{#if urlHashCopied}
 							<PackageCheck size="24" />
 						{:else}
 							<Package size="24" />
@@ -255,7 +255,7 @@
 					</button>
 				{/if}
 			</div>
-			{#if shareDataCopied}
+			{#if urlHashCopied}
 				<div class="share-data-copied">
 					Open <img src="/podds.svg" alt="Podds" class="share-data-icon" /> app and tap the
 					<span class="share-data-icon"><PackageOpen size="24" /></span> button

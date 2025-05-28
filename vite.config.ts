@@ -22,6 +22,9 @@ export default defineConfig({
 			}
 		}
 	],
+	test: {
+		setupFiles: ['./vitest.setup.ts']
+	},
 	server: {
 		host: '0.0.0.0',
 		allowedHosts: true,

@@ -1,6 +1,7 @@
 import { db } from '$lib/stores/db.svelte';
 import type { Settings } from '$lib/types/db';
 import { isPwa } from '$lib/utils/osCheck';
+import { getShareData } from '$lib/utils/share';
 import { Log } from './LogService';
 
 export const SessionInfo = $state({
@@ -35,9 +36,18 @@ export class SettingsService {
 
 		if (settings) {
 
+			// update public CORS proxies if they've changed
 			if (!settings.isCustomCorsHelpers && (settings.corsHelper !== DefaultSettings.corsHelper || settings.corsHelper2 !== DefaultSettings.corsHelper2)) {
 				settings.corsHelper = DefaultSettings.corsHelper;
 				settings.corsHelper2 = DefaultSettings.corsHelper2;
+				SettingsService.saveSettings(settings);
+			}
+
+			// update custom CORS proxies when part of share links
+			const shareData = getShareData();
+			if (shareData?.corsHelper) {
+				settings.corsHelper = shareData.corsHelper;
+				settings.corsHelper2 = shareData.corsHelper2;
 				SettingsService.saveSettings(settings);
 			}
 		} else {
