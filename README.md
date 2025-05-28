@@ -9,6 +9,17 @@
 
 ---
 
+## Table of Contents
+
+- [What is Podds?](#what-is-podds)
+- [Videos and Screenshots](#videos-and-screenshots)
+- [Tech Stack](#tech-stack)
+- [CORS Proxies](#cors-proxies)
+  - [Default Proxies](#default-proxies)
+  - [Bring Your Own Proxy](#bring-your-own-proxy)
+  - [The Cloudflare Worker Way](#the-cloudflare-worker-way)
+  - [The Self-Hosted Way](#the-self-hosted-way)
+- [Inspired By](#inspired-by)
 ## What is Podds?
 
 [Podds](https://podds.io) is a local-first podcast web app geared towards simplicity, speed, and sharing. I built it as a weekend project that took 6 months, as is tradition.
