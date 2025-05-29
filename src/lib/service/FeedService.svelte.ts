@@ -289,7 +289,7 @@ export class FeedService {
 
 	exportFeeds(): string {
 		const feeds = db.feeds
-			.find({}, { sort: { title: 1 } })
+			.find({ isSubscribed: 1 }, { sort: { title: 1 } })
 			.fetch();
 
 		const opml = `<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
