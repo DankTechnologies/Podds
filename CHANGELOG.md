@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/DankTechnologies/Podds/compare/v1.0.0...v1.0.1) (2025-05-29)
+
+
+### Bug Fixes
+
+* **export:** limit to subscribed feeds ([af5bb63](https://github.com/DankTechnologies/Podds/commit/af5bb63971e10d38a327da75a15af5eb4995a561))
+
 ## [1.3.10](https://github.com/DankTechnologies/Podds/compare/v1.3.9...v1.3.10) (2025-05-29)
 
 
