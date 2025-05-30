@@ -138,14 +138,16 @@ In terms of Podds, there are two roadblocks on iOS specifically
 1. share links open Podds in Safari even if you have installed the Podds app
 2. **Nothing** is shared between the Safari and app versions of Podds.
 
-Together, this results in a disjointed experience for the user, in a way that makes the Podds look broken.
+Together, this results in a disjointed experience for the user, in a way that makes Podds look broken.
 
-Podds addresses these roadblocks by treating Safari and the app versions differently.  The Safari version is limited to two things
+Podds addresses these roadblocks by treating Safari and the app versions differently.  The Safari version has two jobs
 
 1. help the user install the app
-2. show a _Share with app_ button which copies the share link to the clipboard
+2. help the user click the _Share with app_ button, and have them go to the app and click the _Receive_ button
 
-The app version of Podds has a Receive button that pastes the clipboard, and then loads the share page.  
+The Receive button in the app version pastes the clipboard to gather the share link, and then loads the share page.  
+
+This is glorified copy and paste with buttons.  It's stupid, but it works.  Thanks Apple.
 
 <video src="https://github.com/user-attachments/assets/22498dbd-bb8f-478a-96e9-08350a629aa5"></video>
 
