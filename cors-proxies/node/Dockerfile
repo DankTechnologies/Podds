@@ -1,5 +1,6 @@
 FROM node:slim
 WORKDIR /app
 COPY server.js .
-RUN npm install node-fetch
+COPY package.json .
+RUN npm install
 CMD ["node", "server.js"]
