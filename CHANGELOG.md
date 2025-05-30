@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/DankTechnologies/Podds/compare/v1.0.1...v1.0.2) (2025-05-30)
+
+
+### Bug Fixes
+
+* Add html meta tags and png logo, fix description ([#4](https://github.com/DankTechnologies/Podds/issues/4)) ([06ab283](https://github.com/DankTechnologies/Podds/commit/06ab2837b3eed267f1e5422cb9fc0de67e70179d))
+
 ## [1.0.1](https://github.com/DankTechnologies/Podds/compare/v1.0.0...v1.0.1) (2025-05-29)
 
 
