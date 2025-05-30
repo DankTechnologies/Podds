@@ -4,11 +4,26 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Podds</title>
-	<meta name="description" content="Podcast PWA" />
+	<meta name="description" content="podcasts, simple and free" />
 	<link rel="icon" href="%sveltekit.assets%/podds.svg" />
 	<link rel="apple-touch-icon" href="%sveltekit.assets%/podds.svg" />
 	<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="%sveltekit.url%" />
+	<meta property="og:title" content="Podds" />
+	<meta property="og:description" content="podcasts, simple and free" />
+	<meta property="og:image" content="%sveltekit.assets%/podds.svg" />
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content="%sveltekit.url%" />
+	<meta property="twitter:title" content="Podds" />
+	<meta property="twitter:description" content="podcasts, simple and free" />
+	<meta property="twitter:image" content="%sveltekit.assets%/podds.svg" />
+	
 	%sveltekit.head%
 	<style>
 		#appLoading {
