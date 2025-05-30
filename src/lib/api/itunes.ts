@@ -220,7 +220,7 @@ async function fetchWithCorsFallback(url: string): Promise<any> {
             return await corsResponse.json();
         }
     } catch (error) {
-        Log.debug(`Failed to fetch ${url}: ${error}`);
+        Log.debug(`Failed to fetch ${url} via primary CORS Proxy: ${error}`);
     }
 
     if (settings.corsHelper2) {
@@ -231,7 +231,7 @@ async function fetchWithCorsFallback(url: string): Promise<any> {
                 return await corsResponse2.json();
             }
         } catch (error) {
-            Log.debug(`Failed to fetch ${url}: ${error}`);
+            Log.debug(`Failed to fetch ${url} via backup CORS Proxy: ${error}`);
         }
     }
 
