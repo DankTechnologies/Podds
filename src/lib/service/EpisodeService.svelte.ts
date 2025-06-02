@@ -147,7 +147,6 @@ export class EpisodeService {
 
 	static clearDownloaded(episode: Episode): void {
 		db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isDownloaded: 0 } });
-		this.deleteCachedEpisodes([episode.url]);
 	}
 
 	static markCompleted(episodeId: string): void {
@@ -222,15 +221,20 @@ export class EpisodeService {
 		for (const episode of completed) {
 			Log.info(`Removing completed episode due to retention policy: ${episode.title}`);
 			this.clearDownloaded(episode);
-			await this.deleteCachedEpisodes([episode.url]);
 		}
 
-		// Remove in-progress episodes
 		for (const episode of inProgress) {
 			Log.info(`Removing in-progress episode due to retention policy: ${episode.title}`);
 			this.clearDownloaded(episode);
-			await this.deleteCachedEpisodes([episode.url]);
 		}
+
+		// Collect all URLs to delete
+		const allUrls = [
+			...completed.map(e => e.url),
+			...inProgress.map(e => e.url)
+		];
+
+		await this.deleteCachedEpisodes(allUrls);
 	}
 
 	static startPeriodicUpdates() {
