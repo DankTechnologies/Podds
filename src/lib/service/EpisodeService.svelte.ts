@@ -245,6 +245,15 @@ export class EpisodeService {
 				return;
 			}
 
+			const settings = getSettings();
+			const lastCheckTime = settings.lastRetentionCheckAt ? new Date(settings.lastRetentionCheckAt).getTime() : 0;
+
+			// If it hasn't been long enough since last check, skip
+			if (Date.now() - lastCheckTime < CHECK_INTERVAL_MS) {
+				Log.debug('Skipping retention check due to recent update');
+				return;
+			}
+
 			isUpdating = true;
 			window.requestIdleCallback(async () => {
 				try {
@@ -261,16 +270,10 @@ export class EpisodeService {
 		// Handle visibility changes
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
-				const settings = getSettings();
-				const lastCheckTime = settings.lastRetentionCheckAt ? new Date(settings.lastRetentionCheckAt).getTime() : 0;
-
-				// If it's been more than 30 minutes since last check, run it now
-				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-					setTimeout(() => {
-						Log.debug('App became visible, running retention policy check');
-						sync();
-					}, 10000);
-				}
+				setTimeout(() => {
+					Log.debug('App became visible, running retention policy check');
+					sync();
+				}, 20000);
 			}
 		});
 
