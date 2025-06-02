@@ -248,7 +248,9 @@ export class FeedService {
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
 
-		Log.error(finderResponse.errors.join('\n'));
+		if (finderResponse.errors.length > 0) {
+			Log.error(finderResponse.errors.join('\n'));
+		}
 
 		db.feeds.batch(() => {
 			finderResponse.feeds.forEach((x) => {

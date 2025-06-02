@@ -147,7 +147,9 @@ export class EpisodeService {
 				worker.postMessage({ urls });
 			});
 
-			Log.error(response.errors.join('\n'));
+			if (response.errors.length > 0) {
+				Log.error(response.errors.join('\n'));
+			}
 		} catch (error) {
 			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? `${error.message} - ${error.stack}` : `${error}`}`);
 		} finally {
