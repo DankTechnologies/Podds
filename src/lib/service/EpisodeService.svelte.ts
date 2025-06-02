@@ -228,7 +228,6 @@ export class EpisodeService {
 			this.clearDownloaded(episode);
 		}
 
-		// Collect all URLs to delete
 		const allUrls = [
 			...completed.map(e => e.url),
 			...inProgress.map(e => e.url)
