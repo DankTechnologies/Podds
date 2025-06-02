@@ -148,13 +148,28 @@ const server = http.createServer(async (req, res) => {
 
 		res.writeHead(upstream.status, rawHeaders);
 		httpRequestsTotal.inc({ method: req.method, status: upstream.status });
+		
+		// Handle client disconnection
+		req.on('close', () => {
+			if (!res.writableEnded) {
+				res.destroy();
+			}
+		});
+
 		await streamPipeline(upstream.body, res);
 	} catch (e) {
 		console.error(`Fetch failed: ${e.message}`);
 		console.error(e.stack);
-		res.writeHead(500);
-		httpRequestsTotal.inc({ method: req.method, status: 500 });
-		res.end(`Error: ${e.message}`);
+		
+		// Only send error response if headers haven't been sent
+		if (!res.headersSent) {
+			res.writeHead(500);
+			httpRequestsTotal.inc({ method: req.method, status: 500 });
+			res.end(`Error: ${e.message}`);
+		} else {
+			// If headers were sent, just destroy the response
+			res.destroy();
+		}
 	} finally {
 		const [seconds, nanoseconds] = process.hrtime(start);
 		const duration = seconds + nanoseconds / 1e9;
