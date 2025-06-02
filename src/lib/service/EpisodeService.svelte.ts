@@ -182,7 +182,7 @@ export class EpisodeService {
 				worker.postMessage({ urls });
 			});
 
-			response.errors.forEach((x) => Log.error(x));
+			Log.error(response.errors.join('\n'));
 		} catch (error) {
 			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? `${error.message} - ${error.stack}` : `${error}`}`);
 		} finally {
