@@ -201,6 +201,7 @@ export class EpisodeService {
 		// Find completed episodes older than retention period
 		const completedEpisodes = db.activeEpisodes.find({
 			isCompleted: 1,
+			isDownloaded: 1,
 			lastUpdatedAt: { $lt: new Date(now.getTime() - completedRetentionDays * 24 * 60 * 60 * 1000) }
 		}).fetch();
 
@@ -208,6 +209,7 @@ export class EpisodeService {
 		const inProgressEpisodes = db.activeEpisodes.find({
 			playbackPosition: { $gt: 0 },
 			isCompleted: 0,
+			isDownloaded: 1,
 			lastUpdatedAt: { $lt: new Date(now.getTime() - inProgressRetentionDays * 24 * 60 * 60 * 1000) }
 		}).fetch();
 
