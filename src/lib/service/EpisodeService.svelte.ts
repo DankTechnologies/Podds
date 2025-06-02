@@ -2,6 +2,7 @@ import { db, getSettings } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Chapter, CompletedEpisode, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
+import { SettingsService } from './SettingsService.svelte';
 
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
@@ -235,7 +236,6 @@ export class EpisodeService {
 
 		const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 		let isUpdating = false;
-		let lastCheckTime = 0;
 
 		const sync = async () => {
 			if (isUpdating) {
@@ -247,7 +247,7 @@ export class EpisodeService {
 			window.requestIdleCallback(async () => {
 				try {
 					await EpisodeService.applyRetentionPolicy();
-					lastCheckTime = Date.now();
+					SettingsService.updateLastRetentionCheckAt();
 				} catch (error) {
 					Log.error(`Error applying retention policy: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 				} finally {
@@ -259,6 +259,9 @@ export class EpisodeService {
 		// Handle visibility changes
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
+				const settings = getSettings();
+				const lastCheckTime = settings.lastRetentionCheckAt ? new Date(settings.lastRetentionCheckAt).getTime() : 0;
+
 				// If it's been more than 30 minutes since last check, run it now
 				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
 					setTimeout(() => {

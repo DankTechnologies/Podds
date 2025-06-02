@@ -80,6 +80,8 @@ export interface Settings {
 	corsHelper2?: string;
 	isCustomCorsHelpers: boolean;
 	lastSyncAt: Date;
+	lastRetentionCheckAt?: Date;
+	lastSearchCheckAt?: Date;
 	syncIntervalMinutes: number;
 	searchTermSyncIntervalHours: number;
 	isPwaInstalled: boolean;
