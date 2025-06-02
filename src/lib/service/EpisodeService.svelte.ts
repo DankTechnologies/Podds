@@ -1,5 +1,5 @@
 import { db, getSettings } from '$lib/stores/db.svelte';
-import type { ActiveEpisode, Chapter, CompletedEpisode, Episode } from '$lib/types/db';
+import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
 import { SettingsService } from './SettingsService.svelte';
@@ -53,38 +53,8 @@ export class EpisodeService {
 		});
 	}
 
-	static addCompletedEpisode(episodeId: string): void {
-		const episode = db.episodes.findOne({ id: episodeId });
-
-		if (!episode) {
-			Log.error(`Episode ${episodeId} not found`);
-			return;
-		}
-
-		const feed = db.feeds.findOne({ id: episode.feedId });
-
-		const completedEpisode = this.findCompletedEpisode(episode.id);
-
-		if (completedEpisode) {
-			db.completedEpisodes.updateOne({ id: episode.id }, { $set: { completedAt: new Date() } });
-		} else {
-			db.completedEpisodes.insert({
-				id: episode.id,
-				completedAt: new Date(),
-				feedId: episode.feedId,
-				publishedAt: episode.publishedAt,
-				feedTitle: feed?.title ?? '',
-				title: episode.title
-			});
-		}
-	}
-
 	static findActiveEpisode(episodeId: string): ActiveEpisode | undefined {
 		return db.activeEpisodes.findOne({ id: episodeId });
-	}
-
-	static findCompletedEpisode(episodeId: string): CompletedEpisode | undefined {
-		return db.completedEpisodes.findOne({ id: episodeId });
 	}
 
 	static findPlayingEpisode(): ActiveEpisode | undefined {
@@ -112,10 +82,6 @@ export class EpisodeService {
 
 		if (playingEpisode) {
 			const isCompleted = playingEpisode.minutesLeft < 5 ? 1 : 0;
-
-			if (isCompleted) {
-				this.addCompletedEpisode(playingEpisode.id);
-			}
 
 			db.activeEpisodes.updateOne(
 				{ id: playingEpisode.id },
@@ -150,7 +116,6 @@ export class EpisodeService {
 	}
 
 	static markCompleted(episodeId: string): void {
-		this.addCompletedEpisode(episodeId);
 		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isCompleted: 1 } });
 	}
 
