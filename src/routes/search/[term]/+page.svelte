@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { Search as Bell, BellRing, X, BellOff, Dot } from 'lucide-svelte';
-	import { SvelteMap } from 'svelte/reactivity';
+	import { Search as Bell, BellRing, X, Dot } from 'lucide-svelte';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
@@ -15,6 +15,7 @@
 	let view = $state<'feeds' | 'episodes'>('feeds');
 
 	let term = $derived(decodeURIComponent($page.params.term));
+	let previousTerm = $state('');
 
 	let searchHistory = $derived(
 		getSearchHistory()
@@ -26,13 +27,19 @@
 	let currentFeeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
 
+	let currentFeedIds = $derived(new SvelteSet(currentFeeds.map((f) => f.id.toString())));
+	let currentSubscribedFeedIds = $derived(
+		new SvelteSet(currentFeeds.filter((f) => f.isSubscribed).map((f) => f.id.toString()))
+	);
+
 	let feedIconsById = $derived(
 		new SvelteMap(feedResults.map((x) => [x.id.toString(), x.iconData]))
 	);
 	let episodeIconsById = $derived(new SvelteMap(episodeResults.map((x) => [x.feedId, x.iconData])));
 
 	$effect(() => {
-		if (term) {
+		if (term && term !== previousTerm) {
+			previousTerm = term;
 			handleSearch(term);
 		}
 	});
@@ -114,7 +121,7 @@
 	</div>
 
 	{#if view === 'feeds' && feedResults.length > 0}
-		<FeedList feeds={feedResults} {currentFeeds} {feedIconsById} />
+		<FeedList feeds={feedResults} {currentFeedIds} {currentSubscribedFeedIds} {feedIconsById} />
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
 		<div class="episodes-header">

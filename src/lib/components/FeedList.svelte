@@ -21,11 +21,13 @@
 
 	let {
 		feeds,
-		currentFeeds,
+		currentFeedIds,
+		currentSubscribedFeedIds,
 		feedIconsById
 	}: {
 		feeds: Feed[];
-		currentFeeds: Feed[];
+		currentFeedIds: Set<string>;
+		currentSubscribedFeedIds: Set<string>;
 		feedIconsById?: Map<string, string | undefined>;
 	} = $props();
 
@@ -59,11 +61,11 @@
 	}
 
 	function isFeedKnown(feed: Feed) {
-		return currentFeeds?.some((f) => f.id === feed.id.toString());
+		return currentFeedIds.has(feed.id.toString());
 	}
 
 	function isFeedSubscribed(feed: Feed) {
-		return currentFeeds?.some((f) => f.id === feed.id.toString() && f.isSubscribed);
+		return currentSubscribedFeedIds.has(feed.id.toString());
 	}
 
 	async function toggleFeedFocus(feed: Feed) {
