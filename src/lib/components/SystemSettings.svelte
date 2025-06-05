@@ -239,6 +239,7 @@
 		font-family: monospace;
 		font-size: var(--text-smaller);
 		line-height: var(--line-height-slack);
+		border-radius: 0.25rem;
 		padding: 1rem;
 	}
 
