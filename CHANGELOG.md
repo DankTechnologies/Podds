@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/DankTechnologies/Podds/compare/v1.0.3...v1.0.4) (2025-06-05)
+
+
+### Bug Fixes
+
+* **search:** tighten up search term effect and FeedList props to avoid unnecessary rerenders ([b61d139](https://github.com/DankTechnologies/Podds/commit/b61d13924b7775e0617c86bf88f7d56cd8a8b932))
+
 ## [1.0.3](https://github.com/DankTechnologies/Podds/compare/v1.0.2...v1.0.3) (2025-06-05)
 
 
