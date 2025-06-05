@@ -103,7 +103,9 @@
 
 	--primary-black: color-mix(in oklch, var(--primary) 90%, black);
 	--primary-grey-dark: color-mix(in oklch, var(--primary) 60%, var(--grey-900));
+	--primary-grey-darker: color-mix(in oklch, var(--primary) 10%, var(--grey-900));
 	--primary-grey-light: color-mix(in oklch, var(--primary-more) 30%, var(--grey-300));
+	--primary-grey-lighter: color-mix(in oklch, var(--primary) 3%, white);
 
 	--primary-faint: light-dark(var(--primary-200), var(--primary-dark-200));
 	--primary-less: light-dark(var(--primary-400), var(--primary-dark-400));

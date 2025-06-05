@@ -20,7 +20,7 @@
 	import { AudioService } from '$lib/service/AudioService.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { FeedService } from '$lib/service/FeedService.svelte';
-	import { getActiveEpisodes, getFeeds, getSettings } from '$lib/stores/db.svelte';
+	import { getFeeds, getSettings } from '$lib/stores/db.svelte';
 	import { shareEpisode as shareEpisodeUtil } from '$lib/utils/share';
 	import { page } from '$app/state';
 	import { findPodcastByEpisode } from '$lib/api/itunes';
@@ -52,10 +52,6 @@
 	let focusedEpisodeId = $state<string | null>(null);
 	let isReordering = $state(false);
 	let feedService = new FeedService();
-
-	let playingEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
-
-	const playerHeight = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4rem
 
 	let isPodcastPage = $derived(page.url.pathname.startsWith('/podcast'));
 
@@ -167,52 +163,6 @@
 		if (isShare) return;
 
 		focusedEpisodeId = focusedEpisodeId === episode.id ? null : episode.id;
-
-		if (focusedEpisodeId) {
-			// Wait for any collapse animations to complete
-			setTimeout(() => {
-				const card = document.querySelector(`.episode-card[data-episode-id="${episode.id}"]`);
-				if (!card) return;
-
-				const cardBottom = card.getBoundingClientRect().bottom;
-				const detectPadding = playingEpisode ? playerHeight + 60 : 60;
-				const scrollPadding = playingEpisode ? 40 : 120;
-
-				if (cardBottom + detectPadding > window.innerHeight) {
-					// Calculate the scroll position
-					const targetScroll =
-						window.scrollY +
-						card.getBoundingClientRect().top -
-						window.innerHeight / 2 +
-						card.getBoundingClientRect().height / 2 -
-						scrollPadding;
-
-					const startScroll = window.scrollY;
-					const distance = targetScroll - startScroll;
-					const duration = 350;
-					const startTime = performance.now();
-
-					// Ease in for a more relaxed start
-					function easeInCubic(t: number): number {
-						return t * t * t;
-					}
-
-					function scroll() {
-						const currentTime = performance.now();
-						const elapsed = currentTime - startTime;
-						const progress = Math.min(elapsed / duration, 1);
-
-						window.scrollTo(0, startScroll + distance * easeInCubic(progress));
-
-						if (progress < 1) {
-							requestAnimationFrame(scroll);
-						}
-					}
-
-					requestAnimationFrame(scroll);
-				}
-			}, 250); // Match the transition duration
-		}
 	}
 
 	function handlePlayNext(episode: Episode) {
@@ -382,12 +332,25 @@
 				class:episode-controls--playing={getActiveEpisode(episode)?.isPlaying}
 				class:episode-controls--no-transition={isReordering}
 			>
-				<div
-					class="episode-controls__description-wrapper"
-					class:episode-controls__description-wrapper--no-image={!feedIconsById}
+				<svg
+					id="episode-controls-svg"
+					xmlns="http://www.w3.org/2000/svg"
+					xml:space="preserve"
+					viewBox="0 0 500 205"
 				>
-					<div class="episode-controls__description">{@html episode.content}</div>
-				</div>
+					<path
+						d="M28.633 197.048c0 1.772 1.44 3.21 3.211 3.21 1.77 0 3.21-1.438 3.21-3.21 0-1.771-1.44-3.21-3.21-3.21s-3.21 1.439-3.21 3.21zm3.957 0a.747.747 0 1 1-1.493-.001.747.747 0 0 1 1.493.001zM24.89 10.953c0 3.413 2.476 6.244 5.722 6.83v58.61H29.32a1.232 1.232 0 1 0 0 2.466h5.048a1.232 1.232 0 1 0 0-2.465h-1.292V17.782c3.246-.585 5.721-3.416 5.721-6.829A6.961 6.961 0 0 0 31.844 4a6.961 6.961 0 0 0-6.953 6.953Zm11.443 0a4.494 4.494 0 0 1-4.489 4.49 4.494 4.494 0 0 1-4.489-4.49 4.494 4.494 0 0 1 4.489-4.488 4.494 4.494 0 0 1 4.489 4.488z"
+						fill="var(--episode-controls-fg)"
+					/>
+					<path
+						d="M28.633 10.953c0 1.772 1.44 3.211 3.211 3.211 1.77 0 3.21-1.44 3.21-3.21 0-1.772-1.44-3.211-3.21-3.211s-3.21 1.439-3.21 3.21zm3.957 0a.747.747 0 1 1-1.493 0 .747.747 0 0 1 1.493 0zM28.088 130.375c0 .681.551 1.233 1.232 1.233h1.292v58.611c-3.246.585-5.721 3.417-5.721 6.829a6.961 6.961 0 0 0 6.953 6.953 6.961 6.961 0 0 0 6.953-6.953c0-3.412-2.475-6.244-5.72-6.829v-58.611h1.29a1.232 1.232 0 1 0 0-2.465H29.32c-.68 0-1.232.551-1.232 1.232zm8.245 66.673a4.494 4.494 0 0 1-4.489 4.489 4.494 4.494 0 0 1-4.489-4.489 4.494 4.494 0 0 1 4.489-4.489 4.494 4.494 0 0 1 4.489 4.489zM30.698 86.837l-6.611 16.711a1.22 1.22 0 0 0 0 .905l6.611 16.711a1.23 1.23 0 0 0 2.292 0l6.611-16.71a1.225 1.225 0 0 0 0-.906l-6.611-16.71a1.23 1.23 0 0 0-2.292 0zm6.433 17.164-5.287 13.36-5.287-13.36 5.287-13.36z"
+						fill="var(--episode-controls-fg)"
+					/>
+					<path
+						d="m28.74 104.453 1.958 4.949a1.23 1.23 0 0 0 2.292 0l1.958-4.949a1.225 1.225 0 0 0 0-.905L32.99 98.6a1.23 1.23 0 0 0-2.292 0l-1.958 4.948a1.22 1.22 0 0 0 0 .905zm3.104-2.05.633 1.598-.633 1.598-.633-1.598z"
+						fill="var(--episode-controls-fg)"
+					/>
+				</svg>
 				<div class="episode-controls__buttons">
 					{#if !getActiveEpisode(episode)?.isPlaying}
 						<button class="episode-controls__button action" onclick={() => playEpisode(episode)}>
@@ -418,6 +381,9 @@
 						</button>
 					{/if}
 				</div>
+				<div class="episode-controls__description-wrapper">
+					<div class="episode-controls__description">{@html episode.content}</div>
+				</div>
 			</div>
 		</li>
 	{/each}
@@ -434,15 +400,6 @@
 		transition: background 250ms cubic-bezier(0, 0, 0.2, 1);
 		position: relative;
 		border-bottom: 1px solid var(--primary);
-	}
-
-	.episode-card--focused {
-		border-bottom: 0.4rem solid light-dark(var(--primary), var(--primary-more));
-		transition: border-bottom 250ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.episode-card--focused.episode-card--known-feed {
-		border-bottom: 0.4rem solid var(--success);
 	}
 
 	.episode-card--playing {
@@ -566,7 +523,6 @@
 		line-height: var(--line-height-slack);
 		text-wrap-style: pretty;
 		overflow: hidden;
-		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
 		padding: 0 1rem;
 		text-overflow: ellipsis;
 		display: -webkit-box;
@@ -580,12 +536,9 @@
 		}
 	}
 
-	.episode-card--known-feed .episode-card__description,
-	.episode-card--known-feed .episode-controls__description {
-		border-left-color: var(--success);
-	}
-
 	.episode-card__description {
+		border-left: 0.5rem solid light-dark(var(--primary), var(--primary-more));
+		padding: 0 1rem;
 		margin: 0.5rem 0;
 	}
 
@@ -613,10 +566,6 @@
 		color: var(--primary-more);
 	}
 
-	.episode-card--focused.episode-card--known-feed .episode-card__time {
-		color: var(--success);
-	}
-
 	.download-progress {
 		font-size: var(--text-small);
 		min-width: 3ch;
@@ -627,6 +576,21 @@
 		color: var(--error);
 		min-width: 2.5ch;
 		padding-right: 0;
+	}
+
+	#episode-controls-svg {
+		position: absolute;
+		left: -1rem;
+		top: 0;
+		height: 98%;
+		opacity: 0.8;
+		--episode-controls-fg: light-dark(var(--primary), var(--primary-more));
+	}
+
+	@media (prefers-color-scheme: dark) {
+		#episode-controls-svg {
+			opacity: 0.7;
+		}
 	}
 
 	.episode-controls {
@@ -647,17 +611,16 @@
 	}
 
 	.episode-controls__description-wrapper {
-		padding: 1rem;
-	}
-
-	.episode-controls__description-wrapper--no-image {
-		padding-left: 1.5rem;
+		padding: 1rem 1.5rem 1.5rem 3rem;
 	}
 
 	.episode-controls__buttons {
 		display: flex;
-		padding: 1rem;
-		gap: 1rem;
+		padding: 1rem 1rem 1rem 4rem;
+		border-top: 1px solid light-dark(var(--grey-300), var(--grey-825));
+		border-bottom: 1px solid light-dark(var(--grey-300), var(--grey-825));
+		background: light-dark(var(--primary-grey-lighter), var(--primary-grey-darker));
+		gap: 1.25rem;
 	}
 
 	.episode-controls__button {

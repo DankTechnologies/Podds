@@ -263,7 +263,7 @@
 
 	@media (prefers-color-scheme: dark) {
 		.background-noise {
-			opacity: 0.12;
+			opacity: 0.08;
 		}
 	}
 

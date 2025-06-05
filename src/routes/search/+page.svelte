@@ -31,7 +31,7 @@
 
 {#if searchHistory.length > 0}
 	<div class="search-history">
-		<div class="search-history-header">History</div>
+		<div class="search-history-header">Previous Searches</div>
 		<div class="search-history-list">
 			{#each searchHistory as history}
 				<div class="search-history-item">
@@ -78,8 +78,13 @@
 	}
 
 	.search-history-header {
-		font-size: var(--text-2xl);
+		background-color: light-dark(var(--grey-200), var(--grey-800));
+		color: light-dark(var(--primary-grey-dark), var(--text));
+		padding: 0.25rem 0.75rem;
+		border-radius: 0.25rem;
+		letter-spacing: 0.05em;
 		font-weight: 600;
+		font-size: var(--text-large);
 	}
 
 	.search-history-list {

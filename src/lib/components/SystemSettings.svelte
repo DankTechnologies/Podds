@@ -176,11 +176,13 @@
 	.control-row {
 		display: flex;
 		align-items: center;
+		font-size: var(--text-smaller);
 		gap: 1rem;
 
 		label {
 			flex: 2;
 			font-weight: normal;
+			font-size: var(--text-medium);
 			padding-bottom: 0;
 			display: flex;
 			align-items: center;
@@ -206,7 +208,7 @@
 				border-radius: 0.25rem;
 				background-color: var(--bg-less);
 				border: 1px solid var(--bg-less);
-				font-size: var(--text-smaller);
+				font-size: var(--text-medium);
 			}
 		}
 

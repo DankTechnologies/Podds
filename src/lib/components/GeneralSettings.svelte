@@ -383,11 +383,13 @@
 	.control-row {
 		display: flex;
 		align-items: center;
+		font-size: var(--text-smaller);
 		gap: 1rem;
 
 		label {
 			flex: 1;
 			font-weight: normal;
+			font-size: var(--text-medium);
 			padding-bottom: 0;
 			display: flex;
 			align-items: center;
@@ -401,6 +403,7 @@
 
 		.small-input {
 			width: 3rem;
+			font-size: var(--text-medium);
 		}
 
 		span {
