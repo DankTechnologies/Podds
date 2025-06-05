@@ -338,17 +338,33 @@
 					xml:space="preserve"
 					viewBox="0 0 500 205"
 				>
+					<defs>
+						<linearGradient id="controlsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+							<stop
+								offset="0%"
+								style="stop-color: var(--episode-controls-fg); stop-opacity: var(--episode-controls-gradient-opacity)"
+							/>
+							<stop
+								offset="50%"
+								style="stop-color: var(--episode-controls-fg-pop); stop-opacity: 1"
+							/>
+							<stop
+								offset="100%"
+								style="stop-color: var(--episode-controls-fg); stop-opacity: var(--episode-controls-gradient-opacity)"
+							/>
+						</linearGradient>
+					</defs>
 					<path
 						d="M28.633 197.048c0 1.772 1.44 3.21 3.211 3.21 1.77 0 3.21-1.438 3.21-3.21 0-1.771-1.44-3.21-3.21-3.21s-3.21 1.439-3.21 3.21zm3.957 0a.747.747 0 1 1-1.493-.001.747.747 0 0 1 1.493.001zM24.89 10.953c0 3.413 2.476 6.244 5.722 6.83v58.61H29.32a1.232 1.232 0 1 0 0 2.466h5.048a1.232 1.232 0 1 0 0-2.465h-1.292V17.782c3.246-.585 5.721-3.416 5.721-6.829A6.961 6.961 0 0 0 31.844 4a6.961 6.961 0 0 0-6.953 6.953Zm11.443 0a4.494 4.494 0 0 1-4.489 4.49 4.494 4.494 0 0 1-4.489-4.49 4.494 4.494 0 0 1 4.489-4.488 4.494 4.494 0 0 1 4.489 4.488z"
-						fill="var(--episode-controls-fg)"
+						fill="url(#controlsGradient)"
 					/>
 					<path
 						d="M28.633 10.953c0 1.772 1.44 3.211 3.211 3.211 1.77 0 3.21-1.44 3.21-3.21 0-1.772-1.44-3.211-3.21-3.211s-3.21 1.439-3.21 3.21zm3.957 0a.747.747 0 1 1-1.493 0 .747.747 0 0 1 1.493 0zM28.088 130.375c0 .681.551 1.233 1.232 1.233h1.292v58.611c-3.246.585-5.721 3.417-5.721 6.829a6.961 6.961 0 0 0 6.953 6.953 6.961 6.961 0 0 0 6.953-6.953c0-3.412-2.475-6.244-5.72-6.829v-58.611h1.29a1.232 1.232 0 1 0 0-2.465H29.32c-.68 0-1.232.551-1.232 1.232zm8.245 66.673a4.494 4.494 0 0 1-4.489 4.489 4.494 4.494 0 0 1-4.489-4.489 4.494 4.494 0 0 1 4.489-4.489 4.494 4.494 0 0 1 4.489 4.489zM30.698 86.837l-6.611 16.711a1.22 1.22 0 0 0 0 .905l6.611 16.711a1.23 1.23 0 0 0 2.292 0l6.611-16.71a1.225 1.225 0 0 0 0-.906l-6.611-16.71a1.23 1.23 0 0 0-2.292 0zm6.433 17.164-5.287 13.36-5.287-13.36 5.287-13.36z"
-						fill="var(--episode-controls-fg)"
+						fill="url(#controlsGradient)"
 					/>
 					<path
 						d="m28.74 104.453 1.958 4.949a1.23 1.23 0 0 0 2.292 0l1.958-4.949a1.225 1.225 0 0 0 0-.905L32.99 98.6a1.23 1.23 0 0 0-2.292 0l-1.958 4.948a1.22 1.22 0 0 0 0 .905zm3.104-2.05.633 1.598-.633 1.598-.633-1.598z"
-						fill="var(--episode-controls-fg)"
+						fill="url(#controlsGradient)"
 					/>
 				</svg>
 				<div class="episode-controls__buttons">
@@ -584,12 +600,15 @@
 		top: 0;
 		height: 98%;
 		opacity: 0.8;
-		--episode-controls-fg: light-dark(var(--primary), var(--primary-more));
+		--episode-controls-fg: var(--primary);
+		--episode-controls-fg-pop: var(--primary-more);
+		--episode-controls-gradient-opacity: 0.6;
 	}
 
 	@media (prefers-color-scheme: dark) {
 		#episode-controls-svg {
 			opacity: 0.7;
+			--episode-controls-gradient-opacity: 0.25;
 		}
 	}
 
