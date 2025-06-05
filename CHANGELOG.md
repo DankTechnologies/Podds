@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/DankTechnologies/Podds/compare/v1.0.2...v1.0.3) (2025-06-05)
+
+
+### Bug Fixes
+
+* improve node CORS proxy, general polish ([#5](https://github.com/DankTechnologies/Podds/issues/5)) ([5b763e3](https://github.com/DankTechnologies/Podds/commit/5b763e39c53346c292d2b0010e9d07cbefd1d245))
+
 ## [1.0.2](https://github.com/DankTechnologies/Podds/compare/v1.0.1...v1.0.2) (2025-05-30)
 
 
