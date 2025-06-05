@@ -9,6 +9,7 @@
 	import { parseOwner } from '$lib/utils/feedParser';
 	import { shareFeed as shareFeedUtil } from '$lib/utils/share';
 	import { isAppleDevice } from '$lib/utils/osCheck';
+	import { goto } from '$app/navigation';
 	const feedId = page.params.id;
 	let searchQuery = $state('');
 	let isSearchVisible = $state(false);
@@ -40,6 +41,9 @@
 	let feed = $derived(getFeeds().find((feed) => feed.id === feedId));
 
 	onMount(() => {
+		// desktop corner case where podcast page URL shared instead of with share link
+		if (!feed) goto(`/share#${feedId}`);
+
 		// Remove the view transition name after the transition completes
 		requestAnimationFrame(() => {
 			const img = document.querySelector('.podcast-header__image');

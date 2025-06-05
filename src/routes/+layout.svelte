@@ -31,10 +31,14 @@
 
 	let playingEpisode = $derived(getActiveEpisodes().find((episode) => episode.isPlaying));
 
-	registerServiceWorker();
-	requestStoragePersistence();
-	trackThemePreference();
-	trackNetworkState();
+	Promise.all([
+		registerServiceWorker(),
+		requestStoragePersistence(),
+		trackThemePreference(),
+		trackNetworkState()
+	]).catch((error) => {
+		Log.error(`Error during initialization: ${error}`);
+	});
 
 	onNavigate((navigation) => {
 		if (

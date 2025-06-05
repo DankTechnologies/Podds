@@ -3,6 +3,14 @@ name: Release
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.vscode/**'
+      - 'cors-proxies/**'
+      - 'README.md'
+      - '.gitignore'
+      - '.editorconfig'
+      - '**/*.md'
+      - '**/*.sh'
 
 jobs:
   release:

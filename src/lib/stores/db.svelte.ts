@@ -1,4 +1,4 @@
-import type { ActiveEpisode, CompletedEpisode, Episode, Feed, LogEntry, Settings, SearchHistory } from '$lib/types/db';
+import type { ActiveEpisode, Episode, Feed, LogEntry, Settings, SearchHistory } from '$lib/types/db';
 import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
 import { SvelteMap } from 'svelte/reactivity';
@@ -34,11 +34,6 @@ export const db = {
 		name: 'activeEpisodes',
 		reactivity: reactivityConfig,
 		persistence: createIndexedDBAdapter('activeEpisodes.json')
-	}),
-	completedEpisodes: new Collection<CompletedEpisode>({
-		name: 'completedEpisodes',
-		reactivity: reactivityConfig,
-		persistence: createIndexedDBAdapter('completedEpisodes.json')
 	}),
 	logs: new Collection<LogEntry>({
 		name: 'logs',

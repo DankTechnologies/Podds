@@ -82,6 +82,14 @@ export class SettingsService {
 		db.settings.updateOne({ id: '1' }, { $set: { lastSyncAt: new Date() } });
 	}
 
+	static updateLastRetentionCheckAt(): void {
+		db.settings.updateOne({ id: '1' }, { $set: { lastRetentionCheckAt: new Date() } });
+	}
+
+	static updateLastSearchCheckAt(): void {
+		db.settings.updateOne({ id: '1' }, { $set: { lastSearchCheckAt: new Date() } });
+	}
+
 	static updatePlaybackSpeed(playbackSpeed: number): void {
 		db.settings.updateOne({ id: '1' }, { $set: { playbackSpeed } });
 	}

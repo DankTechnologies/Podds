@@ -35,12 +35,12 @@ export class FeedService {
 
 			if (finderResponse.episodes.length > 0) {
 				db.episodes.insertMany(finderResponse.episodes);
-				finderResponse.errors.forEach((x) => Log.debug(x));
+				Log.debug(finderResponse.errors.join('\n'));
 				return true;
 			}
 
 			Log.error(`Failed to add episodes for ${feed.title}`);
-			finderResponse.errors.forEach((x) => Log.error(x));
+			Log.error(finderResponse.errors.join('\n'));
 			return false;
 		} catch (e) {
 			Log.error(`Error updating feed ${feed.title}: ${e instanceof Error ? `${e.message} - ${e.stack}` : String(e)}`);
@@ -212,14 +212,14 @@ export class FeedService {
 			if (finderResponse.episodes.length > 0) {
 				db.episodes.insertMany(finderResponse.episodes);
 
-				finderResponse.errors.forEach((x) => Log.debug(x));
+				Log.debug(finderResponse.errors.join('\n'));
 
 				Log.info(`Finished adding ${feed.title}`);
 				return true;
 			}
 
 			Log.error(`Failed to add episodes for ${feed.title}`);
-			finderResponse.errors.forEach((x) => Log.error(x));
+			Log.error(finderResponse.errors.join('\n'));
 			return false;
 		}
 		catch (e) {
@@ -248,7 +248,9 @@ export class FeedService {
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
 
-		finderResponse.errors.forEach((x) => Log.error(x));
+		if (finderResponse.errors.length > 0) {
+			Log.error(finderResponse.errors.join('\n'));
+		}
 
 		db.feeds.batch(() => {
 			finderResponse.feeds.forEach((x) => {

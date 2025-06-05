@@ -4,6 +4,7 @@ import { Log } from '$lib/service/LogService';
 import { getSettings } from '$lib/stores/db.svelte';
 import { isOnline } from '$lib/utils/networkState.svelte';
 import { searchEpisodes } from '$lib/api/itunes';
+import { SettingsService } from './SettingsService.svelte';
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -138,7 +139,6 @@ export class SearchHistoryService {
         Log.debug('Starting registering periodic monitored search updates');
 
         let isUpdating = false;
-        let lastCheckTime = 0;
 
         const sync = async () => {
             if (isUpdating) {
@@ -151,11 +151,20 @@ export class SearchHistoryService {
                 return;
             }
 
+            const settings = getSettings();
+            const lastCheckTime = settings.lastSearchCheckAt ? new Date(settings.lastSearchCheckAt).getTime() : 0;
+
+            // If it hasn't been long enough since last check, skip
+            if (Date.now() - lastCheckTime < CHECK_INTERVAL_MS) {
+                Log.debug('Skipping search updates due to recent update');
+                return;
+            }
+
             isUpdating = true;
             window.requestIdleCallback(async () => {
                 try {
                     await this.updateMonitoredSearches();
-                    lastCheckTime = Date.now();
+                    SettingsService.updateLastSearchCheckAt();
                 } catch (error) {
                     Log.error(`Error updating monitored searches: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
                 } finally {
@@ -167,13 +176,10 @@ export class SearchHistoryService {
         // Handle visibility changes
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                // If it's been more than 30 minutes since last check, run it now
-                if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-                    setTimeout(() => {
-                        Log.debug('App became visible, running search updates');
-                        sync();
-                    }, 10000);
-                }
+                setTimeout(() => {
+                    Log.debug('App became visible, running search updates');
+                    sync();
+                }, 10000);
             }
         });
 

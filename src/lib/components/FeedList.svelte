@@ -15,7 +15,6 @@
 	} from 'lucide-svelte';
 	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { goto } from '$app/navigation';
-	import { isAppleDevice } from '$lib/utils/osCheck';
 	import { getSettings } from '$lib/stores/db.svelte';
 	import type { EpisodeFinderResponse } from '$lib/types/episodeFinder';
 	import { convertUrlToBase64 } from '$lib/api/itunes';
@@ -407,7 +406,6 @@
 	.feed-card__meta {
 		font-size: var(--text-small);
 		font-family: monospace;
-		color: var(--primary);
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;

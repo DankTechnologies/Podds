@@ -97,7 +97,7 @@
 				class:active={view === 'feeds'}
 				onclick={() => (view = 'feeds')}
 			>
-				Feeds
+				Podcasts
 				<span class="search-view-button-count">{feedResults.length}</span>
 			</button>
 		{/if}

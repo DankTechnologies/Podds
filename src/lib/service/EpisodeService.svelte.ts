@@ -1,7 +1,8 @@
 import { db, getSettings } from '$lib/stores/db.svelte';
-import type { ActiveEpisode, Chapter, CompletedEpisode, Episode } from '$lib/types/db';
+import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
+import { SettingsService } from './SettingsService.svelte';
 
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
@@ -52,38 +53,8 @@ export class EpisodeService {
 		});
 	}
 
-	static addCompletedEpisode(episodeId: string): void {
-		const episode = db.episodes.findOne({ id: episodeId });
-
-		if (!episode) {
-			Log.error(`Episode ${episodeId} not found`);
-			return;
-		}
-
-		const feed = db.feeds.findOne({ id: episode.feedId });
-
-		const completedEpisode = this.findCompletedEpisode(episode.id);
-
-		if (completedEpisode) {
-			db.completedEpisodes.updateOne({ id: episode.id }, { $set: { completedAt: new Date() } });
-		} else {
-			db.completedEpisodes.insert({
-				id: episode.id,
-				completedAt: new Date(),
-				feedId: episode.feedId,
-				publishedAt: episode.publishedAt,
-				feedTitle: feed?.title ?? '',
-				title: episode.title
-			});
-		}
-	}
-
 	static findActiveEpisode(episodeId: string): ActiveEpisode | undefined {
 		return db.activeEpisodes.findOne({ id: episodeId });
-	}
-
-	static findCompletedEpisode(episodeId: string): CompletedEpisode | undefined {
-		return db.completedEpisodes.findOne({ id: episodeId });
 	}
 
 	static findPlayingEpisode(): ActiveEpisode | undefined {
@@ -111,10 +82,6 @@ export class EpisodeService {
 
 		if (playingEpisode) {
 			const isCompleted = playingEpisode.minutesLeft < 5 ? 1 : 0;
-
-			if (isCompleted) {
-				this.addCompletedEpisode(playingEpisode.id);
-			}
 
 			db.activeEpisodes.updateOne(
 				{ id: playingEpisode.id },
@@ -146,11 +113,9 @@ export class EpisodeService {
 
 	static clearDownloaded(episode: Episode): void {
 		db.activeEpisodes.updateOne({ id: episode.id }, { $set: { isDownloaded: 0 } });
-		this.deleteCachedEpisodes([episode.url]);
 	}
 
 	static markCompleted(episodeId: string): void {
-		this.addCompletedEpisode(episodeId);
 		db.activeEpisodes.updateOne({ id: episodeId }, { $set: { isCompleted: 1 } });
 	}
 
@@ -182,7 +147,9 @@ export class EpisodeService {
 				worker.postMessage({ urls });
 			});
 
-			response.errors.forEach((x) => Log.error(x));
+			if (response.errors.length > 0) {
+				Log.error(response.errors.join('\n'));
+			}
 		} catch (error) {
 			Log.error(`Error cleaning cached episodes: ${error instanceof Error ? `${error.message} - ${error.stack}` : `${error}`}`);
 		} finally {
@@ -200,6 +167,7 @@ export class EpisodeService {
 		// Find completed episodes older than retention period
 		const completedEpisodes = db.activeEpisodes.find({
 			isCompleted: 1,
+			isDownloaded: 1,
 			lastUpdatedAt: { $lt: new Date(now.getTime() - completedRetentionDays * 24 * 60 * 60 * 1000) }
 		}).fetch();
 
@@ -207,6 +175,7 @@ export class EpisodeService {
 		const inProgressEpisodes = db.activeEpisodes.find({
 			playbackPosition: { $gt: 0 },
 			isCompleted: 0,
+			isDownloaded: 1,
 			lastUpdatedAt: { $lt: new Date(now.getTime() - inProgressRetentionDays * 24 * 60 * 60 * 1000) }
 		}).fetch();
 
@@ -219,15 +188,19 @@ export class EpisodeService {
 		for (const episode of completed) {
 			Log.info(`Removing completed episode due to retention policy: ${episode.title}`);
 			this.clearDownloaded(episode);
-			await this.deleteCachedEpisodes([episode.url]);
 		}
 
-		// Remove in-progress episodes
 		for (const episode of inProgress) {
 			Log.info(`Removing in-progress episode due to retention policy: ${episode.title}`);
 			this.clearDownloaded(episode);
-			await this.deleteCachedEpisodes([episode.url]);
 		}
+
+		const allUrls = [
+			...completed.map(e => e.url),
+			...inProgress.map(e => e.url)
+		];
+
+		await this.deleteCachedEpisodes(allUrls);
 	}
 
 	static startPeriodicUpdates() {
@@ -235,7 +208,6 @@ export class EpisodeService {
 
 		const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 		let isUpdating = false;
-		let lastCheckTime = 0;
 
 		const sync = async () => {
 			if (isUpdating) {
@@ -243,11 +215,20 @@ export class EpisodeService {
 				return;
 			}
 
+			const settings = getSettings();
+			const lastCheckTime = settings.lastRetentionCheckAt ? new Date(settings.lastRetentionCheckAt).getTime() : 0;
+
+			// If it hasn't been long enough since last check, skip
+			if (Date.now() - lastCheckTime < CHECK_INTERVAL_MS) {
+				Log.debug('Skipping retention check due to recent update');
+				return;
+			}
+
 			isUpdating = true;
 			window.requestIdleCallback(async () => {
 				try {
 					await EpisodeService.applyRetentionPolicy();
-					lastCheckTime = Date.now();
+					SettingsService.updateLastRetentionCheckAt();
 				} catch (error) {
 					Log.error(`Error applying retention policy: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`);
 				} finally {
@@ -259,13 +240,10 @@ export class EpisodeService {
 		// Handle visibility changes
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
-				// If it's been more than 30 minutes since last check, run it now
-				if (Date.now() - lastCheckTime > CHECK_INTERVAL_MS) {
-					setTimeout(() => {
-						Log.debug('App became visible, running retention policy check');
-						sync();
-					}, 10000);
-				}
+				setTimeout(() => {
+					Log.debug('App became visible, running retention policy check');
+					sync();
+				}, 20000);
 			}
 		});
 

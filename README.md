@@ -55,6 +55,7 @@ Podds is a [Progressive Web Application (PWA)](https://en.wikipedia.org/wiki/Pro
 - [Svelte Bottom Sheet](https://github.com/AuxiDev/svelte-bottom-sheet)
 - [Lucide Icons](https://lucide.dev/)
 - [Pattern Monster](https://pattern.monster/)
+- [text divider](https://thenounproject.com/browse/icons/term/text-divider) by iconcheese from the Noun Project
 
 ## CORS Proxies
 
