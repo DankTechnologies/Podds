@@ -3,51 +3,37 @@ import createIndexedDBAdapter from '@signaldb/indexeddb';
 import { Collection } from '@signaldb/core';
 import { SvelteMap } from 'svelte/reactivity';
 import { DefaultSettings } from '$lib/service/SettingsService.svelte';
-
-const reactivityConfig = {
-	create() {
-		let dep = $state(0);
-		return {
-			depend() {
-				dep;
-			},
-			notify() {
-				dep += 1;
-			}
-		};
-	},
-	isInScope: () => !!$effect.tracking()
-};
+import svelteReactivityAdapter from '@signaldb/svelte';
 
 export const db = {
 	feeds: new Collection<Feed>({
 		name: 'feeds',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('feeds.json')
 	}),
 	episodes: new Collection<Episode>({
 		name: 'episodes',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('episodes.json')
 	}),
 	activeEpisodes: new Collection<ActiveEpisode>({
 		name: 'activeEpisodes',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('activeEpisodes.json')
 	}),
 	logs: new Collection<LogEntry>({
 		name: 'logs',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('logs.json')
 	}),
 	settings: new Collection<Settings>({
 		name: 'settings',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('settings.json')
 	}),
 	searchHistory: new Collection<SearchHistory>({
 		name: 'searchHistory',
-		reactivity: reactivityConfig,
+		reactivity: svelteReactivityAdapter,
 		persistence: createIndexedDBAdapter('searchHistory.json')
 	})
 };

@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"author": "Dank Technologies <dan@danktech.io>",
-	"license": "MIT",  
+	"license": "MIT",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -17,34 +17,35 @@
 		"semantic-release": "semantic-release"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.2.8",
+		"@eslint/compat": "^1.2.9",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/git": "^10.0.1",
 		"@semantic-release/github": "^11.0.3",
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.20.4",
-		"@sveltejs/vite-plugin-svelte": "^5.0.3",
-		"@types/node": "^22.14.0",
-		"eslint": "^9.24.0",
-		"eslint-config-prettier": "^10.1.1",
+		"@sveltejs/kit": "^2.21.2",
+		"@sveltejs/vite-plugin-svelte": "^5.1.0",
+		"@types/node": "^22.15.30",
+		"eslint": "^9.28.0",
+		"eslint-config-prettier": "^10.1.5",
 		"eslint-plugin-svelte": "^2.46.1",
 		"globals": "^15.15.0",
 		"prettier": "^3.5.3",
-		"prettier-plugin-svelte": "^3.3.3",
+		"prettier-plugin-svelte": "^3.4.0",
 		"semantic-release": "^24.2.5",
-		"svelte": "^5.21.0",
-		"svelte-check": "^4.1.5",
+		"svelte": "^5.33.14",
+		"svelte-check": "^4.2.1",
 		"typescript": "^5.8.3",
-		"typescript-eslint": "^8.29.0",
-		"vite": "^6.2.5",
-		"vitest": "^3.1.1"
+		"typescript-eslint": "^8.33.1",
+		"vite": "^6.3.5",
+		"vitest": "^3.2.2"
 	},
 	"dependencies": {
-		"@signaldb/core": "^1.3.1",
-		"@signaldb/indexeddb": "^1.0.0",
-		"fast-xml-parser": "^5.2.0",
+		"@signaldb/core": "^1.6.0",
+		"@signaldb/indexeddb": "^1.1.0",
+		"@signaldb/svelte": "^1.1.1",
+		"fast-xml-parser": "^5.2.3",
 		"lucide-svelte": "^0.475.0",
-		"svelte-bottom-sheet": "^2.0.0"
+		"svelte-bottom-sheet": "^2.2.0"
 	},
 	"packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
 }

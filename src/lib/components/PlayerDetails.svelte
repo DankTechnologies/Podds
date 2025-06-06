@@ -245,9 +245,12 @@
 		overflow-y: hidden;
 	}
 
-	.bottom-sheet :global(.bottom-sheet-content) {
+	.bottom-sheet :global(.bottom-sheet-content),
+	.bottom-sheet :global(.scroll-clip) {
 		height: 100%;
 		padding: 0;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.background-noise {
