@@ -82,9 +82,11 @@
 			}
 		}
 
+		AudioService.stop();
 		EpisodeService.setPlayingEpisode(episode);
 
 		const activeEpisode = getActiveEpisode(episode);
+
 		if (activeEpisode?.isDownloaded) {
 			const playbackPosition = activeEpisode.isCompleted
 				? 0
