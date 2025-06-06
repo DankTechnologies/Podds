@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { Bell, BellRing, X, Dot } from 'lucide-svelte';
-	import { getSearchHistory } from '$lib/stores/db.svelte';
+	import { db, getSearchHistory } from '$lib/stores/db.svelte';
 	import type { SearchHistory } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { goto } from '$app/navigation';
 
 	let searchHistory = $derived(
-		getSearchHistory()
-			.slice(0, 20)
-			.sort((a, b) => b.executedAt.getTime() - a.executedAt.getTime())
-			.sort((a, b) => Number(b.monitored) - Number(a.monitored))
+		db.searchHistory
+			.find(
+				{},
+				{
+					sort: { monitored: -1, executedAt: -1 },
+					limit: 20
+				}
+			)
+			.fetch()
 	);
 
 	async function handleDeleteSearch(id: string) {
