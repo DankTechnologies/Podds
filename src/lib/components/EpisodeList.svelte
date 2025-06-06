@@ -148,6 +148,7 @@
 		}
 
 		EpisodeService.clearDownloaded(episode);
+		EpisodeService.deleteCachedEpisodes([episode.url]);
 	}
 
 	function handleDownloadComplete(episode: Episode) {
