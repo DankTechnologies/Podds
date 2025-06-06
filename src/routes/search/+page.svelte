@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Bell, BellRing, X, BellOff, Dot } from 'lucide-svelte';
+	import { Bell, BellRing, X, Dot } from 'lucide-svelte';
 	import { getSearchHistory } from '$lib/stores/db.svelte';
 	import type { SearchHistory } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
@@ -117,6 +117,7 @@
 
 	.new-results-dot {
 		margin-left: -0.25rem;
+		color: var(--success);
 	}
 
 	.search-history-actions {
