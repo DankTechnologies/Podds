@@ -47,6 +47,8 @@
 
 	let previousChapterTitle = $state<string>('');
 
+	let maxHeight = $derived(episode.content.length > 250 ? 0.85 : 0.75);
+
 	$effect(() => {
 		if (
 			isOpen &&
@@ -85,7 +87,7 @@
 </script>
 
 <div class="bottom-sheet" class:is-apple-device={isAppleDevice}>
-	<BottomSheet settings={{ maxHeight: 0.85 }} bind:isSheetOpen={isOpen} onclose={onClose}>
+	<BottomSheet settings={{ maxHeight: maxHeight }} bind:isSheetOpen={isOpen} onclose={onClose}>
 		<BottomSheet.Overlay>
 			<BottomSheet.Sheet>
 				<BottomSheet.Handle />
