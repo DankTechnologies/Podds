@@ -2,12 +2,14 @@
 	import { page } from '$app/stores';
 	import { Search as Bell, BellRing, X, Dot } from 'lucide-svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-	import { db, getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Feed, Episode, SearchHistory } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { searchEpisodes, searchPodcasts } from '$lib/api/itunes';
+	import { isOnline } from '$lib/utils/networkState.svelte';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 
 	let feedResults = $state<Feed[]>([]);
 	let episodeResults = $state<Episode[]>([]);
@@ -56,18 +58,33 @@
 		episodeResults = [];
 		isLoading = true;
 
+		let localEpisodeResults = [];
+		let remoteEpisodeResults = [];
+
 		try {
-			[feedResults, episodeResults] = await Promise.all([
-				searchPodcasts(term, { skipConvertIcon: true }),
-				searchEpisodes(term, { skipConvertIcon: true })
+			[feedResults, remoteEpisodeResults, localEpisodeResults] = await Promise.all([
+				isOnline() ? searchPodcasts(term, { skipConvertIcon: true }) : Promise.resolve([]),
+				isOnline() ? searchEpisodes(term, { skipConvertIcon: true }) : Promise.resolve([]),
+				EpisodeService.findEpisodesByTerm(term)
 			]);
 
+			localEpisodeResults.forEach((ep) => {
+				const feed = currentFeeds.find((f) => f.id === ep.feedId);
+
+				if (feed) {
+					ep.iconData = feed.iconData;
+					ep.title = `[${feed.title}] ${ep.title}`;
+				}
+			});
+
+			episodeResults = [
+				...new Map(
+					[...localEpisodeResults, ...remoteEpisodeResults].map((ep) => [ep.id, ep])
+				).values()
+			].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+
 			// Set initial view based on results
-			if (feedResults.length > 0) {
-				view = 'feeds';
-			} else if (episodeResults.length > 0) {
-				view = 'episodes';
-			}
+			view = feedResults.length > 0 ? 'feeds' : 'episodes';
 
 			// Save search history
 			const latestEpisodeDate = new Date(
