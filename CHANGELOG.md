@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/DankTechnologies/Podds/compare/v1.0.6...v1.0.7) (2025-06-07)
+
+
+### Bug Fixes
+
+* **search:** search local episodes as well as remote ([#7](https://github.com/DankTechnologies/Podds/issues/7)) ([57b6562](https://github.com/DankTechnologies/Podds/commit/57b65621adc27c19bdd5f3b49eb3f493ea0c7bab))
+
 ## [1.0.6](https://github.com/DankTechnologies/Podds/compare/v1.0.5...v1.0.6) (2025-06-07)
 
 
