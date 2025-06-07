@@ -60,7 +60,7 @@
 
 				if (feed) {
 					ep.iconData = feed.iconData;
-					ep.title = `[${feed.title}] ${ep.title}`;
+					ep.title = ep.title.startsWith('[') ? ep.title : `[${feed.title}] ${ep.title}`;
 				}
 			});
 
