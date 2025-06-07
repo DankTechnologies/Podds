@@ -226,6 +226,8 @@
 		{@const isSubscribed = isFeedSubscribed(episode)}
 		{@const isFocused = focusedEpisodeId === episode.id}
 		{@const progress = downloadProgress.get(episode.id)}
+		{@const episodeDate = formatEpisodeDate(episode.publishedAt)}
+		{@const episodeDuration = getEpisodeDurationDisplay(episode)}
 
 		<li
 			class="episode-card"
@@ -301,14 +303,14 @@
 								</div>
 							{/if}
 							<div>
-								{formatEpisodeDate(episode.publishedAt)}
+								{episodeDate}
 							</div>
 							{#if episode.durationMin > 0}
 								<div>
 									<Dot size="14" />
 								</div>
 								<div>
-									{getEpisodeDurationDisplay(episode)}
+									{episodeDuration}
 								</div>
 							{/if}
 						</time>
