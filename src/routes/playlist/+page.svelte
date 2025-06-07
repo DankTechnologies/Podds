@@ -1,59 +1,72 @@
 <script lang="ts">
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
-	import { getActiveEpisodes, getEpisodes, getSettings } from '$lib/stores/db.svelte';
+	import { db, getSettings } from '$lib/stores/db.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import type { Episode } from '$lib/types/db';
 	import { onMount } from 'svelte';
 	import { SettingsService } from '$lib/service/SettingsService.svelte';
 
-	const ITEMS_PER_PAGE = 20;
+	const ITEMS_PER_PAGE = 10;
 
 	let limit = $state<number>(ITEMS_PER_PAGE);
 	let observerTarget = $state<HTMLElement | null>(null);
 
 	let listenedToActiveEpisodes = $derived(
-		getActiveEpisodes()
-			.filter(
-				(episode) => (episode.playbackPosition > 0 || episode.isPlaying) && !episode.wasAddedNext
+		db.activeEpisodes
+			.find(
+				{
+					$and: [{ $or: [{ playbackPosition: { $gt: 0 } }, { isPlaying: 1 }] }, { wasAddedNext: 0 }]
+				},
+				{
+					sort: { lastUpdatedAt: -1 },
+					limit
+				}
 			)
-			.sort((a, b) => b.lastUpdatedAt.getTime() - a.lastUpdatedAt.getTime())
-			.slice(0, limit)
+			.fetch()
 	);
 
 	let listenedToEpisodes = $derived(
-		getEpisodes()
-			.filter((episode) => listenedToActiveEpisodes.find((x) => x.id === episode.id))
-			.sort((a, b) => {
-				const aIndex = listenedToActiveEpisodes.findIndex((x) => x.id === b.id);
-				const bIndex = listenedToActiveEpisodes.findIndex((x) => x.id === a.id);
-				return bIndex - aIndex;
-			})
-			.slice(0, limit)
+		db.episodes
+			.find(
+				{
+					id: { $in: listenedToActiveEpisodes.map((x) => x.id) }
+				},
+				{
+					sort: { lastUpdatedAt: -1 },
+					limit
+				}
+			)
+			.fetch()
 	);
 
 	// sort by isPlaying, then by sortOrder
 	let upNextActiveEpisodes = $derived(
-		getActiveEpisodes()
-			.filter(
-				(episode) =>
-					(episode.playbackPosition === 0 || episode.isPlaying || episode.wasAddedNext) &&
-					episode.isDownloaded
+		db.activeEpisodes
+			.find(
+				{
+					$and: [
+						{ $or: [{ playbackPosition: 0 }, { isPlaying: 1 }, { wasAddedNext: 1 }] },
+						{ isDownloaded: 1 }
+					]
+				},
+				{
+					sort: { isPlaying: -1, sortOrder: 1 }
+				}
 			)
-			.sort((a, b) => {
-				if (a.isPlaying && !b.isPlaying) return -1;
-				if (!a.isPlaying && b.isPlaying) return 1;
-				return (a.sortOrder ?? 99999999) - (b.sortOrder ?? 99999999);
-			})
+			.fetch()
 	);
 
 	let upNextEpisodes = $derived(
-		getEpisodes()
-			.filter((episode) => upNextActiveEpisodes.find((x) => x.id === episode.id))
-			.sort((a, b) => {
-				const aIndex = upNextActiveEpisodes.findIndex((x) => x.id === a.id);
-				const bIndex = upNextActiveEpisodes.findIndex((x) => x.id === b.id);
-				return aIndex - bIndex;
-			})
+		db.episodes
+			.find(
+				{
+					id: { $in: upNextActiveEpisodes.map((x) => x.id) }
+				},
+				{
+					sort: { lastUpdatedAt: -1 }
+				}
+			)
+			.fetch()
 	);
 
 	let view = $derived(getSettings().playlistView);
