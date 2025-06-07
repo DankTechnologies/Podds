@@ -225,6 +225,8 @@
 		{@const isKnown = isFeedKnown(episode)}
 		{@const isSubscribed = isFeedSubscribed(episode)}
 		{@const isFocused = focusedEpisodeId === episode.id}
+		{@const progress = downloadProgress.get(episode.id)}
+
 		<li
 			class="episode-card"
 			class:episode-card--playing={active?.isPlaying}
@@ -276,11 +278,11 @@
 								<div>
 									<Check size="14" />
 								</div>
-							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) !== -1}
+							{:else if progress !== undefined && progress !== -1}
 								<div class="download-progress">
-									{Math.round(downloadProgress.get(episode.id) ?? 0)}%
+									{Math.round(progress)}%
 								</div>
-							{:else if downloadProgress.has(episode.id) && downloadProgress.get(episode.id) === -1}
+							{:else if progress !== undefined && progress === -1}
 								<div class="download-progress error">
 									<Frown size="14" />
 								</div>
