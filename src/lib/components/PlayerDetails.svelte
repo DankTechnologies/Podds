@@ -47,7 +47,15 @@
 
 	let previousChapterTitle = $state<string>('');
 
-	let maxHeight = $derived(episode.content.length > 250 ? 0.85 : 0.75);
+	let maxHeight = $derived(
+		episode.content.length > 250
+			? 0.85
+			: episode.content.length > 200
+				? 0.8
+				: episode.content.length > 150
+					? 0.75
+					: 0.7
+	);
 
 	$effect(() => {
 		if (
