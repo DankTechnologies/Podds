@@ -77,6 +77,10 @@ export class EpisodeService {
 		);
 	}
 
+	static findEpisodesByFeedId(feedId: string): Episode[] {
+		return db.episodes.find({ feedId: feedId }).fetch();
+	}
+
 	static clearPlayingEpisodes(): void {
 		const playingEpisode = this.findPlayingEpisode();
 

@@ -75,7 +75,7 @@
 		feed = feeds.find((f) => f.id === feedId) ?? null;
 
 		if (feedExists) {
-			episodes = db.episodes.find({ feedId: feedId }).fetch();
+			episodes = EpisodeService.findEpisodesByFeedId(feedId);
 		} else {
 			const newFeed = await searchPodcasts(feedId, { limit: 1 });
 			if (newFeed.length === 1) {

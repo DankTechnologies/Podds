@@ -47,6 +47,16 @@
 
 	let previousChapterTitle = $state<string>('');
 
+	let maxHeight = $derived(
+		episode.content.length > 250
+			? 0.85
+			: episode.content.length > 200
+				? 0.8
+				: episode.content.length > 150
+					? 0.75
+					: 0.7
+	);
+
 	$effect(() => {
 		if (
 			isOpen &&
@@ -85,7 +95,7 @@
 </script>
 
 <div class="bottom-sheet" class:is-apple-device={isAppleDevice}>
-	<BottomSheet settings={{ maxHeight: 0.85 }} bind:isSheetOpen={isOpen} onclose={onClose}>
+	<BottomSheet settings={{ maxHeight: maxHeight }} bind:isSheetOpen={isOpen} onclose={onClose}>
 		<BottomSheet.Overlay>
 			<BottomSheet.Sheet>
 				<BottomSheet.Handle />
@@ -245,9 +255,12 @@
 		overflow-y: hidden;
 	}
 
-	.bottom-sheet :global(.bottom-sheet-content) {
+	.bottom-sheet :global(.bottom-sheet-content),
+	.bottom-sheet :global(.scroll-clip) {
 		height: 100%;
 		padding: 0;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.background-noise {
