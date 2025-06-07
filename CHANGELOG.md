@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/DankTechnologies/Podds/compare/v1.0.5...v1.0.6) (2025-06-07)
+
+
+### Bug Fixes
+
+* **playlist:** go back to earlier approach, most perf fixes came from EpisodeList tuning anyways ([fb846ea](https://github.com/DankTechnologies/Podds/commit/fb846eac3bc0998c705bdb9a6ab3b68b5196c924))
+
 ## [1.0.5](https://github.com/DankTechnologies/Podds/compare/v1.0.4...v1.0.5) (2025-06-07)
 
 
