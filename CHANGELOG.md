@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/DankTechnologies/Podds/compare/v1.0.4...v1.0.5) (2025-06-07)
+
+
+### Bug Fixes
+
+* Update deps, perf tuning, cleanup ([#6](https://github.com/DankTechnologies/Podds/issues/6)) ([47a9f86](https://github.com/DankTechnologies/Podds/commit/47a9f86cccdb8991fa2055311c06ae234e138b8c))
+
 ## [1.0.4](https://github.com/DankTechnologies/Podds/compare/v1.0.3...v1.0.4) (2025-06-05)
 
 
