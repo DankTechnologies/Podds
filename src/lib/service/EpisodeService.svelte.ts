@@ -1,4 +1,4 @@
-import { db, getSettings } from '$lib/stores/db.svelte';
+import { db, getEpisodes, getSettings } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
@@ -79,6 +79,15 @@ export class EpisodeService {
 
 	static findEpisodesByFeedId(feedId: string): Episode[] {
 		return db.episodes.find({ feedId: feedId }).fetch();
+	}
+
+	static findEpisodesByTerm(term: string, limit: number = 100): Episode[] {
+		return getEpisodes()
+			.filter((episode) =>
+				episode.title.toLowerCase().includes(term.toLowerCase()) ||
+				episode.content.toLowerCase().includes(term.toLowerCase())
+			)
+			.slice(0, limit);
 	}
 
 	static clearPlayingEpisodes(): void {

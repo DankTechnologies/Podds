@@ -7,7 +7,6 @@
 	import type { ActiveEpisode } from '$lib/types/db';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { EpisodeUpdate } from '$lib/service/FeedService.svelte';
-	import { isOnline } from '$lib/utils/networkState.svelte';
 
 	const ICON_SIZE = '2rem';
 
@@ -16,7 +15,7 @@
 	let hasFeeds = $derived(getFeeds().length > 0);
 	let settings = $derived(getSettings());
 	let isAppleWeb = $derived(isAppleDevice && !isPwa);
-	let canSearch = $derived(settings.corsHelper && isOnline() && !isAppleWeb);
+	let canSearch = $derived(settings.corsHelper && !isAppleWeb);
 
 	let isActive = $derived((href: string) => {
 		if (href === '/') {

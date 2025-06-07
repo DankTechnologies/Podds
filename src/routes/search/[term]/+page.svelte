@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { Search as Bell, BellRing, X, Dot } from 'lucide-svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-	import { getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
+	import { getActiveEpisodes, getFeeds } from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
-	import type { Feed, Episode, SearchHistory } from '$lib/types/db';
+	import type { Feed, Episode } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { searchEpisodes, searchPodcasts } from '$lib/api/itunes';
+	import { isOnline } from '$lib/utils/networkState.svelte';
+	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 
 	let feedResults = $state<Feed[]>([]);
 	let episodeResults = $state<Episode[]>([]);
@@ -16,13 +17,6 @@
 
 	let term = $derived(decodeURIComponent($page.params.term));
 	let previousTerm = $state('');
-
-	let searchHistory = $derived(
-		getSearchHistory()
-			.slice(0, 20)
-			.sort((a, b) => b.executedAt.getTime() - a.executedAt.getTime())
-			.sort((a, b) => Number(b.monitored) - Number(a.monitored))
-	);
 
 	let currentFeeds = $derived(getFeeds());
 	let activeEpisodes = $derived(getActiveEpisodes());
@@ -51,18 +45,33 @@
 		episodeResults = [];
 		isLoading = true;
 
+		let localEpisodeResults = [];
+		let remoteEpisodeResults = [];
+
 		try {
-			[feedResults, episodeResults] = await Promise.all([
-				searchPodcasts(term, { skipConvertIcon: true }),
-				searchEpisodes(term, { skipConvertIcon: true })
+			[feedResults, remoteEpisodeResults, localEpisodeResults] = await Promise.all([
+				isOnline() ? searchPodcasts(term, { skipConvertIcon: true }) : Promise.resolve([]),
+				isOnline() ? searchEpisodes(term, { skipConvertIcon: true }) : Promise.resolve([]),
+				EpisodeService.findEpisodesByTerm(term)
 			]);
 
+			localEpisodeResults.forEach((ep) => {
+				const feed = currentFeeds.find((f) => f.id === ep.feedId);
+
+				if (feed) {
+					ep.iconData = feed.iconData;
+					ep.title = ep.title.startsWith('[') ? ep.title : `[${feed.title}] ${ep.title}`;
+				}
+			});
+
+			episodeResults = [
+				...new Map(
+					[...localEpisodeResults, ...remoteEpisodeResults].map((ep) => [ep.id, ep])
+				).values()
+			].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+
 			// Set initial view based on results
-			if (feedResults.length > 0) {
-				view = 'feeds';
-			} else if (episodeResults.length > 0) {
-				view = 'episodes';
-			}
+			view = feedResults.length > 0 ? 'feeds' : 'episodes';
 
 			// Save search history
 			const latestEpisodeDate = new Date(
@@ -79,18 +88,6 @@
 
 	async function handleDeleteSearch(id: string) {
 		SearchHistoryService.deleteSearchHistory(id);
-	}
-
-	async function handleToggleMonitor(id: string) {
-		SearchHistoryService.toggleMonitor(id);
-	}
-
-	async function handleSearchTermClick(history: SearchHistory) {
-		if (history.hasNewResults) {
-			SearchHistoryService.clearHasNewResults(history.id);
-		}
-
-		await handleSearch(history.term);
 	}
 </script>
 
@@ -124,20 +121,6 @@
 		<FeedList feeds={feedResults} {currentFeedIds} {currentSubscribedFeedIds} {feedIconsById} />
 	{/if}
 	{#if view === 'episodes' && episodeResults.length > 0}
-		<div class="episodes-header">
-			<button
-				class="monitor-button"
-				class:active={searchHistory.find((h) => h.term === $page.params.term)?.monitored}
-				onclick={() =>
-					handleToggleMonitor(searchHistory.find((h) => h.term === $page.params.term)?.id ?? '')}
-			>
-				{#if searchHistory.find((h) => h.term === $page.params.term)?.monitored}
-					<BellRing size="14" /> Tracking
-				{:else}
-					Not Tracking
-				{/if}
-			</button>
-		</div>
 		<EpisodeList
 			episodes={episodeResults}
 			{activeEpisodes}
@@ -147,44 +130,6 @@
 	{/if}
 {:else if $page.params.term}
 	<div class="message">No podcasts found</div>
-{:else if searchHistory.length > 0}
-	<div class="search-history">
-		<div class="search-history-header">History</div>
-		<div class="search-history-list">
-			{#each searchHistory as history}
-				<div class="search-history-item">
-					<button
-						class="search-term"
-						class:new-results={history.monitored && history.hasNewResults}
-						onclick={() => handleSearchTermClick(history)}
-					>
-						{history.term}
-						{#if history.monitored && history.hasNewResults}
-							<div class="new-results-dot">
-								<Dot size="24" />
-							</div>
-						{/if}
-					</button>
-					<div class="search-history-actions">
-						<button
-							class="monitor-button"
-							class:monitored={history.monitored}
-							onclick={() => handleToggleMonitor(history.id)}
-						>
-							{#if history.monitored}
-								<BellRing size="1rem" />
-							{:else}
-								<Bell size="1rem" />
-							{/if}
-						</button>
-						<button class="delete-button" onclick={() => handleDeleteSearch(history.id)}>
-							<X size="1rem" />
-						</button>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</div>
 {/if}
 
 <style>
@@ -231,106 +176,5 @@
 
 	.search-view-button.active .search-view-button-count {
 		background-color: var(--bg-less);
-	}
-
-	.search-history {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1rem;
-	}
-
-	.search-history-header {
-		font-size: var(--text-2xl);
-		font-weight: 600;
-	}
-
-	.search-history-list {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.search-history-item {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem;
-		background: var(--bg-less);
-		border-radius: 0.25rem;
-	}
-
-	.search-term {
-		background: none;
-		border: none;
-		padding: 0;
-		display: flex;
-		align-items: center;
-		color: var(--primary-faint);
-	}
-
-	.search-term.new-results {
-		color: var(--primary-more);
-	}
-
-	.new-results-dot {
-		margin-left: -0.25rem;
-	}
-
-	.search-history-actions {
-		display: flex;
-		gap: 1rem;
-	}
-
-	.episodes-header {
-		padding: 1rem;
-		display: flex;
-		justify-content: flex-end;
-		background-color: var(--bg-less);
-	}
-
-	.monitor-button {
-		display: flex;
-		font-size: var(--text-small);
-		font-weight: 600;
-		align-items: center;
-		gap: 0.5rem;
-		border: none;
-		padding: 0.5rem;
-		cursor: pointer;
-		border-radius: 0.25rem;
-		background: var(--bg);
-		color: var(--text);
-		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
-		transition: all 0.6s ease-in-out;
-		white-space: nowrap;
-		overflow: hidden;
-	}
-
-	.monitor-button:not(.active) {
-		opacity: 0.4;
-		box-shadow: none;
-	}
-
-	.monitor-button.active {
-		color: var(--primary-less);
-		background: var(--bg-less);
-		box-shadow: 0.25rem 0.25rem 0 0 var(--primary-less);
-	}
-
-	.delete-button {
-		display: flex;
-		font-size: var(--text-small);
-		font-weight: 600;
-		align-items: center;
-		gap: 0.5rem;
-		border: none;
-		padding: 0.5rem;
-		cursor: pointer;
-		border-radius: 0.25rem;
-		background: var(--bg);
-		color: var(--text);
-		box-shadow: 0 0 0 1px light-dark(var(--grey), var(--grey-700));
-		opacity: 0.5;
 	}
 </style>
