@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { Search as Bell, BellRing, X, Dot } from 'lucide-svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-	import { getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
+	import { db, getActiveEpisodes, getFeeds, getSearchHistory } from '$lib/stores/db.svelte';
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Feed, Episode, SearchHistory } from '$lib/types/db';
@@ -18,10 +18,15 @@
 	let previousTerm = $state('');
 
 	let searchHistory = $derived(
-		getSearchHistory()
-			.slice(0, 20)
-			.sort((a, b) => b.executedAt.getTime() - a.executedAt.getTime())
-			.sort((a, b) => Number(b.monitored) - Number(a.monitored))
+		db.searchHistory
+			.find(
+				{},
+				{
+					sort: { monitored: -1, executedAt: -1 },
+					limit: 20
+				}
+			)
+			.fetch()
 	);
 
 	let currentFeeds = $derived(getFeeds());
@@ -127,11 +132,10 @@
 		<div class="episodes-header">
 			<button
 				class="monitor-button"
-				class:active={searchHistory.find((h) => h.term === $page.params.term)?.monitored}
-				onclick={() =>
-					handleToggleMonitor(searchHistory.find((h) => h.term === $page.params.term)?.id ?? '')}
+				class:active={searchHistory.find((h) => h.term === term)?.monitored}
+				onclick={() => handleToggleMonitor(searchHistory.find((h) => h.term === term)?.id ?? '')}
 			>
-				{#if searchHistory.find((h) => h.term === $page.params.term)?.monitored}
+				{#if searchHistory.find((h) => h.term === term)?.monitored}
 					<BellRing size="14" /> Tracking
 				{:else}
 					Not Tracking

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Bell, BellRing, X, Dot } from 'lucide-svelte';
-	import { db, getSearchHistory } from '$lib/stores/db.svelte';
+	import { db } from '$lib/stores/db.svelte';
 	import type { SearchHistory } from '$lib/types/db';
 	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
 	import { goto } from '$app/navigation';
