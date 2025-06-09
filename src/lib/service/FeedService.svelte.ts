@@ -8,6 +8,7 @@ import type { ImportProgress } from '$lib/types/ImportProgress';
 import { isOnline } from '$lib/utils/networkState.svelte';
 import { findPodcastByTitleAndUrl } from '$lib/api/itunes';
 import { cacheBase64Image } from '$lib/utils/imageHelpers';
+import * as Comlink from 'comlink';
 
 const FEED_SYNC_CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
@@ -480,13 +481,10 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		});
 
 		try {
-			const response = await new Promise<EpisodeFinderResponse>((resolve, reject) => {
-				worker.onmessage = (event) => resolve(event.data);
-				worker.onerror = (error) => reject(error);
-				worker.postMessage(request);
-			});
-
-			return response;
+			const api = Comlink.wrap<{
+				processFeeds: (request: EpisodeFinderRequest) => Promise<EpisodeFinderResponse>;
+			}>(worker);
+			return await api.processFeeds(request);
 		} finally {
 			worker.terminate();
 		}

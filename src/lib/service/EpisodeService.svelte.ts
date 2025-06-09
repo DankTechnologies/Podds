@@ -1,8 +1,10 @@
 import { db, getEpisodes, getSettings } from '$lib/stores/db.svelte';
 import type { ActiveEpisode, Chapter, Episode } from '$lib/types/db';
+import type { EpisodeCleanerResponse } from '$lib/types/episodeCleaner';
 import { Log } from '$lib/service/LogService';
 import { fetchChapters } from '$lib/utils/feedParser';
 import { SettingsService } from './SettingsService.svelte';
+import * as Comlink from 'comlink';
 
 export class EpisodeService {
 	static setPlayingEpisode(episode: Episode | ActiveEpisode): void {
@@ -154,11 +156,10 @@ export class EpisodeService {
 		});
 
 		try {
-			const response = await new Promise<{ deletedUrls: string[]; errors: string[] }>((resolve, reject) => {
-				worker.onmessage = (event) => resolve(event.data);
-				worker.onerror = (error) => reject(error);
-				worker.postMessage({ urls });
-			});
+			const api = Comlink.wrap<{
+				cleanEpisodes: (urls: string[]) => Promise<EpisodeCleanerResponse>;
+			}>(worker);
+			const response = await api.cleanEpisodes(urls);
 
 			if (response.errors.length > 0) {
 				Log.error(response.errors.join('\n'));

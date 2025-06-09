@@ -1,4 +1,5 @@
-import type { EpisodeCleanerRequest, EpisodeCleanerResponse } from '$lib/types/episodeCleaner';
+import type { EpisodeCleanerResponse } from '$lib/types/episodeCleaner';
+import * as Comlink from 'comlink';
 
 async function deleteCachedAudio(url: string): Promise<void> {
     if ('caches' in self) {
@@ -16,31 +17,25 @@ async function deleteCachedAudio(url: string): Promise<void> {
     }
 }
 
-self.onmessage = async (e: MessageEvent<EpisodeCleanerRequest>) => {
-    try {
-        const { urls } = e.data;
-        const deletedUrls: string[] = [];
-        const errors: string[] = [];
+async function cleanEpisodes(urls: string[]): Promise<EpisodeCleanerResponse> {
+    const deletedUrls: string[] = [];
+    const errors: string[] = [];
 
-        for (const url of urls) {
-            try {
-                await deleteCachedAudio(url);
-                deletedUrls.push(url);
-            } catch (error) {
-                errors.push(`Failed to delete audio for URL ${url}: ${error}`);
-            }
+    for (const url of urls) {
+        try {
+            await deleteCachedAudio(url);
+            deletedUrls.push(url);
+        } catch (error) {
+            errors.push(`Failed to delete audio for URL ${url}: ${error}`);
         }
-
-        const response: EpisodeCleanerResponse = {
-            deletedUrls,
-            errors
-        };
-
-        self.postMessage(response);
-    } catch (error) {
-        self.postMessage({
-            deletedUrls: [],
-            errors: [`Worker error: ${error instanceof Error ? `${error.message} - ${error.stack}` : 'Unknown error'}`]
-        });
     }
-}; 
+
+    return {
+        deletedUrls,
+        errors
+    };
+}
+
+Comlink.expose({
+    cleanEpisodes
+}); 
