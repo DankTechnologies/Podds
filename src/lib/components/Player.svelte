@@ -116,8 +116,13 @@
 				EpisodeService.setPlayingEpisode(upNextEpisode);
 				AudioService.play(upNextEpisode.url, upNextEpisode.playbackPosition);
 			} else {
-				AudioService.stop();
-				EpisodeService.clearPlayingEpisodes();
+				showDetailedControls = false;
+
+				setTimeout(() => {
+					// kludge for bottom sheet not closing right and breaking scroll
+					AudioService.stop();
+					EpisodeService.clearPlayingEpisodes();
+				}, 0);
 			}
 		};
 
