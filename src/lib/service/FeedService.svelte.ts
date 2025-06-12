@@ -89,7 +89,9 @@ export class FeedService {
 		// these tasks are run at lower-priority via window.requestIdleCallback
 		let processedCount = 0;
 
-		window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
+		db.episodes.batch(() => {
+			window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
+		});
 
 		function performUpdate() {
 			const remainingEpisodes = finderResponse.episodes.slice(processedCount);
@@ -464,13 +466,13 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					setTimeout(() => {
 						Log.debug('App became visible, running feed update');
 						sync();
-					}, 10000);
+					}, 3000);
 				}
 			}
 		});
 
 		// Delay first sync
-		setTimeout(sync, 8000);
+		setTimeout(sync, 2000);
 
 		setInterval(sync, FEED_SYNC_CHECK_INTERVAL_MS);
 	}
