@@ -14,6 +14,7 @@ const FEED_SYNC_CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 const EPISODE_CHUNK_SIZE = 5;
 const EPISODE_TIMEOUT_MS = 2000;
+const FEED_CHUNK_SIZE = 5;
 
 export const EpisodeUpdate = $state({
 	isUpdating: false,
@@ -122,27 +123,47 @@ export class FeedService {
 				window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
 			} else {
 				// All episodes processed
-				updateFeeds(finderResponse.feeds);
-				completeSync(finderResponse.errors.length, feeds.length);
+				setTimeout(() => {
+					updateFeeds(finderResponse.feeds);
+				}, 500);
+
+				setTimeout(() => {
+					completeSync(finderResponse.errors.length, feeds.length);
+				}, 500);
 			}
 		}
 
 		function updateFeeds(feeds: typeof finderResponse.feeds) {
+			let processedCount = 0;
+
 			db.feeds.batch(() => {
-				feeds.forEach((x) => {
-					db.feeds.updateOne({ id: x.id }, {
-						$set: {
-							lastCheckedAt: x.lastCheckedAt,
-							lastSyncedAt: x.lastSyncedAt,
-							lastModified: x.lastModified,
-							ttlMinutes: x.ttlMinutes,
-							description: x.description,
-							link: x.link,
-							author: x.author,
-							ownerName: x.ownerName
-						}
+				function processChunk() {
+					const remainingFeeds = feeds.slice(processedCount);
+					const chunkFeeds = remainingFeeds.slice(0, FEED_CHUNK_SIZE);
+
+					chunkFeeds.forEach((x) => {
+						db.feeds.updateOne({ id: x.id }, {
+							$set: {
+								lastCheckedAt: x.lastCheckedAt,
+								lastSyncedAt: x.lastSyncedAt,
+								lastModified: x.lastModified,
+								ttlMinutes: x.ttlMinutes,
+								description: x.description,
+								link: x.link,
+								author: x.author,
+								ownerName: x.ownerName
+							}
+						});
 					});
-				});
+
+					processedCount += chunkFeeds.length;
+
+					if (processedCount < feeds.length) {
+						window.requestIdleCallback(processChunk, { timeout: EPISODE_TIMEOUT_MS });
+					}
+				}
+
+				processChunk();
 			});
 		}
 
