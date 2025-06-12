@@ -14,7 +14,7 @@
 	import { SessionInfo, SettingsService } from '$lib/service/SettingsService.svelte';
 	import { isAppleDevice, isPwa } from '$lib/utils/osCheck';
 	import { registerServiceWorker } from '$lib/utils/storage';
-	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { SearchService } from '$lib/service/SearchService.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
 	import { trackNetworkState } from '$lib/utils/networkState.svelte';
 	import { runRatchets } from '$lib/stores/ratchets';
@@ -22,7 +22,7 @@
 	import { onUpdateReady } from '$lib/utils/versionUpdate';
 	import '$lib/utils/window.polyfill.js';
 	let feedService = new FeedService();
-	let searchHistoryService = new SearchHistoryService();
+	let searchService = new SearchService();
 
 	let settings = $derived(getSettings());
 	let isPwaConfigured = $derived(settings.isPwaInstalled);
@@ -78,7 +78,7 @@
 					SettingsService.initializeSettings();
 					runRatchets();
 					feedService.startPeriodicUpdates();
-					searchHistoryService.startPeriodicUpdates();
+					searchService.startPeriodicUpdates();
 					EpisodeService.startPeriodicUpdates();
 				} catch (error) {
 					Log.error(`Error at startup after DB ready: ${error}`);
