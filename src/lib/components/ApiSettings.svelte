@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { FeedService } from '$lib/service/FeedService.svelte';
-	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
+	import { Log } from '$lib/service/LogService';
+	import { DefaultSettings } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
-	import { Loader2, FlaskRound, RotateCcw, Rss, Waypoints } from 'lucide-svelte';
+	import { Loader2, FlaskRound, RotateCcw, Rss, Waypoints, Trash2 } from 'lucide-svelte';
 
 	let {
 		settings = $bindable<Settings>(),
@@ -41,6 +42,10 @@
 
 	function handleSync() {
 		feedService.updateAllFeeds(true);
+	}
+
+	function handleDeleteLogs() {
+		Log.deleteAll();
 	}
 
 	async function testCorsHelpers() {
@@ -172,20 +177,23 @@
 				disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
 			>
 				{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
-					<Loader2 size="16" class="spinner" /> Testing...
+					<Loader2 size="24" class="spinner" /> Testing...
 				{:else}
-					<FlaskRound size="16" /> Run Tests
+					<FlaskRound size="24" /> Run Tests
 				{/if}
 			</button>
 			<button type="button" onclick={handleReset} class="reset-button"
-				><RotateCcw size="16" /> Use Public Proxies
+				><RotateCcw size="24" /> Use Public Proxies
 			</button>
 		</div>
 	</div>
 	<div class="section">
 		<div class="section-header">Data Management</div>
-		<div class="actions">
-			<button type="button" onclick={handleSync}><RotateCcw size="16" /> Sync Podcasts </button>
+		<div>
+			<div class="actions">
+				<button type="button" onclick={handleSync}><RotateCcw size="24" /> Sync Podcasts </button>
+				<button type="button" onclick={handleDeleteLogs}><Trash2 size="24" /> Clear Logs</button>
+			</div>
 		</div>
 	</div>
 </section>
@@ -277,10 +285,12 @@
 
 	.actions button {
 		display: flex;
-		min-width: 8.5rem;
 		font-weight: 600;
+		text-wrap-style: pretty;
 		align-items: center;
-		gap: 0.5rem;
+		text-align: left;
+		flex: 1;
+		gap: 1rem;
 		border: none;
 		padding: 0.5rem 1rem;
 		border-radius: 0.25rem;

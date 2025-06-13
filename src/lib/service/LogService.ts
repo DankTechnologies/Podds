@@ -44,6 +44,10 @@ export class Log {
 		return this.write('error', message);
 	}
 
+	static deleteAll() {
+		db.logs.removeMany({});
+	}
+
 	static initServiceWorkerLogging() {
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.addEventListener('message', (event) => {
