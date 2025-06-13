@@ -56,6 +56,7 @@
 	let isPodcastPage = $derived(page.url.pathname.startsWith('/podcast'));
 
 	let feeds = $derived(getFeeds());
+	let feedTitleById = $derived(new SvelteMap(feeds.map((f) => [f.id.toString(), f.title])));
 	let settings = $derived(getSettings());
 
 	function getActiveEpisode(episode: Episode): ActiveEpisode | undefined {
@@ -275,45 +276,55 @@
 						{/if}
 					{/if}
 					<div class="episode-card__heading">
-						<time class="episode-card__time">
+						<div class="episode-card__time">
 							{#if active?.isCompleted}
-								<div>
+								<div class="time-item">
 									<Check size="14" />
 								</div>
 							{:else if progress !== undefined && progress !== -1}
-								<div class="download-progress">
+								<div class="time-item download-progress">
 									{Math.round(progress)}%
 								</div>
 							{:else if progress !== undefined && progress === -1}
-								<div class="download-progress error">
+								<div class="time-item download-progress error">
 									<Frown size="14" />
 								</div>
 							{:else if (active?.playbackPosition ?? 0) > 0 || active?.isPlaying}
-								<div>
+								<div class="time-item">
 									<Play size="14" />
 								</div>
 							{:else if isSearch && isSubscribed}
-								<div>
+								<div class="time-item">
 									<Antenna size="14" />
 								</div>
 							{/if}
 							{#if active?.isDownloaded}
-								<div>
+								<div class="time-item">
 									<Download size="14" />
 								</div>
 							{/if}
-							<div>
+							<div class="time-item">
 								{episodeDate}
 							</div>
 							{#if episode.durationMin > 0}
-								<div>
+								<div class="time-item">
 									<Dot size="14" />
 								</div>
-								<div>
+								<div class="time-item">
 									{episodeDuration}
 								</div>
 							{/if}
-						</time>
+							{#if isFocused && !hideImages && !isSearch}
+								<div class="time-item">
+									<Dot size="14" />
+								</div>
+								<div class="time-item feed-link-wrapper">
+									<a href="/" onclick={(e) => handleFeedClick(e, episode)} class="feed-link">
+										{feedTitleById.get(episode.feedId)}
+									</a>
+								</div>
+							{/if}
+						</div>
 						<div class="episode-card__title">
 							{#if isSearch && episode.title.startsWith('[')}
 								{@const feedTitle = episode.title.match(/^\[(.+?)\]/)?.[1]}
@@ -579,7 +590,9 @@
 		font-size: var(--text-small);
 		font-family: monospace;
 		color: var(--primary);
-		display: flex;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: auto;
 		align-items: center;
 		gap: 0.25rem;
 		padding-bottom: 0.1rem;
@@ -591,8 +604,25 @@
 		}
 	}
 
-	.episode-card--focused .episode-card__time {
-		color: var(--primary-more);
+	.time-item {
+		display: flex;
+		align-items: center;
+	}
+
+	.feed-link-wrapper {
+		min-width: 0;
+	}
+
+	.feed-link {
+		overflow: hidden;
+		min-width: 0;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		background: light-dark(var(--grey-250), var(--bg));
+		filter: light-dark(contrast(1), contrast(0.75));
+		padding: 2px 4px;
+		margin: -2px -4px;
+		border-radius: 0.25rem;
 	}
 
 	.download-progress {
@@ -631,6 +661,8 @@
 		opacity: 0;
 		overflow: hidden;
 		height: 0;
+		position: relative;
+		z-index: 1;
 	}
 
 	.episode-controls--visible {
