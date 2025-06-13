@@ -30,7 +30,8 @@ export class FeedService {
 				feeds: [feed],
 				since: undefined,
 				corsHelper: settings!.corsHelper,
-				corsHelper2: settings!.corsHelper2
+				corsHelper2: settings!.corsHelper2,
+				force: true
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -50,7 +51,7 @@ export class FeedService {
 		}
 	}
 
-	async updateAllFeeds() {
+	async updateAllFeeds(force: boolean = false) {
 		const settings = getSettings();
 		const feeds = getFeeds().filter((x) => x.isSubscribed);
 
@@ -63,7 +64,7 @@ export class FeedService {
 		const timestampLastSync = Math.floor(new Date(settings.lastSyncAt).getTime() / 1000);
 		const lastSyncAtSeconds = timestampNow - timestampLastSync;
 
-		if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
+		if (!force && lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
 			const minutes = Math.floor(lastSyncAtSeconds / 60);
 			const seconds = lastSyncAtSeconds % 60;
 			Log.debug(`Last feed sync was ${minutes}m${seconds}s ago, skipping update`);
@@ -80,7 +81,8 @@ export class FeedService {
 			feeds,
 			since,
 			corsHelper: settings.corsHelper,
-			corsHelper2: settings.corsHelper2
+			corsHelper2: settings.corsHelper2,
+			force: force
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -212,7 +214,8 @@ export class FeedService {
 				feeds,
 				since: undefined,
 				corsHelper: settings!.corsHelper,
-				corsHelper2: settings!.corsHelper2
+				corsHelper2: settings!.corsHelper2,
+				force: false
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -267,7 +270,8 @@ export class FeedService {
 			feeds,
 			since: undefined,
 			corsHelper: settings!.corsHelper,
-			corsHelper2: settings!.corsHelper2
+			corsHelper2: settings!.corsHelper2,
+			force: false
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);

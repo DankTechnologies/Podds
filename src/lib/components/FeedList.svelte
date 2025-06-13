@@ -122,7 +122,8 @@
 			feeds: [feed],
 			since: undefined,
 			corsHelper: settings.corsHelper,
-			corsHelper2: settings.corsHelper2
+			corsHelper2: settings.corsHelper2,
+			force: false
 		};
 
 		return await feedService.runEpisodeFinder(finderRequest);

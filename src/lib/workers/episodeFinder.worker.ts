@@ -7,7 +7,7 @@ const FEED_TIMEOUT_MS = 5000;
 const BATCH_SIZE = 15;
 
 async function processFeeds(request: EpisodeFinderRequest): Promise<EpisodeFinderResponse> {
-	const { feeds, since, corsHelper, corsHelper2 } = request;
+	const { feeds, since, corsHelper, corsHelper2, force } = request;
 
 	// Process feeds in batches
 	const results: Array<{
@@ -19,7 +19,7 @@ async function processFeeds(request: EpisodeFinderRequest): Promise<EpisodeFinde
 	for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
 		const batch = feeds.slice(i, i + BATCH_SIZE);
 		const batchResults = await Promise.all(
-			batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
+			batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since, force))
 		);
 		results.push(...batchResults);
 	}
@@ -31,7 +31,7 @@ async function processFeeds(request: EpisodeFinderRequest): Promise<EpisodeFinde
 	};
 }
 
-async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number): Promise<{
+async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number, force: boolean = false): Promise<{
 	episodes: Episode[];
 	feed: Feed;
 	errors: string[];
@@ -41,7 +41,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 
 	try {
 		// Check if we should skip this feed based on TTL
-		if (feed.lastCheckedAt && feed.ttlMinutes) {
+		if (!force && feed.lastCheckedAt && feed.ttlMinutes) {
 			const minutesSinceLastCheck = (new Date().getTime() - feed.lastCheckedAt.getTime()) / 60000; // Convert to minutes
 			if (minutesSinceLastCheck < feed.ttlMinutes) {
 				clearTimeout(timeoutId);
@@ -59,7 +59,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 		// Prepare headers for conditional fetch
 		const headers: Record<string, string> = {};
 
-		if (feed.lastModified) {
+		if (!force && feed.lastModified) {
 			headers['If-Modified-Since'] = feed.lastModified.toUTCString();
 		}
 

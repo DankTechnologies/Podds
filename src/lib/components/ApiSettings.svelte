@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { FeedService } from '$lib/service/FeedService.svelte';
 	import { DefaultSettings, SettingsService } from '$lib/service/SettingsService.svelte';
 	import type { Settings } from '$lib/types/db';
 	import { Loader2, FlaskRound, RotateCcw, Rss, Waypoints } from 'lucide-svelte';
@@ -18,6 +19,8 @@
 	let corsStatus2 = $state<'untested' | 'testing' | 'success' | 'error'>('untested');
 	let isValid = $derived(corsStatus === 'success');
 
+	let feedService = new FeedService();
+
 	function handleCorsChange() {
 		const isCustom =
 			settings.corsHelper !== DefaultSettings.corsHelper ||
@@ -34,6 +37,10 @@
 			isCustomCorsHelpers: false
 		};
 		onSave?.();
+	}
+
+	function handleSync() {
+		feedService.updateAllFeeds(true);
 	}
 
 	async function testCorsHelpers() {
@@ -158,24 +165,30 @@
 				</div>
 			</div>
 		</div>
+		<div class="actions">
+			<button
+				type="button"
+				onclick={handleTest}
+				disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
+			>
+				{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
+					<Loader2 size="16" class="spinner" /> Testing...
+				{:else}
+					<FlaskRound size="16" /> Run Tests
+				{/if}
+			</button>
+			<button type="button" onclick={handleReset} class="reset-button"
+				><RotateCcw size="16" /> Use Public Proxies
+			</button>
+		</div>
+	</div>
+	<div class="section">
+		<div class="section-header">Data Management</div>
+		<div class="actions">
+			<button type="button" onclick={handleSync}><RotateCcw size="16" /> Sync Podcasts </button>
+		</div>
 	</div>
 </section>
-<div class="actions">
-	<button
-		type="button"
-		onclick={handleTest}
-		disabled={corsStatus === 'testing' || corsStatus2 === 'testing'}
-	>
-		{#if corsStatus === 'testing' || corsStatus2 === 'testing'}
-			<Loader2 size="16" class="spinner" /> Testing...
-		{:else}
-			<FlaskRound size="16" /> Run Tests
-		{/if}
-	</button>
-	<button type="button" onclick={handleReset} class="reset-button"
-		><RotateCcw size="16" /> Use Public Proxies
-	</button>
-</div>
 
 <style>
 	.section {
@@ -258,7 +271,7 @@
 
 	.actions {
 		display: flex;
-		margin-top: 2rem;
+		margin-top: 1rem;
 		gap: 2rem;
 	}
 
