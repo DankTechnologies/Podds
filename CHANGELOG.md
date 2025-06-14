@@ -1,3 +1,10 @@
+## [1.0.8](https://github.com/DankTechnologies/Podds/compare/v1.0.7...v1.0.8) (2025-06-14)
+
+
+### Bug Fixes
+
+* UI polish and bug fixes ([#8](https://github.com/DankTechnologies/Podds/issues/8)) ([89c94bf](https://github.com/DankTechnologies/Podds/commit/89c94bff876014abc248c0d60b08c2bcc84bcfa4))
+
 ## [1.0.7](https://github.com/DankTechnologies/Podds/compare/v1.0.6...v1.0.7) (2025-06-07)
 
 
