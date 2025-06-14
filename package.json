@@ -43,6 +43,7 @@
 		"@signaldb/core": "^1.6.0",
 		"@signaldb/indexeddb": "^1.1.0",
 		"@signaldb/svelte": "^1.1.1",
+		"comlink": "^4.4.2",
 		"fast-xml-parser": "^5.2.3",
 		"lucide-svelte": "^0.475.0",
 		"svelte-bottom-sheet": "^2.2.0"

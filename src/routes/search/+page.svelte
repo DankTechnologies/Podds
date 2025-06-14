@@ -2,7 +2,7 @@
 	import { Bell, BellRing, X, Dot } from 'lucide-svelte';
 	import { db } from '$lib/stores/db.svelte';
 	import type { SearchHistory } from '$lib/types/db';
-	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { SearchService } from '$lib/service/SearchService.svelte';
 	import { goto } from '$app/navigation';
 
 	let searchHistory = $derived(
@@ -18,16 +18,16 @@
 	);
 
 	async function handleDeleteSearch(id: string) {
-		SearchHistoryService.deleteSearchHistory(id);
+		SearchService.deleteSearchHistory(id);
 	}
 
 	async function handleToggleMonitor(id: string) {
-		SearchHistoryService.toggleMonitor(id);
+		SearchService.toggleMonitor(id);
 	}
 
 	async function handleSearchTermClick(history: SearchHistory) {
 		if (history.hasNewResults) {
-			SearchHistoryService.clearHasNewResults(history.id);
+			SearchService.clearHasNewResults(history.id);
 		}
 
 		goto(`/search/${encodeURIComponent(history.term)}`);

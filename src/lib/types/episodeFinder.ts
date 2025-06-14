@@ -5,6 +5,7 @@ export interface EpisodeFinderRequest {
 	since?: number;
 	corsHelper: string;
 	corsHelper2: string | undefined;
+	force: boolean;
 }
 
 export interface EpisodeFinderResponse {

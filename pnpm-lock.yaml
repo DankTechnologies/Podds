@@ -17,6 +17,9 @@ importers:
       '@signaldb/svelte':
         specifier: ^1.1.1
         version: 1.1.1(@signaldb/core@1.6.0)(svelte@5.33.14)
+      comlink:
+        specifier: ^4.4.2
+        version: 4.4.2
       fast-xml-parser:
         specifier: ^5.2.3
         version: 5.2.3
@@ -944,6 +947,9 @@ packages:
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
+
+  comlink@4.4.2:
+    resolution: {integrity: sha512-OxGdvBmJuNKSCMO4NTl1L47VRp6xn2wG4F/2hYzB6tiCb709otOxtEYCSvK80PtjODfXXZu8ds+Nw5kVCjqd2g==}
 
   compare-func@2.0.0:
     resolution: {integrity: sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA==}
@@ -3468,6 +3474,8 @@ snapshots:
     dependencies:
       delayed-stream: 1.0.0
     optional: true
+
+  comlink@4.4.2: {}
 
   compare-func@2.0.0:
     dependencies:

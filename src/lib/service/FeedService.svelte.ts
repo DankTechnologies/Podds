@@ -8,11 +8,13 @@ import type { ImportProgress } from '$lib/types/ImportProgress';
 import { isOnline } from '$lib/utils/networkState.svelte';
 import { findPodcastByTitleAndUrl } from '$lib/api/itunes';
 import { cacheBase64Image } from '$lib/utils/imageHelpers';
+import * as Comlink from 'comlink';
 
 const FEED_SYNC_CHECK_INTERVAL_MS = 60 * 1000;
 const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
 const EPISODE_CHUNK_SIZE = 5;
 const EPISODE_TIMEOUT_MS = 2000;
+const FEED_CHUNK_SIZE = 5;
 
 export const EpisodeUpdate = $state({
 	isUpdating: false,
@@ -28,7 +30,8 @@ export class FeedService {
 				feeds: [feed],
 				since: undefined,
 				corsHelper: settings!.corsHelper,
-				corsHelper2: settings!.corsHelper2
+				corsHelper2: settings!.corsHelper2,
+				force: true
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -48,7 +51,7 @@ export class FeedService {
 		}
 	}
 
-	async updateAllFeeds() {
+	async updateAllFeeds(force: boolean = false) {
 		const settings = getSettings();
 		const feeds = getFeeds().filter((x) => x.isSubscribed);
 
@@ -61,7 +64,7 @@ export class FeedService {
 		const timestampLastSync = Math.floor(new Date(settings.lastSyncAt).getTime() / 1000);
 		const lastSyncAtSeconds = timestampNow - timestampLastSync;
 
-		if (lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
+		if (!force && lastSyncAtSeconds < settings.syncIntervalMinutes * 60) {
 			const minutes = Math.floor(lastSyncAtSeconds / 60);
 			const seconds = lastSyncAtSeconds % 60;
 			Log.debug(`Last feed sync was ${minutes}m${seconds}s ago, skipping update`);
@@ -78,7 +81,8 @@ export class FeedService {
 			feeds,
 			since,
 			corsHelper: settings.corsHelper,
-			corsHelper2: settings.corsHelper2
+			corsHelper2: settings.corsHelper2,
+			force: force
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -88,7 +92,9 @@ export class FeedService {
 		// these tasks are run at lower-priority via window.requestIdleCallback
 		let processedCount = 0;
 
-		window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
+		db.episodes.batch(() => {
+			window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
+		});
 
 		function performUpdate() {
 			const remainingEpisodes = finderResponse.episodes.slice(processedCount);
@@ -119,27 +125,47 @@ export class FeedService {
 				window.requestIdleCallback(performUpdate, { timeout: EPISODE_TIMEOUT_MS });
 			} else {
 				// All episodes processed
-				updateFeeds(finderResponse.feeds);
-				completeSync(finderResponse.errors.length, feeds.length);
+				setTimeout(() => {
+					updateFeeds(finderResponse.feeds);
+				}, 500);
+
+				setTimeout(() => {
+					completeSync(finderResponse.errors.length, feeds.length);
+				}, 500);
 			}
 		}
 
 		function updateFeeds(feeds: typeof finderResponse.feeds) {
+			let processedCount = 0;
+
 			db.feeds.batch(() => {
-				feeds.forEach((x) => {
-					db.feeds.updateOne({ id: x.id }, {
-						$set: {
-							lastCheckedAt: x.lastCheckedAt,
-							lastSyncedAt: x.lastSyncedAt,
-							lastModified: x.lastModified,
-							ttlMinutes: x.ttlMinutes,
-							description: x.description,
-							link: x.link,
-							author: x.author,
-							ownerName: x.ownerName
-						}
+				function processChunk() {
+					const remainingFeeds = feeds.slice(processedCount);
+					const chunkFeeds = remainingFeeds.slice(0, FEED_CHUNK_SIZE);
+
+					chunkFeeds.forEach((x) => {
+						db.feeds.updateOne({ id: x.id }, {
+							$set: {
+								lastCheckedAt: x.lastCheckedAt,
+								lastSyncedAt: x.lastSyncedAt,
+								lastModified: x.lastModified,
+								ttlMinutes: x.ttlMinutes,
+								description: x.description,
+								link: x.link,
+								author: x.author,
+								ownerName: x.ownerName
+							}
+						});
 					});
-				});
+
+					processedCount += chunkFeeds.length;
+
+					if (processedCount < feeds.length) {
+						window.requestIdleCallback(processChunk, { timeout: EPISODE_TIMEOUT_MS });
+					}
+				}
+
+				processChunk();
 			});
 		}
 
@@ -188,7 +214,8 @@ export class FeedService {
 				feeds,
 				since: undefined,
 				corsHelper: settings!.corsHelper,
-				corsHelper2: settings!.corsHelper2
+				corsHelper2: settings!.corsHelper2,
+				force: false
 			};
 
 			const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -243,7 +270,8 @@ export class FeedService {
 			feeds,
 			since: undefined,
 			corsHelper: settings!.corsHelper,
-			corsHelper2: settings!.corsHelper2
+			corsHelper2: settings!.corsHelper2,
+			force: false
 		};
 
 		const finderResponse = await this.runEpisodeFinder(finderRequest);
@@ -463,13 +491,13 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 					setTimeout(() => {
 						Log.debug('App became visible, running feed update');
 						sync();
-					}, 10000);
+					}, 3000);
 				}
 			}
 		});
 
 		// Delay first sync
-		setTimeout(sync, 8000);
+		setTimeout(sync, 2000);
 
 		setInterval(sync, FEED_SYNC_CHECK_INTERVAL_MS);
 	}
@@ -480,13 +508,10 @@ ${feeds.map(feed => `      <outline type="rss" text="${encodeHtmlEntities(feed.t
 		});
 
 		try {
-			const response = await new Promise<EpisodeFinderResponse>((resolve, reject) => {
-				worker.onmessage = (event) => resolve(event.data);
-				worker.onerror = (error) => reject(error);
-				worker.postMessage(request);
-			});
-
-			return response;
+			const api = Comlink.wrap<{
+				processFeeds: (request: EpisodeFinderRequest) => Promise<EpisodeFinderResponse>;
+			}>(worker);
+			return await api.processFeeds(request);
 		} finally {
 			worker.terminate();
 		}

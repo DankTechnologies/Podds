@@ -159,6 +159,20 @@
 		display: flex;
 	}
 
+	/* static lower right  */
+	.nav-item.has-update[data-nav='/search'] .nav-item__icon-wrapper::before {
+		content: '';
+		position: absolute;
+		top: 22px;
+		right: 14px;
+		width: 4px;
+		height: 4px;
+		background-color: var(--success);
+		border-radius: 50%;
+		animation: pulse-search 3s ease-in-out infinite;
+	}
+
+	/* blinking upper left */
 	.nav-item.has-update[data-nav='/search'] .nav-item__icon-wrapper::after {
 		content: '';
 		position: absolute;
@@ -168,7 +182,7 @@
 		height: 4px;
 		background-color: var(--success);
 		border-radius: 50%;
-		animation: pulse-search 2s ease-in-out infinite;
+		animation: pulse-search 4s ease-in-out infinite;
 	}
 
 	/* left "eye" */

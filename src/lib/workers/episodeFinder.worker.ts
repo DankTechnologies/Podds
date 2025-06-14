@@ -1,66 +1,37 @@
 import type { Episode, Feed } from '$lib/types/db';
 import type { EpisodeFinderRequest, EpisodeFinderResponse } from '$lib/types/episodeFinder';
 import { parseFeedUrl } from '$lib/utils/feedParser';
+import * as Comlink from 'comlink';
 
 const FEED_TIMEOUT_MS = 5000;
 const BATCH_SIZE = 15;
 
-// Add error handling for the worker itself
-self.onerror = (error) => {
-	self.postMessage({
-		episodes: [],
-		feeds: [],
-		errors: [`Worker fatal error: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`]
-	});
-};
+async function processFeeds(request: EpisodeFinderRequest): Promise<EpisodeFinderResponse> {
+	const { feeds, since, corsHelper, corsHelper2, force } = request;
 
-self.onmessage = async (e: MessageEvent<EpisodeFinderRequest>) => {
-	try {
-		const { feeds, since, corsHelper, corsHelper2 } = e.data;
+	// Process feeds in batches
+	const results: Array<{
+		episodes: Episode[];
+		feed: Feed;
+		errors: string[];
+	}> = [];
 
-		// Process feeds in batches
-		const results: Array<{
-			episodes: Episode[];
-			feed: Feed;
-			errors: string[];
-		}> = [];
-
-		for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
-			const batch = feeds.slice(i, i + BATCH_SIZE);
-			const batchResults = await Promise.all(
-				batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since))
-			);
-			results.push(...batchResults);
-		}
-
-		const response: EpisodeFinderResponse = {
-			episodes: results.flatMap(r => r.episodes),
-			feeds: results.map(r => r.feed),
-			errors: results.flatMap(r => r.errors)
-		};
-
-		self.postMessage(response);
-	} catch (error) {
-		console.error('Worker message handler error:', error);
-		self.postMessage({
-			episodes: [],
-			feeds: [],
-			errors: [`Worker error: ${error instanceof Error ? `${error.message} - ${error.stack}` : String(error)}`]
-		});
+	for (let i = 0; i < feeds.length; i += BATCH_SIZE) {
+		const batch = feeds.slice(i, i + BATCH_SIZE);
+		const batchResults = await Promise.all(
+			batch.map(feed => fetchFeedWithTimeout(feed, corsHelper, corsHelper2, since, force))
+		);
+		results.push(...batchResults);
 	}
-};
 
-// Add unhandled rejection handler
-self.onunhandledrejection = (event) => {
-	console.error('Unhandled promise rejection:', event.reason);
-	self.postMessage({
-		episodes: [],
-		feeds: [],
-		errors: [`Unhandled promise rejection: ${event.reason instanceof Error ? event.reason.message : String(event.reason)}`]
-	} as EpisodeFinderResponse);
-};
+	return {
+		episodes: results.flatMap(r => r.episodes),
+		feeds: results.map(r => r.feed),
+		errors: results.flatMap(r => r.errors)
+	};
+}
 
-async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number): Promise<{
+async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2: string | undefined, since?: number, force: boolean = false): Promise<{
 	episodes: Episode[];
 	feed: Feed;
 	errors: string[];
@@ -70,7 +41,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 
 	try {
 		// Check if we should skip this feed based on TTL
-		if (feed.lastCheckedAt && feed.ttlMinutes) {
+		if (!force && feed.lastCheckedAt && feed.ttlMinutes) {
 			const minutesSinceLastCheck = (new Date().getTime() - feed.lastCheckedAt.getTime()) / 60000; // Convert to minutes
 			if (minutesSinceLastCheck < feed.ttlMinutes) {
 				clearTimeout(timeoutId);
@@ -88,7 +59,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 		// Prepare headers for conditional fetch
 		const headers: Record<string, string> = {};
 
-		if (feed.lastModified) {
+		if (!force && feed.lastModified) {
 			headers['If-Modified-Since'] = feed.lastModified.toUTCString();
 		}
 
@@ -139,3 +110,7 @@ async function fetchFeedWithTimeout(feed: Feed, corsHelper: string, corsHelper2:
 		};
 	}
 }
+
+Comlink.expose({
+	processFeeds
+});

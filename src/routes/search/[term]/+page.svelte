@@ -5,7 +5,7 @@
 	import EpisodeList from '$lib/components/EpisodeList.svelte';
 	import FeedList from '$lib/components/FeedList.svelte';
 	import type { Feed, Episode } from '$lib/types/db';
-	import { SearchHistoryService } from '$lib/service/SearchHistoryService.svelte';
+	import { SearchService } from '$lib/service/SearchService.svelte';
 	import { searchEpisodes, searchPodcasts } from '$lib/api/itunes';
 	import { isOnline } from '$lib/utils/networkState.svelte';
 	import { EpisodeService } from '$lib/service/EpisodeService.svelte';
@@ -77,17 +77,13 @@
 			const latestEpisodeDate = new Date(
 				Math.max(...episodeResults.map((e) => e.publishedAt.getTime()))
 			);
-			SearchHistoryService.addSearchHistory(term, latestEpisodeDate);
+			SearchService.addSearchHistory(term, latestEpisodeDate);
 
 			isLoading = false;
 		} catch (error) {
 			console.error('Search failed:', error);
 			isLoading = false;
 		}
-	}
-
-	async function handleDeleteSearch(id: string) {
-		SearchHistoryService.deleteSearchHistory(id);
 	}
 </script>
 

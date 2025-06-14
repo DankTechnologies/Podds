@@ -8,7 +8,7 @@ import { SettingsService } from './SettingsService.svelte';
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
-export class SearchHistoryService {
+export class SearchService {
     static addSearchHistory(term: string, latestEpisodePublishedAt: Date): void {
         const existingSearch = this.findSearchHistory(term);
 
@@ -67,7 +67,7 @@ export class SearchHistoryService {
     async updateMonitoredSearches() {
         const settings = getSettings();
 
-        const monitoredSearches = SearchHistoryService.getMonitoredSearchHistory();
+        const monitoredSearches = SearchService.getMonitoredSearchHistory();
 
         if (monitoredSearches.length === 0) {
             Log.debug('No monitored searches found, skipping update');
